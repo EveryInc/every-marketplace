@@ -19,8 +19,35 @@
         "email": "kieran@every.to"
       },
       "homepage": "https://github.com/EveryInc/compounding-engineering-plugin",
-      "tags": ["ai-powered", "compounding-engineering", "workflow-automation", "code-review", "quality", "knowledge-management"],
+      "tags": [
+        "ai-powered",
+        "compounding-engineering",
+        "workflow-automation",
+        "code-review",
+        "quality",
+        "knowledge-management"
+      ],
       "source": "./plugins/compounding-engineering"
+    },
+    {
+      "name": "debate-consensus",
+      "description": "Multi-model AI consensus through structured debates. Orchestrates debates between Claude, GPT, Gemini, and other AI models with full MCP tool access.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Kostas Noreika",
+        "url": "https://github.com/KostasNoreika"
+      },
+      "homepage": "https://github.com/KostasNoreika/claude-code-plugin-debate-consensus",
+      "tags": [
+        "debate",
+        "consensus",
+        "multi-model",
+        "ai",
+        "decision-making",
+        "architecture",
+        "code-review"
+      ],
+      "source": "KostasNoreika/claude-code-plugin-debate-consensus"
     }
   ]
 }
