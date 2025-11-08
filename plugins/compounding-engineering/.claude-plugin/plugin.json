@@ -1,7 +1,7 @@
 {
   "name": "compounding-engineering",
-  "version": "1.0.0",
-  "description": "AI-powered development tools that get smarter with every use. Make each unit of engineering work easier than the last. Includes 15 specialized agents and 6 commands.",
+  "version": "1.1.0",
+  "description": "AI-powered development tools that get smarter with every use. Make each unit of engineering work easier than the last. Includes 15 specialized agents, 6 commands, and 3 git worktree skills.",
   "author": {
     "name": "Kieran Klaassen",
     "email": "kieran@every.to",
@@ -16,6 +16,44 @@
     "workflow-automation",
     "code-review",
     "quality",
-    "knowledge-management"
-  ]
+    "knowledge-management",
+    "git-worktrees"
+  ],
+  "components": {
+    "agents": 15,
+    "commands": 6,
+    "skills": 3,
+    "hooks": 0
+  },
+  "skills": {
+    "git-workflow": [
+      {
+        "name": "git-worktree-create",
+        "description": "Creates isolated git worktrees for PRs, feature branches, or experiments with smart defaults and best practices",
+        "use_cases": [
+          "PR review isolation",
+          "Feature branch setup",
+          "Experiment/spike environments"
+        ]
+      },
+      {
+        "name": "git-worktree-manage",
+        "description": "Manages worktree lifecycle: listing active worktrees, inspecting status, removing completed work, and pruning references",
+        "use_cases": [
+          "Worktree inventory and navigation",
+          "Status checking and verification",
+          "Cleanup and maintenance"
+        ]
+      },
+      {
+        "name": "git-worktree-best-practices",
+        "description": "Provides naming conventions, organizational patterns, and workflow guidance aligned with compounding engineering principles",
+        "use_cases": [
+          "Team convention establishment",
+          "Workflow pattern guidance",
+          "Troubleshooting and optimization"
+        ]
+      }
+    ]
+  }
 }
