@@ -4,6 +4,8 @@
 
 This command helps you analyze a work document (plan, Markdown file, specification, or any structured document), create a comprehensive todo list using the TodoWrite tool, and then systematically execute each task until the entire plan is completed. It combines deep analysis with practical execution to transform plans into reality.
 
+**Enhanced with git worktree isolation**: This command uses the **git-worktree-create skill** to automatically create isolated development environments for each work plan, ensuring clean separation of concerns and enabling parallel development.
+
 ## Prerequisites
 
 - A work document to analyze (plan file, specification, or any structured document)
@@ -36,40 +38,23 @@ This command helps you analyze a work document (plan, Markdown file, specificati
    git pull origin main
    ```
 
-2. **Create Feature Branch and Worktree**
+2. **Create Feature Branch and Worktree** (via git-worktree-create skill)
 
-   - Determine appropriate branch name from document
-   - Get the root directory of the Git repository:
+   The **git-worktree-create skill** handles all worktree setup automatically:
 
-   ```bash
-   git_root=$(git rev-parse --show-toplevel)
-   ```
+   - Determines appropriate branch name from document/arguments
+   - Creates `.worktrees/` directory structure
+   - Updates `.gitignore` with `.worktrees` entry
+   - Creates feature branch with semantic naming convention
+   - Sets up isolated development environment
+   - Verifies environment is ready for work
 
-   - Create worktrees directory if it doesn't exist:
-
-   ```bash
-   mkdir -p "$git_root/.worktrees"
-   ```
-
-   - Add .worktrees to .gitignore if not already there:
-
-   ```bash
-   if ! grep -q "^\.worktrees$" "$git_root/.gitignore"; then
-     echo ".worktrees" >> "$git_root/.gitignore"
-   fi
-   ```
-
-   - Create the new worktree with feature branch:
-
-   ```bash
-   git worktree add -b feature-branch-name "$git_root/.worktrees/feature-branch-name" main
-   ```
-
-   - Change to the new worktree directory:
-
-   ```bash
-   cd "$git_root/.worktrees/feature-branch-name"
-   ```
+   **The skill automatically:**
+   - ✓ Determines branch name: `feature/{descriptive-name}`
+   - ✓ Creates directory: `$git_root/.worktrees/feature-{descriptive-name}/`
+   - ✓ Initializes git worktree with proper base branch
+   - ✓ Verifies worktree setup and branch creation
+   - ✓ Positions you in the worktree directory
 
 3. **Verify Environment**
    - Confirm in correct worktree directory
