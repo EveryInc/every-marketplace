@@ -261,7 +261,7 @@ chmod +x scripts/create-worktree.sh
 ./scripts/create-worktree.sh spike caching-layer
 ```
 
-See `examples/basic-usage.md` for detailed examples.
+See the [Worktree Patterns](#worktree-patterns) section above for detailed usage examples.
 
 ## Advanced Worktree Options
 
@@ -303,6 +303,25 @@ git worktree lock .worktrees/feature-x --reason "On external drive"
 
 # Unlock when done
 git worktree unlock .worktrees/feature-x
+```
+
+### Remove Worktrees Safely
+
+⚠️ **WARNING**: Always verify before removing a worktree:
+
+```bash
+# SAFE: Check what you're removing first
+cd .worktrees/feature-name
+git status                              # Verify no uncommitted changes
+git log --oneline -5 origin/[branch]..HEAD  # Verify all changes are pushed
+
+# SAFE: Then remove
+cd ../..
+git worktree remove .worktrees/feature-name
+
+# UNSAFE: Do NOT use --force flag unless you understand the consequences
+# --force will remove even if worktree has uncommitted changes
+git worktree remove --force .worktrees/feature-name  # ONLY if you're sure!
 ```
 
 ### Repair Moved Worktrees
@@ -519,6 +538,11 @@ claude /review 456
 - **git-worktree-manage** - Lists, switches, and removes worktrees
 - **git-worktree-best-practices** - Naming conventions and workflow patterns
 
+## Related Commands
+
+- `/work` - Uses this skill for feature development
+- `/review` - Uses this skill for PR reviews
+
 ## Official Resources
 
 ### Git Documentation
@@ -530,12 +554,4 @@ claude /review 456
 - [Practical Guide to Git Worktree (DEV.to)](https://dev.to/yankee/practical-guide-to-git-worktree-58o0)
 - [Git Worktree Best Practices (GitHub Gist)](https://gist.github.com/ChristopherA/4643b2f5e024578606b9cd5d2e6815cc)
 - [Mastering Git Worktree (Medium)](https://mskadu.medium.com/mastering-git-worktree-a-developers-guide-to-multiple-working-directories-c30f834f79a5)
-
-### Related Skills
-- **git-worktree-manage** - Lists, switches, and removes worktrees
-- **git-worktree-best-practices** - Naming conventions and workflow patterns
-
-### Related Commands
-- `/work` - Uses this skill for feature development
-- `/review` - Uses this skill for PR reviews
 

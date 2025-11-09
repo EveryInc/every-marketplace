@@ -204,8 +204,23 @@ git worktree list
 ```
 
 **Nuclear cleanup** (all at once):
+
+⚠️ **WARNING**: This operation is destructive and irreversible. Use only when you have verified:
+1. All important work has been pushed to remote
+2. All active worktrees have been reviewed with `git worktree list`
+3. You have committed or stashed any uncommitted changes
+4. You will not need to recover old worktree history
+
 ```bash
 # CAREFUL! Only do this if you're sure
+# First, verify what will be deleted
+git worktree list
+
+# Second, confirm all changes are pushed
+cd .worktrees/[name]
+git log --oneline -5 origin/[branch]..HEAD  # Should show nothing
+
+# Third, remove all worktrees
 rm -rf .worktrees/
 git worktree prune
 
