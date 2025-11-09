@@ -1,0 +1,42 @@
+# <type>(<scope>): <subject>
+# |<----  Using a Maximum Of 50 Characters  ---->|
+
+
+# Explain why this change is being made
+# |<----   Try To Limit Each Line to a Maximum Of 72 Characters   ---->|
+
+
+# Provide links or keys to any relevant tickets, articles or other resources
+# Use "Refs:" for referencing issues
+# Use "Closes:" for closing issues
+# Refs: #123
+# Closes: #456
+
+
+# --- COMMIT END ---
+# Type can be:
+#   feat     (new feature)
+#   fix      (bug fix)
+#   refactor (refactoring production code)
+#   style    (formatting, missing semicolons, etc; no code change)
+#   docs     (changes to documentation)
+#   test     (adding/refactoring tests; no production code change)
+#   chore    (updating build tasks, etc; no production code change)
+#   perf     (performance improvements)
+#   wip      (work in progress; will be squashed)
+#
+# Scope represents the area of change (e.g., auth, api, db, ui)
+# Common scopes for worktree work:
+#   - Feature areas: auth, api, ui, db, cache
+#   - Infrastructure: setup, build, ci, deps
+#   - Worktree-specific: worktree, review
+#
+# Subject should use imperative mood ("add" not "added", "fix" not "fixed")
+#
+# If using this template with git:
+#   git config commit.template /path/to/COMMIT_TEMPLATE.txt
+#
+# Include Claude Code footer for AI-assisted commits:
+#   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+#
+#   Co-Authored-By: Claude <noreply@anthropic.com>
