@@ -234,7 +234,6 @@ The git-worktree-skills include comprehensive documentation and examples:
 
 - **Skills**: `plugins/compounding-engineering/skills/git-worktree-*/SKILL.md` - Full skill documentation
 - **Examples**: `plugins/compounding-engineering/skills/git-worktree-create/examples/` - Practical examples
-- **Resources**: `plugins/compounding-engineering/skills/git-worktree-create/RESOURCES.md` - Curated external references
 - **Script**: `plugins/compounding-engineering/skills/git-worktree-create/scripts/create-worktree.sh` - Automation tool
 
 ### External Resources

@@ -77,21 +77,6 @@ skills/
     └── SKILL.md                       # Skill definition
 ```
 
-## Learning Resources
-
-### Git Worktree Documentation
-The git-worktree-skills include comprehensive documentation and examples:
-
-- **Skills**: `skills/git-worktree-*/SKILL.md` - Full skill documentation
-- **Examples**: `skills/git-worktree-create/examples/` - Practical examples
-- **Resources**: `skills/git-worktree-create/RESOURCES.md` - Curated external references
-- **Script**: `skills/git-worktree-create/scripts/create-worktree.sh` - Automation tool
-
-### External Resources
-- [Official Git Worktree Docs](https://git-scm.com/docs/git-worktree)
-- [Git Worktree Best Practices (GitHub Gist)](https://gist.github.com/ChristopherA/4643b2f5e024578606b9cd5d2e6815cc)
-- [Practical Guide to Git Worktree (DEV.to)](https://dev.to/yankee/practical-guide-to-git-worktree-58o0)
-
 ## Key Learnings
 
 These skills extract common patterns from commands (especially `/work` and `/review`) to make them reusable across agents, commands, and other workflows. This follows the compounding engineering philosophy—each skill makes subsequent units of work easier.

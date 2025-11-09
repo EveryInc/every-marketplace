@@ -168,142 +168,7 @@ Worktree names should communicate:
 
 ## Workflow Patterns
 
-### Pattern 1: PR Review Workflow
-
-**Scenario**: Review incoming pull requests
-
-**Naming**:
-```
-.worktrees/reviews/pr-{number}/
-```
-
-**Lifetime**: Short (hours to days)
-
-**Cleanup**: Remove immediately after review
-
-**Example**:
-```bash
-# Create
-git worktree add-pr 456
-
-# Review and provide feedback
-
-# Remove
-git worktree remove .worktrees/reviews/pr-456
-```
-
-### Pattern 2: Feature Development Workflow
-
-**Scenario**: Build new features
-
-**Naming**:
-```
-.worktrees/feature-{description}/
-```
-
-**Lifetime**: Medium (days to weeks)
-
-**Cleanup**: Remove after merge to main
-
-**Example**:
-```bash
-# Create
-./scripts/create-worktree.sh feature "user authentication"
-# Creates: .worktrees/feature-user-authentication
-
-# Develop
-cd .worktrees/feature-user-authentication
-git commit -m "Add login form"
-git push -u origin feature/user-authentication
-
-# Merge to main (via PR)
-# Remove after merge
-git worktree remove .worktrees/feature-user-authentication
-```
-
-### Pattern 3: Experiment/Spike Workflow
-
-**Scenario**: Investigate solutions before committing
-
-**Naming**:
-```
-.worktrees/spike-{investigation}/
-```
-
-**Lifetime**: Short to medium (hours to days)
-
-**Cleanup**: Remove after decision (merge winner, discard loser)
-
-**Example**:
-```bash
-# Experiment with caching layer
-./scripts/create-worktree.sh spike "caching-layer"
-
-# Compare with redis approach
-./scripts/create-worktree.sh spike "redis-integration"
-
-# After testing, keep winner
-git merge spike/caching-layer
-git worktree remove .worktrees/spike-redis-integration
-
-# Remove spike worktrees
-git worktree remove .worktrees/spike-caching-layer
-```
-
-### Pattern 4: Refactoring Workflow
-
-**Scenario**: Large refactoring that takes sustained effort
-
-**Naming**:
-```
-.worktrees/refactor-{component}/
-```
-
-**Lifetime**: Medium to long (weeks to months)
-
-**Cleanup**: Remove after merge
-
-**Example**:
-```bash
-# Large database layer refactoring
-./scripts/create-worktree.sh feature "refactor-database"
-
-# Intensive work over weeks
-cd .worktrees/refactor-database
-# ... many commits ...
-
-# Merge when ready
-git push origin feature/refactor-database
-# ... code review ...
-# ... merge ...
-
-# Cleanup
-git worktree remove .worktrees/refactor-database
-```
-
-### Pattern 5: Parallel Development Workflow
-
-**Scenario**: Multiple team members work on different features
-
-**Naming**: Consistent patterns allow parallelization
-
-**Example**:
-```bash
-# Team member 1
-./scripts/create-worktree.sh feature "authentication"
-
-# Team member 2 (simultaneously, no conflicts!)
-./scripts/create-worktree.sh feature "payments"
-
-# Team member 3
-./scripts/create-worktree.sh spike "performance"
-
-# All work in isolation
-# No branch contamination
-# Easy merge when ready
-```
-
-### Pattern 6: Emergency Hotfix (Canonical Example)
+### Pattern 1: Emergency Hotfix Management
 
 **Scenario**: Production bug needs immediate fix while you have uncommitted feature work
 
@@ -352,66 +217,66 @@ git branch -d hotfix/critical-bug
 - No risk of stash conflicts
 - Can test both simultaneously
 
-### Pattern 7: CI/CD Optimization
+### Pattern 2: Feature Development Workflow
 
-**Scenario**: Build system needs to build multiple branches
+**Scenario**: Build new features in isolation
 
-From [community best practices](https://gist.github.com/ChristopherA/4643b2f5e024578606b9cd5d2e6815cc):
-
-```bash
-# Instead of multiple clones (expensive):
-git clone repo.git build-main
-git clone repo.git build-staging  # wasteful!
-git clone repo.git build-develop  # wasteful!
-
-# Use single clone with worktrees:
-git clone repo.git repo
-cd repo
-
-# Create worktrees for each branch to build
-git worktree add ../build-main main
-git worktree add ../build-staging staging
-git worktree add ../build-develop develop
-
-# Build in parallel
-(cd ../build-main && npm run build) &
-(cd ../build-staging && npm run build) &
-(cd ../build-develop && npm run build) &
-wait
-
-# Faster, uses less disk, shares Git objects
+**Naming**:
+```
+.worktrees/feature-{description}/
 ```
 
-**Benefits:**
-- Single clone saves disk space
-- Shared object database saves bandwidth
-- Faster than repeated clones
-- Easy cleanup with `git worktree remove`
+**Lifetime**: Medium (days to weeks)
 
-### Pattern 8: Long-Running Review Workflow
+**Cleanup**: Remove after merge to main
 
-**Scenario**: PR review that takes days, you need to review incrementally
+**Example**:
+```bash
+# Create
+./scripts/create-worktree.sh feature "user authentication"
+# Creates: .worktrees/feature-user-authentication
 
+# Develop
+cd .worktrees/feature-user-authentication
+git commit -m "Add login form"
+git push -u origin feature/user-authentication
+
+# Merge to main (via PR)
+# Remove after merge
+git worktree remove .worktrees/feature-user-authentication
+```
+
+### Pattern 3: PR Review Without Context Switching
+
+**Scenario**: Review pull requests while keeping current work intact
+
+**Naming**:
+```
+.worktrees/reviews/pr-{number}/
+```
+
+**Lifetime**: Short (hours to days)
+
+**Example**:
 ```bash
 # Create dedicated review worktree
 ./scripts/create-worktree.sh review 456
 cd .worktrees/reviews/pr-456
 
-# Day 1: Review files 1-10
-# ... review, add comments ...
+# Review and provide feedback
+# ... examine code, add comments ...
 
-# Need to work on your own features
-cd /path/to/main/repo
+# Your feature work is preserved in main worktree
+cd /path/to/repo
 ./scripts/create-worktree.sh feature my-work
 cd .worktrees/feature-my-work
-# ... do your work ...
+# ... continue your work, uninterrupted ...
 
-# Day 2: Back to review
+# Return to finish review
 cd /path/to/repo/.worktrees/reviews/pr-456
 # Exactly where you left off, no branch switching!
 
-# Day 3: Finish review
-# ... final comments, approve ...
+# Clean up when done
 cd /path/to/repo
 git worktree remove .worktrees/reviews/pr-456
 ```
@@ -421,196 +286,6 @@ git worktree remove .worktrees/reviews/pr-456
 - No branch switching interrupts your flow
 - Can pause/resume review easily
 - Multiple reviews can be active simultaneously
-
-## Team Conventions Guide
-
-### Starting a New Team
-
-**Establish these conventions:**
-
-```markdown
-# Our Worktree Standards
-
-## Naming
-- feature-* for feature branches
-- spike-* for experiments
-- hotfix-* for production fixes
-- reviews/pr-* for PR reviews
-
-## Location
-All worktrees in .worktrees/ directory
-
-## Cleanup
-- Remove PR reviews after merge
-- Remove features after merge
-- Remove spikes after decision
-- Weekly cleanup: git worktree prune
-
-## Documentation
-For complex work, add README.md to worktree
-
-## Conventions
-- Always create from main
-- Descriptive branch names
-- Commit messages reference ticket numbers
-```
-
-### Enforcing Standards
-
-```bash
-# Pre-commit hook to prevent worktree commits
-cat > .git/hooks/pre-commit <<'EOF'
-#!/bin/bash
-git_root=$(git rev-parse --show-toplevel)
-current_path=$(pwd)
-
-if [[ "$current_path" == "$git_root/.worktrees"* ]]; then
-    echo "Error: Cannot commit from worktree"
-    echo "Switch to main branch to commit"
-    exit 1
-fi
-EOF
-
-chmod +x .git/hooks/pre-commit
-```
-
-## Integration with Compounding Engineering
-
-### How Worktrees Compound Work
-
-1. **Each feature starts in isolation**
-   - No branch conflicts
-   - Clean separation of concerns
-   - Enables parallel work
-
-2. **Work compounds when merged**
-   - Clean commits tell story
-   - Easy review of changes
-   - Simple rollback if needed
-
-3. **Cleanup makes future work easier**
-   - Repository stays lean
-   - Fewer worktrees = faster operations
-   - Clear intent for active work
-
-4. **Consistent naming helps team**
-   - Everyone knows where to look
-   - New team members understand structure
-   - Reduced cognitive load
-
-### Integration with Commands
-
-**`/work` command**:
-```bash
-claude /work "Build authentication system"
-# Automatically:
-# 1. Uses git-worktree-create skill
-# 2. Names worktree: feature-build-authentication-system
-# 3. Follows naming convention
-# 4. Sets up environment for compounding engineering workflow
-```
-
-**`/review` command**:
-```bash
-claude /review 456
-# Automatically:
-# 1. Uses git-worktree-create skill
-# 2. Names worktree: reviews/pr-456
-# 3. Creates isolated review environment
-# 4. Follows cleanup patterns
-```
-
-## Migration Guide
-
-### Moving From No Worktrees
-
-**Current state**: Everything on main branch
-
-**Steps**:
-1. Learn worktree basics (git-worktree-create skill)
-2. Try one feature in worktree
-3. Practice cleanup (git-worktree-manage skill)
-4. Establish team conventions
-5. Migrate team to worktree workflow
-
-### Moving to Strict Conventions
-
-**Current state**: Messy worktree naming
-
-**Steps**:
-1. Document current state
-   ```bash
-   git worktree list > worktrees-before.txt
-   ```
-
-2. Create migration plan
-   ```bash
-   # Remove old worktrees
-   git worktree remove old-work-1
-   git worktree remove old-work-2
-   ```
-
-3. Establish new conventions
-4. Create setup guide for team
-5. Use hooks to enforce (optional)
-
-## Common Questions
-
-### Q: How many worktrees is too many?
-
-**A**: Generally < 10 is healthy. If you have 20+:
-- Do cleanup pass
-- Merge completed work
-- Remove stale spikes
-- Keep only active work
-
-```bash
-# Count worktrees
-git worktree list | wc -l
-
-# If too many, cleanup
-git worktree list
-# Identify old work
-git worktree remove old-work
-git worktree prune
-```
-
-### Q: Should we use subdirectories (reviews/) or not?
-
-**A**: Depends on scale:
-- **Small teams (< 5 people)**: Flat structure OK
-- **Medium teams (5-20)**: Use categories (reviews/, features/, etc.)
-- **Large teams (> 20)**: Organized by team + category
-
-### Q: How do we handle long-running features?
-
-**A**: Same as any feature, but:
-- Keep main branch current: `git merge origin/main`
-- Or rebase occasionally: `git rebase origin/main`
-- Communicate timeline to team
-- Document progress in README.md
-
-### Q: What if someone deletes a worktree accidentally?
-
-**A**: Recovery depends on commits:
-- If commits pushed: recover from remote branch
-- If unpushed: check git reflog
-- Worst case: recreate from branch history
-
-```bash
-# Recover from reflog
-git reflog
-git worktree add .worktrees/recovered [COMMIT_SHA]
-```
-
-### Q: Should feature names match branch names?
-
-**A**: Yes! Makes things consistent:
-```bash
-# Worktree: .worktrees/feature-auth
-# Branch: feature/auth
-# Matches the prefix exactly
-```
 
 ## Best Practices Summary
 
@@ -625,121 +300,9 @@ git worktree add .worktrees/recovered [COMMIT_SHA]
 | **Create from main** | Stay current | Always base on main branch |
 | **Parallel safely** | Team productivity | Different worktrees, no conflicts |
 
-## Anti-Patterns to Avoid
+## Troubleshooting
 
-### Anti-Pattern 1: Too Many Worktrees
-
-**Bad:**
-```bash
-git worktree list | wc -l
-# 35 worktrees!
-
-# Symptoms:
-# - Hard to find specific worktree
-# - Slow Git operations
-# - Wasting disk space
-# - Forgotten old work
-```
-
-**Good:**
-```bash
-# Keep it manageable
-git worktree list | wc -l
-# 5-8 worktrees (active work only)
-
-# Regular cleanup
-git worktree list
-# Only current PRs under review
-# Only active features in development
-# Only current spikes being investigated
-```
-
-### Anti-Pattern 2: Manual Directory Deletion
-
-**Bad:**
-```bash
-# Don't do this!
-rm -rf .worktrees/feature-old
-# Leaves orphaned Git metadata
-# Causes "prunable" entries
-# Requires manual cleanup
-```
-
-**Good:**
-```bash
-# Always use git worktree remove
-git worktree remove .worktrees/feature-old
-# Cleans up Git metadata automatically
-# Safe removal with checks
-# Prevents orphaned data
-```
-
-### Anti-Pattern 3: Shared Branch in Multiple Worktrees
-
-**Bad:**
-```bash
-# Won't work - Git prevents this
-git worktree add .worktrees/feature-a feature-branch
-git worktree add .worktrees/feature-b feature-branch
-# fatal: 'feature-branch' is already checked out at '.worktrees/feature-a'
-```
-
-**Good:**
-```bash
-# Use different branches or detached HEAD
-git worktree add .worktrees/feature-a feature-branch
-git worktree add --detach .worktrees/feature-test feature-branch
-# Detached HEAD allows testing same code
-```
-
-### Anti-Pattern 4: Worktrees with Submodules (Experimental)
-
-**Be Cautious:**
-```bash
-# Official Git docs warn: submodule support is incomplete
-# If you must use worktrees with submodules:
-
-# 1. Test thoroughly before relying on it
-# 2. Keep submodules simple (avoid nested)
-# 3. Be prepared for unexpected behavior
-# 4. Consider alternatives (sparse checkout, multiple clones)
-```
-
-**Reference**: https://git-scm.com/docs/git-worktree#_bugs
-
-## Troubleshooting Guidelines
-
-### Problem: Inconsistent naming
-
-```bash
-# Bad state:
-.worktrees/
-├── feature1
-├── new_feature
-├── my-feature-work
-└── f-auth
-
-# Solution: Establish convention, rename incrementally
-```
-
-### Problem: Worktrees growing too old
-
-```bash
-# Check age of worktrees
-git worktree list
-
-# If any 30+ days old, investigate
-# Likely merged or abandoned
-```
-
-### Problem: Team doesn't follow standards
-
-```bash
-# Solution: Document conventions
-# Make guide visible to team
-# Use pre-commit hooks to enforce
-# Discuss in team meetings
-```
+For common issues with worktrees (already exists, uncommitted changes, prunable entries, performance), see the [Troubleshooting section in git-worktree-manage skill](./git-worktree-manage/SKILL.md#troubleshooting).
 
 ## Official Resources
 
@@ -760,9 +323,6 @@ git worktree list
 ### Related Commands
 - `/work` - Uses these practices
 - `/review` - Uses these practices
-
-### Curated Resource Hub
-- **RESOURCES.md** - Comprehensive collection of official docs, guides, and tools
 
 ## Compounding Engineering Philosophy
 

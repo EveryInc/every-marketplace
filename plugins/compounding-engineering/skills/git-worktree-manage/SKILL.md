@@ -56,51 +56,14 @@ Cleanup (this skill) - remove worktree
 
 ## Worktree Status and Metadata
 
-Understanding worktree status helps with management decisions.
+Git tracks worktree metadata in `.git/worktrees/<name>/`, including branch, HEAD, and lock status. This information is used by `git worktree list` and `git worktree remove`.
 
-### Status Indicators
+**Key operations:**
+- **List worktrees:** `git worktree list` shows path, branch, and commit for all worktrees
+- **Check status:** Each worktree has independent staging area and working directory state
+- **Prune stale entries:** `git worktree prune` removes metadata for deleted worktree directories
 
-From `git worktree list`, you'll see several states:
-
-**Active Worktree:**
-```
-/path/to/repo/.worktrees/feature-auth  abc1234 [feature/auth]
-```
-
-**Locked Worktree:**
-```
-/path/to/repo/.worktrees/feature-usb  def5678 [feature/usb] locked
-```
-- Protected from pruning
-- Typically on removable media
-- See: `git worktree lock --help`
-
-**Prunable Worktree:**
-```
-/path/to/repo/.worktrees/old-feature  (prunable)
-```
-- Directory was deleted manually
-- Administrative data remains in `.git/worktrees/`
-- Run `git worktree prune` to clean up
-
-**Detached HEAD:**
-```
-/path/to/repo/.worktrees/experiment  ghi9012 (detached HEAD)
-```
-- Not on any branch
-- Often used for testing specific commits
-- Changes need manual branch creation to preserve
-
-### Administrative Files
-
-Worktree metadata lives in `.git/worktrees/<name>/`:
-- `gitdir` - Points to worktree location
-- `HEAD` - Current branch or commit
-- `index` - Staging area
-- `locked` - Lock reason (if locked)
-- `link` - Link back to main worktree
-
-**Reference**: https://git-scm.com/docs/git-worktree#_details
+For complete metadata structure and low-level details, see [Git Worktree Internals](https://git-scm.com/docs/gitrepository-layout#Documentation/gitrepository-layout.txt-worktreesltnamegtgitdir).
 
 ## Common Operations
 
@@ -612,6 +575,11 @@ git worktree prune
 - **git-worktree-create** - Create new worktrees
 - **git-worktree-best-practices** - Naming conventions and organization
 
+## Related Commands
+
+- **`/work`** - Interactive worktree creation
+- **`/review`** - PR review with auto-cleanup
+
 ## Official Resources
 
 ### Git Documentation
@@ -624,5 +592,3 @@ git worktree prune
 - [Git Worktree Best Practices (GitHub Gist)](https://gist.github.com/ChristopherA/4643b2f5e024578606b9cd5d2e6815cc)
 - [Mastering Git Worktree (Medium)](https://mskadu.medium.com/mastering-git-worktree-a-developers-guide-to-multiple-working-directories-c30f834f79a5)
 
-### Curated Resource Hub
-- **RESOURCES.md** - Comprehensive collection of official docs, guides, and tools
