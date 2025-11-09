@@ -4,6 +4,15 @@
 
 Creates isolated git worktrees for PR reviews, feature development, experiments, or other development work. This skill encapsulates worktree best practices and automation, making it easy to set up clean, isolated development environments.
 
+### Official Documentation
+
+- **Git Worktree Reference**: https://git-scm.com/docs/git-worktree
+- **Git Book - Git Tools**: https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging
+
+### Important Notice
+
+⚠️ Git worktrees are still considered **experimental** according to official Git documentation, particularly when used with submodules. For most single-repository workflows (like the patterns in this skill), they are stable and production-ready.
+
 ## When to Use This Skill
 
 - **PR Review Workflows**: Setting up `/review` command worktrees
@@ -40,6 +49,38 @@ $git_root/
 3. **Easy Cleanup** - Remove entire `.worktrees/` dir during housekeeping
 4. **Git Friendly** - Single `.gitignore` entry covers all
 5. **Clear Intent** - Directory structure shows what work is happening
+
+## Git Worktree Fundamentals
+
+Understanding how Git worktrees work helps you use them effectively.
+
+### Main vs Linked Worktrees
+
+From the [official Git documentation](https://git-scm.com/docs/git-worktree):
+
+- **Main Worktree**: The original repository checkout (where `.git` directory exists)
+- **Linked Worktrees**: Additional checkouts stored in `.git/worktrees/`
+
+**Shared Across Worktrees:**
+- Most refs (branches, tags)
+- Object database (commits, trees, blobs)
+- Configuration (unless using `extensions.worktreeConfig`)
+
+**Per-Worktree (Isolated):**
+- `HEAD` - current branch/commit
+- Index/staging area
+- Working directory files
+- `refs/bisect/*` - git bisect state
+- `refs/worktree/*` - worktree-specific refs
+- `refs/rewritten/*` - rebase/filter state
+
+### Why This Matters
+
+This isolation means:
+- ✓ Each worktree can be on a different branch simultaneously
+- ✓ Staging changes in one worktree doesn't affect others
+- ✓ You can run different commands in each worktree safely
+- ⚠️ Shared refs mean you can't checkout the same branch in multiple worktrees
 
 ## Worktree Patterns
 
@@ -246,6 +287,74 @@ chmod +x scripts/create-worktree.sh
 
 See `examples/basic-usage.md` for detailed examples.
 
+## Advanced Worktree Options
+
+Based on [official git-worktree documentation](https://git-scm.com/docs/git-worktree), here are advanced options you might need:
+
+### Detached HEAD Worktrees
+
+For experimental changes you don't want to create a branch for:
+
+```bash
+# Create worktree at specific commit without branch
+git worktree add --detach .worktrees/experiment-abc123 abc123
+
+# Useful for testing old commits or one-off experiments
+cd .worktrees/experiment-abc123
+# Make changes, test
+# When done, just remove - no branch to cleanup
+```
+
+### Orphan Branch Worktrees
+
+For completely separate histories (documentation sites, etc.):
+
+```bash
+# Create worktree with orphan branch (no history)
+git worktree add --orphan .worktrees/docs-site
+
+# Useful for gh-pages branches or isolated documentation
+```
+
+### Lock Worktrees
+
+For worktrees on removable drives or network shares:
+
+```bash
+# Lock to prevent pruning when drive unmounted
+git worktree add .worktrees/feature-x
+git worktree lock .worktrees/feature-x --reason "On external drive"
+
+# Unlock when done
+git worktree unlock .worktrees/feature-x
+```
+
+### Repair Moved Worktrees
+
+If you manually move a worktree directory:
+
+```bash
+# After moving .worktrees/feature-x to different path
+git worktree repair .worktrees/feature-x
+
+# Or repair all worktrees
+git worktree repair
+```
+
+### No Checkout Mode
+
+For sparse checkout or custom index operations:
+
+```bash
+# Create worktree without checking out files
+git worktree add --no-checkout .worktrees/sparse-work
+
+# Then configure sparse-checkout
+cd .worktrees/sparse-work
+git sparse-checkout init --cone
+git sparse-checkout set src/specific/directory
+```
+
 ## Common Workflows
 
 ### Workflow 1: Quick PR Review
@@ -446,13 +555,57 @@ claude /review 456
 # 5. Reports findings
 ```
 
+## Limitations and Warnings
+
+### From Official Git Documentation
+
+⚠️ **Experimental Status**: Multiple checkout support is still experimental, particularly:
+- Submodule support is incomplete
+- Multiple checkouts of superprojects are unsupported
+- Some edge cases may have unexpected behavior
+
+⚠️ **Branch Checkout Restrictions**:
+- A branch cannot be checked out in multiple worktrees simultaneously
+- Attempting to do so will fail with an error
+- Use different branches or detached HEAD if you need same codebase in multiple places
+
+⚠️ **Performance Considerations**:
+- Many worktrees (20+) can slow down some Git operations
+- Each worktree consumes disk space for working files
+- Clean up old worktrees regularly for best performance
+
+### Best Practices to Avoid Issues
+
+✓ Keep worktree count reasonable (< 10 active worktrees)
+✓ Use `git worktree prune` regularly to clean stale references
+✓ Always use `git worktree remove` instead of manual deletion
+✓ If you must move worktrees, use `git worktree repair` after
+✓ Avoid worktrees with submodules unless necessary (incomplete support)
+
 ## Related Skills
 
 - **git-worktree-manage** - Lists, switches, and removes worktrees
 - **git-worktree-best-practices** - Naming conventions and workflow patterns
 
-## See Also
+## Official Resources
 
-- `git worktree` man page: `man git-worktree`
-- Git documentation: https://git-scm.com/docs/git-worktree
-- Related commands: `/work`, `/review`
+### Git Documentation
+- **git worktree man page**: `man git-worktree` or https://git-scm.com/docs/git-worktree
+- **Git reference**: https://git-scm.com/docs
+- **Git Book**: https://git-scm.com/book
+
+### Community Guides
+- [Practical Guide to Git Worktree (DEV.to)](https://dev.to/yankee/practical-guide-to-git-worktree-58o0)
+- [Git Worktree Best Practices (GitHub Gist)](https://gist.github.com/ChristopherA/4643b2f5e024578606b9cd5d2e6815cc)
+- [Mastering Git Worktree (Medium)](https://mskadu.medium.com/mastering-git-worktree-a-developers-guide-to-multiple-working-directories-c30f834f79a5)
+
+### Related Skills
+- **git-worktree-manage** - Lists, switches, and removes worktrees
+- **git-worktree-best-practices** - Naming conventions and workflow patterns
+
+### Related Commands
+- `/work` - Uses this skill for feature development
+- `/review` - Uses this skill for PR reviews
+
+### Curated Resource Hub
+- **RESOURCES.md** - Comprehensive collection of official docs, guides, and tools
