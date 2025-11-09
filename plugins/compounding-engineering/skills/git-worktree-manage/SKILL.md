@@ -254,7 +254,7 @@ git status
 
 # Work on auth feature
 git add .
-git commit -m "Fix login flow"
+git commit -m "fix(auth): resolve login flow issue"
 
 # Switch to payment feature
 cd ../feature-payments
@@ -262,7 +262,7 @@ git status
 
 # Work on payments
 git add .
-git commit -m "Add payment validation"
+git commit -m "feat(payments): add payment validation"
 ```
 
 ### Workflow 3: End-of-Week Cleanup
@@ -393,6 +393,30 @@ git worktree prune
 ├── spike-*       # Experiment branches (flat)
 └── archive/      # (optional) stale but not deleted
 ```
+
+### Practice 6: Verify Commit Quality Before Removal
+
+Before removing a worktree, verify that commits follow best practices:
+
+```bash
+# Check commits in worktree vs main
+cd .worktrees/feature-important
+git log --oneline origin/main..HEAD
+
+# Verify conventional commit format
+# Each commit should follow: type(scope): description
+# Examples: feat(auth): add login, fix(api): resolve timeout
+
+# Verify all pushed
+git log --oneline -5 origin/[branch]..HEAD
+# Should be empty - all commits pushed
+
+# Check last commits are meaningful
+git log -3 --format="%h %s"
+# Should show semantic commit messages
+```
+
+For more comprehensive guidance on commit message best practices, see the [Conventional Commits section in git-worktree-best-practices](./git-worktree-best-practices/SKILL.md#conventional-commits-for-worktrees).
 
 ## Advanced Management Techniques
 
@@ -546,7 +570,7 @@ git worktree remove .worktrees/feature-work
 # Solution: Commit first
 cd .worktrees/feature-work
 git add .
-git commit -m "WIP: feature work"
+git commit -m "wip(feature): checkpoint before cleanup"
 cd ../..
 git worktree remove .worktrees/feature-work
 
