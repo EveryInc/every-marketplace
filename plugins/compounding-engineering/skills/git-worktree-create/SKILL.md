@@ -147,7 +147,7 @@ mkdir -p "$git_root/.worktrees"
 if ! grep -q "^\.worktrees$" "$git_root/.gitignore"; then
   echo ".worktrees" >> "$git_root/.gitignore"
   git add .gitignore
-  git commit -m "Add .worktrees to .gitignore"
+  git commit -m "chore(setup): add .worktrees to .gitignore"
 fi
 ```
 
@@ -262,6 +262,109 @@ chmod +x scripts/create-worktree.sh
 ```
 
 See the [Worktree Patterns](#worktree-patterns) section above for detailed usage examples.
+
+## Commit Message Best Practices
+
+When working in worktrees, use **conventional commit messages** to create semantic, meaningful commits that communicate intent clearly. This practice is especially important in isolated worktree environments where commits may be reviewed separately.
+
+### Conventional Commit Format
+
+```
+type(scope): subject
+
+[optional body]
+
+[optional footers]
+```
+
+### Type Reference
+
+- **`feat`** - New feature or capability
+- **`fix`** - Bug fix
+- **`docs`** - Documentation changes only
+- **`refactor`** - Code refactoring (no behavior change)
+- **`perf`** - Performance improvements
+- **`style`** - Code style changes (formatting, etc.)
+- **`test`** - Adding or updating tests
+- **`chore`** - Maintenance tasks (dependencies, build, etc.)
+- **`wip`** - Work in progress (temporary, will be squashed)
+
+### Scope Reference for Worktree Work
+
+- **`setup`** - Repository initialization and configuration
+- **`auth`**, **`api`**, **`ui`**, **`db`** - Feature areas
+- **`build`**, **`ci`** - Build system and CI/CD
+- **`worktree`** - Worktree management itself
+
+### Examples
+
+#### Basic Examples
+```bash
+# Feature development
+git commit -m "feat(auth): implement login form validation"
+
+# Bug fixes
+git commit -m "fix(api): resolve null reference in request handler"
+
+# Documentation
+git commit -m "docs(worktree): update setup instructions"
+
+# Setup tasks
+git commit -m "chore(setup): add .worktrees to .gitignore"
+```
+
+#### Multi-line Messages with Body
+
+When you need to explain *why* a change was made:
+
+```bash
+git commit -m "feat(auth): add two-factor authentication
+
+- Add TOTP-based verification
+- Store secrets securely
+- Implement recovery codes
+
+Closes #345
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+#### Work in Progress
+
+For checkpoint commits that will be squashed before merging:
+
+```bash
+git commit -m "wip(feature): checkpoint before context switch"
+```
+
+#### Breaking Changes
+
+When a change breaks backward compatibility:
+
+```bash
+git commit -m "refactor(api)!: remove deprecated auth endpoint
+
+BREAKING CHANGE: The /v1/auth endpoint is no longer available.
+Use /v2/auth instead.
+
+Migration guide: See docs/migration-v1-to-v2.md
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+### Best Practices for Worktree Commits
+
+1. **Use descriptive scopes** - Helps identify work area at a glance
+2. **Keep subjects under 50 characters** - Ensures readability in logs
+3. **Use imperative mood** - "add feature" not "added feature"
+4. **One logical change per commit** - Atomic commits are easier to review
+5. **Include Claude Code footer** - For AI-assisted work:
+   ```
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+   Co-Authored-By: Claude <noreply@anthropic.com>
+   ```
+
+For more comprehensive guidance, see the [Conventional Commits section in git-worktree-best-practices](./git-worktree-best-practices/SKILL.md#conventional-commits-for-worktrees).
 
 ## Advanced Worktree Options
 
@@ -381,7 +484,7 @@ git status
 
 # 3. Commit and push
 git add .
-git commit -m "Add authentication flow"
+git commit -m "feat(auth): implement authentication flow"
 git push -u origin feature/user-auth
 
 # 4. After merge, cleanup
@@ -473,7 +576,7 @@ echo "Feature branch for user authentication flow" > .worktrees/feature-user-aut
 # Then commit
 cd .worktrees/feature-user-auth
 git add README.md
-git commit -m "Add worktree documentation"
+git commit -m "docs(worktree): document feature branch context"
 ```
 
 ## Integration with Commands
