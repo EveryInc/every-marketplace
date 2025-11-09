@@ -52,35 +52,11 @@ $git_root/
 
 ## Git Worktree Fundamentals
 
-Understanding how Git worktrees work helps you use them effectively.
+Git worktrees let you work on multiple branches simultaneously by creating separate working directories that share the same repository. Each worktree is a full checkout with its own branch, HEAD, and index, but shares objects and configuration with the main repository.
 
-### Main vs Linked Worktrees
+**Why this matters for creation:** Understanding that worktrees share the underlying repository helps you choose optimal locations (prefer sibling directories to main worktree) and avoid resource conflicts.
 
-From the [official Git documentation](https://git-scm.com/docs/git-worktree):
-
-- **Main Worktree**: The original repository checkout (where `.git` directory exists)
-- **Linked Worktrees**: Additional checkouts stored in `.git/worktrees/`
-
-**Shared Across Worktrees:**
-- Most refs (branches, tags)
-- Object database (commits, trees, blobs)
-- Configuration (unless using `extensions.worktreeConfig`)
-
-**Per-Worktree (Isolated):**
-- `HEAD` - current branch/commit
-- Index/staging area
-- Working directory files
-- `refs/bisect/*` - git bisect state
-- `refs/worktree/*` - worktree-specific refs
-- `refs/rewritten/*` - rebase/filter state
-
-### Why This Matters
-
-This isolation means:
-- ✓ Each worktree can be on a different branch simultaneously
-- ✓ Staging changes in one worktree doesn't affect others
-- ✓ You can run different commands in each worktree safely
-- ⚠️ Shared refs mean you can't checkout the same branch in multiple worktrees
+See [Git Worktree Documentation](https://git-scm.com/docs/git-worktree) for complete fundamentals.
 
 ## Worktree Patterns
 
@@ -418,51 +394,7 @@ cd .worktrees/feature-payment-processing
 
 ## Troubleshooting
 
-### Issue: "worktree already exists"
-
-```bash
-# Solution: Check what's in .worktrees
-ls -la .worktrees/
-
-# If corrupted, force remove
-git worktree remove --force .worktrees/[name]
-rm -rf .worktrees/[name]
-
-# Then create new one
-```
-
-### Issue: "Cannot checkout branch - already exists"
-
-```bash
-# Solution: Check main for existing branches
-git branch -a
-
-# If branch exists locally, use it
-git worktree add .worktrees/feature-name feature-name
-
-# If branch doesn't exist, create it fresh
-git worktree add -b feature/new-name .worktrees/feature-new-name main
-```
-
-### Issue: "Worktree location is a relative path"
-
-```bash
-# Solution: Always use absolute paths
-git_root=$(git rev-parse --show-toplevel)
-worktree_path="$git_root/.worktrees/feature-name"
-
-git worktree add -b feature/name "$worktree_path" main
-# NOT relative path
-```
-
-### Issue: ".gitignore not updated"
-
-```bash
-# Solution: Manually add entry
-echo ".worktrees" >> .gitignore
-git add .gitignore
-git commit -m "Add .worktrees to .gitignore"
-```
+For common issues with worktrees (already exists, branch checkout problems, corrupted worktrees, etc.), see the [Troubleshooting section in git-worktree-manage skill](./git-worktree-manage/SKILL.md#troubleshooting).
 
 ## Best Practices
 
@@ -607,5 +539,3 @@ claude /review 456
 - `/work` - Uses this skill for feature development
 - `/review` - Uses this skill for PR reviews
 
-### Curated Resource Hub
-- **RESOURCES.md** - Comprehensive collection of official docs, guides, and tools
