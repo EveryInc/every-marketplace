@@ -166,6 +166,131 @@ Worktree names should communicate:
 ✓ **Cleanup patterns** - Easy to identify and remove old work
 ✓ **Team clarity** - Everyone knows where things go
 
+## Conventional Commits for Worktrees
+
+When working in worktrees, use **conventional commit messages** to create semantic, meaningful commits that communicate intent clearly. This practice is especially important in isolated worktree environments where commits may be reviewed separately.
+
+### Format
+
+```
+type(scope): subject
+
+[optional body]
+
+[optional footers]
+```
+
+### Commit Types
+
+| Type | Purpose | Examples |
+|------|---------|----------|
+| `feat` | New feature or capability | Adding login, implementing payment processing |
+| `fix` | Bug fix | Resolving null reference, fixing timeout |
+| `docs` | Documentation changes only | Updating README, adding API docs |
+| `refactor` | Code refactoring (no behavior change) | Extracting utility, reorganizing structure |
+| `perf` | Performance improvements | Optimizing query, caching data |
+| `test` | Adding/updating tests | New unit tests, integration tests |
+| `chore` | Maintenance tasks | Dependency updates, build config |
+| `wip` | Work in progress | Temporary checkpoints (will be squashed) |
+
+### Scope Examples for Worktrees
+
+Scopes help identify the area of change:
+
+- **Features**: `feat(auth)`, `feat(api)`, `feat(ui)`, `feat(db)`
+- **Components**: `fix(login)`, `refactor(payment)`, `perf(cache)`
+- **Infrastructure**: `chore(deps)`, `ci(build)`, `test(e2e)`
+- **Worktree-specific**: `docs(worktree)`, `chore(setup)`
+
+### Examples
+
+**Simple commits:**
+```bash
+# Feature development
+git commit -m "feat(auth): add login form validation"
+
+# Bug fixes
+git commit -m "fix(api): resolve connection timeout"
+
+# Documentation
+git commit -m "docs(api): update endpoint documentation"
+
+# Setup tasks
+git commit -m "chore(setup): add .worktrees to .gitignore"
+
+# Performance improvements
+git commit -m "perf(db): optimize query with indexing"
+```
+
+**Multi-line commits with body:**
+```bash
+git commit -m "feat(auth): add two-factor authentication
+
+- Implement TOTP-based verification
+- Store secrets securely using encryption
+- Add recovery code generation
+
+This improves security for user accounts.
+
+Closes #345
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+**Work in progress:**
+```bash
+# Temporary checkpoint commits that will be squashed
+git commit -m "wip(feature): checkpoint before context switch"
+```
+
+**Breaking changes:**
+```bash
+git commit -m "refactor(api)!: remove deprecated authentication endpoint
+
+BREAKING CHANGE: The /v1/auth endpoint is no longer available.
+Users must migrate to /v2/auth before the next release.
+
+See migration guide: docs/migration-v1-to-v2.md
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+### Best Practices for Worktree Commits
+
+1. **Use descriptive scopes** - Helps identify work area at a glance
+2. **Keep subjects under 50 characters** - Ensures readability in logs and GUIs
+3. **Use imperative mood** - "add feature" not "added feature"
+4. **One logical change per commit** - Atomic commits are easier to review and revert
+5. **Use `wip()` type for checkpoints** - Makes it clear these will be squashed
+6. **Include Claude Code footer** - For AI-assisted work:
+   ```
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+   Co-Authored-By: Claude <noreply@anthropic.com>
+   ```
+
+### Integration with Worktree Cleanup
+
+Before removing a worktree, verify commits follow conventional format:
+
+```bash
+# Check commits in worktree vs main
+git log --oneline origin/main..HEAD
+
+# Each should follow: type(scope): description
+# Examples: feat(auth): add login, fix(api): resolve timeout
+
+# Squash WIP commits before merge
+git rebase -i origin/main
+# Mark WIP commits as 'squash' or 'fixup'
+```
+
+### References
+
+For more detailed conventional commits specification, see:
+- [Conventional Commits Specification](https://www.conventionalcommits.org/)
+- [Semantic Versioning](https://semver.org/) - Related to conventional commits
+- See also [Commit Message Best Practices in git-worktree-create](./git-worktree-create/SKILL.md#commit-message-best-practices)
+
 ## Workflow Patterns
 
 ### Pattern 1: Emergency Hotfix Management
