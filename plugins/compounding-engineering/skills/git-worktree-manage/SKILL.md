@@ -4,6 +4,15 @@
 
 Manages the complete lifecycle of git worktrees: listing active worktrees, inspecting their status, switching between them, and cleaning up completed or abandoned work. This skill provides the operations needed to maintain a healthy worktree environment.
 
+### Official Documentation
+
+- **Git Worktree Management**: https://git-scm.com/docs/git-worktree
+- **List Command**: https://git-scm.com/docs/git-worktree#Documentation/git-worktree.txt-listltoptionsgt
+- **Remove Command**: https://git-scm.com/docs/git-worktree#Documentation/git-worktree.txt-removeltworktreegt
+- **Prune Command**: https://git-scm.com/docs/git-worktree#Documentation/git-worktree.txt-pruneltoptionsgt
+- **Lock/Unlock**: https://git-scm.com/docs/git-worktree#Documentation/git-worktree.txt-lockltoptionsgt
+- **Repair Command**: https://git-scm.com/docs/git-worktree#Documentation/git-worktree.txt-repairltpathgt
+
 ## When to Use This Skill
 
 - **View Active Work**: See all current worktrees and their status
@@ -44,6 +53,54 @@ Cleanup (this skill) - remove worktree
    ```
    /full/path/to/repo/.worktrees/active-work   def5678 [feature/work] dirty
    ```
+
+## Worktree Status and Metadata
+
+Understanding worktree status helps with management decisions.
+
+### Status Indicators
+
+From `git worktree list`, you'll see several states:
+
+**Active Worktree:**
+```
+/path/to/repo/.worktrees/feature-auth  abc1234 [feature/auth]
+```
+
+**Locked Worktree:**
+```
+/path/to/repo/.worktrees/feature-usb  def5678 [feature/usb] locked
+```
+- Protected from pruning
+- Typically on removable media
+- See: `git worktree lock --help`
+
+**Prunable Worktree:**
+```
+/path/to/repo/.worktrees/old-feature  (prunable)
+```
+- Directory was deleted manually
+- Administrative data remains in `.git/worktrees/`
+- Run `git worktree prune` to clean up
+
+**Detached HEAD:**
+```
+/path/to/repo/.worktrees/experiment  ghi9012 (detached HEAD)
+```
+- Not on any branch
+- Often used for testing specific commits
+- Changes need manual branch creation to preserve
+
+### Administrative Files
+
+Worktree metadata lives in `.git/worktrees/<name>/`:
+- `gitdir` - Points to worktree location
+- `HEAD` - Current branch or commit
+- `index` - Staging area
+- `locked` - Lock reason (if locked)
+- `link` - Link back to main worktree
+
+**Reference**: https://git-scm.com/docs/git-worktree#_details
 
 ## Common Operations
 
@@ -359,6 +416,76 @@ git worktree prune
 └── archive/      # (optional) stale but not deleted
 ```
 
+## Advanced Management Techniques
+
+### Scripting with Porcelain Format
+
+For automation and scripts, use machine-readable format:
+
+```bash
+# Porcelain format for parsing
+git worktree list --porcelain
+
+# Output format:
+# worktree /full/path
+# HEAD abc1234567890
+# branch refs/heads/feature-name
+#
+# worktree /full/path/to/worktree2
+# HEAD def1234567890
+# detached
+```
+
+**Parse in scripts:**
+```bash
+# Extract all worktree paths
+git worktree list --porcelain | grep '^worktree ' | cut -d' ' -f2-
+
+# Find detached HEAD worktrees
+git worktree list --porcelain | grep -B1 '^detached$' | grep '^worktree '
+```
+
+### Bulk Operations
+
+**Remove all feature worktrees:**
+```bash
+# Safe: loops through and removes one by one
+git worktree list | grep 'feature-' | awk '{print $1}' | while read -r path; do
+    git worktree remove "$path"
+done
+```
+
+**Find worktrees with uncommitted changes:**
+```bash
+# Check all worktrees for dirty state
+git worktree list --porcelain | grep '^worktree ' | cut -d' ' -f2- | while read -r path; do
+    if [[ -d "$path" ]]; then
+        cd "$path"
+        if [[ -n "$(git status --porcelain)" ]]; then
+            echo "Dirty: $path"
+        fi
+    fi
+done
+```
+
+### Repair Operations
+
+From [official docs](https://git-scm.com/docs/git-worktree#Documentation/git-worktree.txt-repair), use `git worktree repair` when:
+
+- Worktree was moved manually
+- Administrative files are corrupted
+- Main worktree was moved
+
+```bash
+# Repair specific worktree
+git worktree repair .worktrees/feature-moved
+
+# Repair all worktrees
+git worktree repair
+
+# Repair will update gitdir files to point to current locations
+```
+
 ## Advanced Operations
 
 ### List with Custom Formatting
@@ -485,8 +612,17 @@ git worktree prune
 - **git-worktree-create** - Create new worktrees
 - **git-worktree-best-practices** - Naming conventions and organization
 
-## See Also
+## Official Resources
 
-- `git worktree` man page: `man git-worktree`
-- Git documentation: https://git-scm.com/docs/git-worktree
-- Related commands: All commands that use worktrees benefit from this skill
+### Git Documentation
+- **git worktree man page**: `man git-worktree` or https://git-scm.com/docs/git-worktree
+- **Git reference**: https://git-scm.com/docs
+- **Git Book**: https://git-scm.com/book
+
+### Community Guides
+- [Practical Guide to Git Worktree (DEV.to)](https://dev.to/yankee/practical-guide-to-git-worktree-58o0)
+- [Git Worktree Best Practices (GitHub Gist)](https://gist.github.com/ChristopherA/4643b2f5e024578606b9cd5d2e6815cc)
+- [Mastering Git Worktree (Medium)](https://mskadu.medium.com/mastering-git-worktree-a-developers-guide-to-multiple-working-directories-c30f834f79a5)
+
+### Curated Resource Hub
+- **RESOURCES.md** - Comprehensive collection of official docs, guides, and tools
