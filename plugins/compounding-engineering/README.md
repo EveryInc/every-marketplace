@@ -227,6 +227,25 @@ claude agent performance-oracle "optimize these queries"
 
 All configuration is managed through the plugin system. No additional setup required.
 
+## Learning Resources
+
+### Git Worktree Documentation
+The git-worktree-skills include comprehensive documentation and examples:
+
+- **Skills**: `plugins/compounding-engineering/skills/git-worktree-*/SKILL.md` - Full skill documentation
+- **Examples**: `plugins/compounding-engineering/skills/git-worktree-create/examples/` - Practical examples
+- **Resources**: `plugins/compounding-engineering/skills/git-worktree-create/RESOURCES.md` - Curated external references
+- **Script**: `plugins/compounding-engineering/skills/git-worktree-create/scripts/create-worktree.sh` - Automation tool
+
+### External Resources
+- [Official Git Worktree Docs](https://git-scm.com/docs/git-worktree)
+- [Git Worktree Best Practices (GitHub Gist)](https://gist.github.com/ChristopherA/4643b2f5e024578606b9cd5d2e6815cc)
+- [Practical Guide to Git Worktree (DEV.to)](https://dev.to/yankee/practical-guide-to-git-worktree-58o0)
+
+### Related Commands
+- `/work` - Execute work plans with git-worktree-create skill
+- `/review` - Deep code review with quality assessment
+
 ## Contributing
 
 This plugin is part of the Every Marketplace. Contributions welcome!
