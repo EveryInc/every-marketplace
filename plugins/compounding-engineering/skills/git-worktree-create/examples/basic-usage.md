@@ -93,10 +93,10 @@ npm test
 cd .worktrees/feature-user-authentication
 
 git add src/auth/
-git commit -m "Add login form component"
+git commit -m "feat(auth): add login form component"
 
 git add src/services/
-git commit -m "Add authentication service"
+git commit -m "feat(auth): add authentication service"
 
 git push -u origin feature/user-authentication
 ```
@@ -153,7 +153,7 @@ npm test
 
 # Commit results
 git add .
-git commit -m "Query optimization approach 1: indexed lookups"
+git commit -m "perf(db): test indexed lookup optimization approach"
 ```
 
 **Step 2: Create second spike (in another terminal)**
@@ -170,7 +170,7 @@ npm test
 
 # Commit results
 git add .
-git commit -m "Query optimization approach 2: query caching"
+git commit -m "perf(db): test query caching optimization approach"
 ```
 
 **Step 3: Compare results**
@@ -222,7 +222,7 @@ cd .worktrees/feature-dark-mode-support
 
 # ... development work ...
 git add .
-git commit -m "Add dark theme CSS variables"
+git commit -m "feat(ui): add dark theme CSS variables"
 ```
 
 **Step 2: Urgent PR review comes in**
@@ -255,7 +255,7 @@ git worktree remove .worktrees/reviews/pr-789
 # Resume feature work
 cd .worktrees/feature-dark-mode-support
 git add .
-git commit -m "Add dark mode toggle to settings"
+git commit -m "feat(ui): add dark mode toggle to settings"
 ```
 
 ### Result
@@ -400,7 +400,7 @@ In progress, expected completion Nov 15
 EOF
 
 git add README.md
-git commit -m "Document feature context"
+git commit -m "docs(feature): document feature context and timeline"
 ```
 
 ---
