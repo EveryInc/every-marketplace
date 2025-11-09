@@ -13,6 +13,31 @@ Provides comprehensive guidance on git worktree naming conventions, organization
 - **Troubleshooting**: Solving worktree-related issues
 - **Scaling**: Managing many worktrees across large teams
 
+## Official Git Guidance
+
+The practices in this skill align with guidance from:
+- [Git Worktree Documentation](https://git-scm.com/docs/git-worktree)
+- [Git Best Practices](https://git-scm.com/book/en/v2/Git-Branching-Branching-Workflows)
+- Community resources from experienced Git users
+
+### Key Official Recommendations
+
+From the Git documentation:
+
+1. **Use for parallel work**: Worktrees excel at allowing simultaneous work on different branches
+2. **Clean up promptly**: Remove worktrees when done to maintain repository health
+3. **Understand limitations**: Worktrees are experimental, especially with submodules
+4. **Lock when portable**: Use `git worktree lock` for worktrees on removable media
+
+### Community Best Practices
+
+From [GitHub Gist on Worktree Best Practices](https://gist.github.com/ChristopherA/4643b2f5e024578606b9cd5d2e6815cc):
+
+- **One purpose per worktree**: Create worktrees for specific purposes, not individual tasks
+- **Consistent naming**: Adopt clear naming conventions for quick identification
+- **Regular maintenance**: Prune and clean up weekly to prevent accumulation
+- **CI/CD optimization**: Use worktrees to avoid multiple clones in build pipelines
+
 ## Core Philosophy
 
 **Every unit of engineering work should make subsequent units easier—not harder.**
@@ -278,6 +303,125 @@ git worktree remove .worktrees/refactor-database
 # Easy merge when ready
 ```
 
+### Pattern 6: Emergency Hotfix (Canonical Example)
+
+**Scenario**: Production bug needs immediate fix while you have uncommitted feature work
+
+From the [official Git worktree docs](https://git-scm.com/docs/git-worktree):
+
+```bash
+# Current state: working on new feature with uncommitted changes
+git status
+# On branch feature/new-feature
+# Changes not staged for commit:
+#   modified: src/feature.js
+
+# Emergency: production bug reported!
+# Create temporary worktree for hotfix
+git worktree add -b hotfix/critical-bug ../hotfix main
+
+# Move to hotfix worktree
+cd ../hotfix
+
+# Fix the bug
+vim src/buggy-code.js
+git add src/buggy-code.js
+git commit -m "Fix critical production bug"
+
+# Push and deploy
+git push origin hotfix/critical-bug
+# (create PR, merge, deploy)
+
+# Return to feature work
+cd -  # back to original worktree
+
+# Your feature work is exactly as you left it
+git status
+# On branch feature/new-feature
+# Changes not staged for commit:
+#   modified: src/feature.js (still there!)
+
+# Clean up hotfix worktree after merge
+git worktree remove ../hotfix
+git branch -d hotfix/critical-bug
+```
+
+**Why this works better than `git stash`:**
+- No need to stash/unstash (can forget what you stashed)
+- Both contexts remain active (can switch back and forth)
+- No risk of stash conflicts
+- Can test both simultaneously
+
+### Pattern 7: CI/CD Optimization
+
+**Scenario**: Build system needs to build multiple branches
+
+From [community best practices](https://gist.github.com/ChristopherA/4643b2f5e024578606b9cd5d2e6815cc):
+
+```bash
+# Instead of multiple clones (expensive):
+git clone repo.git build-main
+git clone repo.git build-staging  # wasteful!
+git clone repo.git build-develop  # wasteful!
+
+# Use single clone with worktrees:
+git clone repo.git repo
+cd repo
+
+# Create worktrees for each branch to build
+git worktree add ../build-main main
+git worktree add ../build-staging staging
+git worktree add ../build-develop develop
+
+# Build in parallel
+(cd ../build-main && npm run build) &
+(cd ../build-staging && npm run build) &
+(cd ../build-develop && npm run build) &
+wait
+
+# Faster, uses less disk, shares Git objects
+```
+
+**Benefits:**
+- Single clone saves disk space
+- Shared object database saves bandwidth
+- Faster than repeated clones
+- Easy cleanup with `git worktree remove`
+
+### Pattern 8: Long-Running Review Workflow
+
+**Scenario**: PR review that takes days, you need to review incrementally
+
+```bash
+# Create dedicated review worktree
+./scripts/create-worktree.sh review 456
+cd .worktrees/reviews/pr-456
+
+# Day 1: Review files 1-10
+# ... review, add comments ...
+
+# Need to work on your own features
+cd /path/to/main/repo
+./scripts/create-worktree.sh feature my-work
+cd .worktrees/feature-my-work
+# ... do your work ...
+
+# Day 2: Back to review
+cd /path/to/repo/.worktrees/reviews/pr-456
+# Exactly where you left off, no branch switching!
+
+# Day 3: Finish review
+# ... final comments, approve ...
+cd /path/to/repo
+git worktree remove .worktrees/reviews/pr-456
+```
+
+**Benefits:**
+- Review context preserved between sessions
+- No branch switching interrupts your flow
+- Can pause/resume review easily
+- Multiple reviews can be active simultaneously
+
 ## Team Conventions Guide
 
 ### Starting a New Team
@@ -481,6 +625,88 @@ git worktree add .worktrees/recovered [COMMIT_SHA]
 | **Create from main** | Stay current | Always base on main branch |
 | **Parallel safely** | Team productivity | Different worktrees, no conflicts |
 
+## Anti-Patterns to Avoid
+
+### Anti-Pattern 1: Too Many Worktrees
+
+**Bad:**
+```bash
+git worktree list | wc -l
+# 35 worktrees!
+
+# Symptoms:
+# - Hard to find specific worktree
+# - Slow Git operations
+# - Wasting disk space
+# - Forgotten old work
+```
+
+**Good:**
+```bash
+# Keep it manageable
+git worktree list | wc -l
+# 5-8 worktrees (active work only)
+
+# Regular cleanup
+git worktree list
+# Only current PRs under review
+# Only active features in development
+# Only current spikes being investigated
+```
+
+### Anti-Pattern 2: Manual Directory Deletion
+
+**Bad:**
+```bash
+# Don't do this!
+rm -rf .worktrees/feature-old
+# Leaves orphaned Git metadata
+# Causes "prunable" entries
+# Requires manual cleanup
+```
+
+**Good:**
+```bash
+# Always use git worktree remove
+git worktree remove .worktrees/feature-old
+# Cleans up Git metadata automatically
+# Safe removal with checks
+# Prevents orphaned data
+```
+
+### Anti-Pattern 3: Shared Branch in Multiple Worktrees
+
+**Bad:**
+```bash
+# Won't work - Git prevents this
+git worktree add .worktrees/feature-a feature-branch
+git worktree add .worktrees/feature-b feature-branch
+# fatal: 'feature-branch' is already checked out at '.worktrees/feature-a'
+```
+
+**Good:**
+```bash
+# Use different branches or detached HEAD
+git worktree add .worktrees/feature-a feature-branch
+git worktree add --detach .worktrees/feature-test feature-branch
+# Detached HEAD allows testing same code
+```
+
+### Anti-Pattern 4: Worktrees with Submodules (Experimental)
+
+**Be Cautious:**
+```bash
+# Official Git docs warn: submodule support is incomplete
+# If you must use worktrees with submodules:
+
+# 1. Test thoroughly before relying on it
+# 2. Keep submodules simple (avoid nested)
+# 3. Be prepared for unexpected behavior
+# 4. Consider alternatives (sparse checkout, multiple clones)
+```
+
+**Reference**: https://git-scm.com/docs/git-worktree#_bugs
+
 ## Troubleshooting Guidelines
 
 ### Problem: Inconsistent naming
@@ -515,17 +741,33 @@ git worktree list
 # Discuss in team meetings
 ```
 
-## Resources
+## Official Resources
 
-- **Git worktree documentation**: https://git-scm.com/docs/git-worktree
-- **Related skills**:
-  - git-worktree-create: How to create worktrees
-  - git-worktree-manage: How to manage worktrees
-- **Compounding engineering philosophy**: Each unit makes the next easier
+### Git Documentation
+- **git worktree man page**: `man git-worktree` or https://git-scm.com/docs/git-worktree
+- **Git reference**: https://git-scm.com/docs
+- **Git Book**: https://git-scm.com/book
 
-## See Also
+### Community Guides
+- [Practical Guide to Git Worktree (DEV.to)](https://dev.to/yankee/practical-guide-to-git-worktree-58o0)
+- [Git Worktree Best Practices (GitHub Gist)](https://gist.github.com/ChristopherA/4643b2f5e024578606b9cd5d2e6815cc)
+- [Mastering Git Worktree (Medium)](https://mskadu.medium.com/mastering-git-worktree-a-developers-guide-to-multiple-working-directories-c30f834f79a5)
 
-- `/work` command - Uses these practices
-- `/review` command - Uses these practices
-- git-worktree-create skill - Implementation details
-- git-worktree-manage skill - Lifecycle operations
+### Related Skills
+- **git-worktree-create**: How to create worktrees
+- **git-worktree-manage**: How to manage worktrees
+
+### Related Commands
+- `/work` - Uses these practices
+- `/review` - Uses these practices
+
+### Curated Resource Hub
+- **RESOURCES.md** - Comprehensive collection of official docs, guides, and tools
+
+## Compounding Engineering Philosophy
+
+Each unit of engineering work should make subsequent units easier—not harder. Applied to worktrees:
+- Consistent naming makes finding work easier
+- Organized structure prevents future confusion
+- Regular cleanup maintains repository performance
+- Clear conventions reduce team decision-making
