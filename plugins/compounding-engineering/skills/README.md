@@ -19,6 +19,12 @@ Creates isolated git worktrees for PRs, features, or experiments.
 - Handles branch creation and naming conventions
 - Updates `.gitignore` with `.worktrees` entry
 - Verifies setup and environment
+- Guides conventional commit message best practices
+
+**Key features:**
+- Commit Message Best Practices section with type and scope guidance
+- Examples of conventional commits (feat, fix, docs, etc.)
+- Integration with Claude Code footer for AI-assisted commits
 
 ### git-worktree-manage
 
@@ -29,28 +35,47 @@ Manages worktree lifecycle: list, switch, cleanup.
 - Cleaning up old worktrees
 - Checking worktree status
 - Listing active development environments
+- Verifying commit quality before removal
 
 **What it does:**
 - Lists all active worktrees with details
 - Removes completed or abandoned worktrees
 - Prunes stale worktree references
 - Provides worktree status information
+- Guides verification of conventional commit format before cleanup
+
+**Key features:**
+- Commit verification workflow (conventional format check)
+- Cross-reference to best-practices for commit message standards
+- Examples of proper commit cleanup before merge
 
 ### git-worktree-best-practices
 
-Provides naming conventions and patterns for git worktree workflows.
+Provides naming conventions, commit message standards, and patterns for git worktree workflows.
 
 **Auto-invoked when:**
 - Planning worktree workflows
 - Establishing team conventions
 - Organizing repository structure
 - Troubleshooting worktree issues
+- Implementing conventional commit practices
 
 **What it does:**
 - Documents naming conventions for PRs, features, experiments
 - Provides organizational patterns
 - Guides workflow setup
 - Answers worktree questions
+- Teaches conventional commit message standards
+- Provides 20+ real-world commit message examples
+
+**Key features:**
+- Comprehensive "Conventional Commits for Worktrees" section
+- Type reference table (feat, fix, docs, refactor, perf, test, chore, wip)
+- Scope examples specific to worktree work
+- Multi-line and breaking change commit examples
+- Integration with worktree cleanup procedures
+- COMMIT_TEMPLATE.txt for git configuration
+- COMMIT_EXAMPLES.md with 20+ realistic examples
 
 ## Integration with Commands
 
@@ -70,11 +95,13 @@ skills/
 │   ├── scripts/
 │   │   └── create-worktree.sh         # Automation script
 │   └── examples/
-│       └── basic-usage.md             # Usage examples
+│       └── basic-usage.md             # Usage examples (with conventional commits)
 ├── git-worktree-manage/
 │   └── SKILL.md                       # Skill definition
 └── git-worktree-best-practices/
-    └── SKILL.md                       # Skill definition
+    ├── SKILL.md                       # Skill definition
+    ├── COMMIT_TEMPLATE.txt            # Git commit message template
+    └── COMMIT_EXAMPLES.md             # 20+ conventional commit examples
 ```
 
 ## Key Learnings
