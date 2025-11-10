@@ -12,9 +12,9 @@ every-marketplace/
     └── compounding-engineering/   # The actual plugin
         ├── .claude-plugin/
         │   └── plugin.json        # Plugin metadata
-        ├── agents/                # 15 specialized AI agents
+        ├── agents/                # 17 specialized AI agents
         ├── commands/              # 6 slash commands
-        ├── hooks/                 # 2 automated hooks
+        ├── skills/                # 3 git worktree skills
         └── README.md              # Plugin documentation
 ```
 
