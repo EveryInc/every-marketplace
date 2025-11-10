@@ -1,236 +1,119 @@
-# Triage Command
+# /compounding-engineering:triage
 
-Present all findings, decisions, or issues here one by one for triage. The goal is to go through each item and decide whether to add it to the CLI todo system.
+## Goal
 
-**IMPORTANT: DO NOT CODE ANYTHING DURING TRIAGE!**
+Work through every pending finding, decision, or issue one by one, decide whether it belongs in the CLI todo system, and generate the appropriate todo files without writing or modifying product code.
 
-## Usage
+## Prerequisites
 
-```bash
-# With namespace (always works)
-claude /compounding-engineering:triage
-
-# Set up alias for convenience (optional)
-alias triage="claude /compounding-engineering:triage"
-```
-
-## Purpose
-
-This command is for:
-- Triaging code review findings
-- Processing security audit results
-- Reviewing performance analysis
-- Handling any other categorized findings that need tracking
+- `claude` CLI authenticated with access to `/compounding-engineering:triage` (optional alias: `alias triage="claude /compounding-engineering:triage"`).
+- Access to the repository’s `todos/` directory and the templates `000-pending-p{1,2,3}-TEMPLATE.md`.
+- `TodoWrite` (or equivalent tracking) enabled for logging progress.
+- Commitment to **not author any code changes during triage**—this command only decides and records work items.
+- Agreement to provide progress updates with every finding header (e.g., “Item 3 of 11, ~8 minutes remaining”).
 
 ## Workflow
 
-### Step 1: Present Each Finding
-
-For each finding, present in this format:
-
-```
----
-Issue #X: [Brief Title]
-
-Severity: 🔴 P1 (CRITICAL) / 🟡 P2 (IMPORTANT) / 🔵 P3 (NICE-TO-HAVE)
-
-Category: [Security/Performance/Architecture/Bug/Feature/etc.]
-
-Description:
-[Detailed explanation of the issue or improvement]
-
-Location: [file_path:line_number]
-
-Problem Scenario:
-[Step by step what's wrong or could happen]
-
-Proposed Solution:
-[How to fix it]
-
-Estimated Effort: [Small (< 2 hours) / Medium (2-8 hours) / Large (> 8 hours)]
-
----
-Do you want to add this to the todo list?
-1. yes - create todo file
-2. next - skip this item
-3. custom - modify before creating
-```
-
-### Step 2: Handle User Decision
-
-**When user says "yes":**
-
-1. **Determine next issue ID:**
+1. **Invoke the triage session**  
    ```bash
-   ls todos/ | grep -o '^[0-9]\+' | sort -n | tail -1
+   claude /compounding-engineering:triage
+   ```  
+   Load the queue of findings from code reviews, security audits, performance runs, or other pipelines.
+
+2. **Present each finding consistently**  
+   - Before each item, announce progress (processed count, total remaining, estimated completion).  
+   - Display the structured block:
+     ```
+     ---
+     Issue #X: [Brief Title]
+
+     Severity: 🔴 P1 (CRITICAL) / 🟡 P2 (IMPORTANT) / 🔵 P3 (NICE-TO-HAVE)
+     Category: [Security/Performance/Architecture/Bug/Feature/etc.]
+
+     Description:
+     [Detailed explanation]
+
+     Location: [file_path:line_number]
+     Problem Scenario:
+     [Step-by-step what happens]
+     Proposed Solution:
+     [Fix or mitigation]
+     Estimated Effort: Small (<2h) / Medium (2–8h) / Large (>8h)
+
+     ---
+     Do you want to add this to the todo list?
+     1. yes – create todo file
+     2. next – skip
+     3. custom – modify before creating
+     ```
+
+3. **Handle the user’s decision**  
+   - **yes:**
+     1. Determine the next issue ID:
+        ```bash
+        next_id=$(ls todos/ | grep -o '^[0-9]\+' | sort -n | tail -1)
+        ```
+     2. Build the filename `{next_id}-pending-{priority}-{brief-description}.md`, mapping severity to `p1/p2/p3`.
+     3. Copy the matching template (e.g., `cp todos/000-pending-p1-TEMPLATE.md todos/{new_filename}`).
+     4. Populate YAML front matter plus sections (Problem Statement, Findings, Proposed Solutions, Technical Details, Resources, Acceptance Criteria, Work Log, Notes) using the collected data:  
+        ```yaml
+        ---
+        status: pending
+        priority: p1
+        issue_id: "042"
+        tags: [category, relevant-tags]
+        dependencies: []
+        ---
+        ```
+     5. Confirm creation: `✅ Created: {filename} (Issue #{issue_id})` and log it in TodoWrite.
+   - **next:** record the skip reason, remove or mark the item as not relevant, and continue.  
+   - **custom:** ask what to change (priority, description, effort, etc.), revise the block, then re-prompt with the yes/next/custom menu.
+
+4. **Loop until the queue is empty**  
+   - Continue presenting, deciding, and logging items without waiting for external approval.  
+   - Keep TodoWrite (or a running table) updated with statuses: pending, skipped, deferred.  
+   - Ensure skipped items are removed from any “to review” lists so they are not reprocessed accidentally.
+
+5. **Publish the final summary**  
+   When all items are processed, output:
+   ```markdown
+   ## Triage Complete
+
+   **Total Items:** [X]
+   **Todos Created:** [Y]
+   **Skipped:** [Z]
+
+   ### Created Todos
+   - `042-pending-p1-transaction-boundaries.md` – Transaction boundary issue
+   - `043-pending-p2-cache-optimization.md` – Cache performance improvement
+
+   ### Skipped Items
+   - Item #5: [Reason]
+   - Item #12: [Reason]
+
+   ### Next Steps
+   1. Review pending todos: `ls todos/*-pending-*.md`
+   2. Approve for work via `/compounding-engineering:triage` or promotion workflow
+   3. Start execution with `/compounding-engineering:resolve_todo_parallel` or targeted commands
    ```
 
-2. **Create filename:**
-   ```
-   {next_id}-pending-{priority}-{brief-description}.md
-   ```
+## Success Criteria
 
-   Priority mapping:
-   - 🔴 P1 (CRITICAL) → `p1`
-   - 🟡 P2 (IMPORTANT) → `p2`
-   - 🔵 P3 (NICE-TO-HAVE) → `p3`
+- [ ] Every finding received a progress-aware presentation and a clear decision (yes/next/custom).  
+- [ ] All approved items became properly formatted todo files with unique IDs and matching severity.  
+- [ ] Skipped items were documented with reasons and removed from active queues.  
+- [ ] Final summary captured totals, created filenames, and next steps.  
+- [ ] No source code changes were made during the session.
 
-   Example: `042-pending-p1-transaction-boundaries.md`
+## Troubleshooting
 
-3. **Create from template:**
-   ```bash
-   cp todos/000-pending-p1-TEMPLATE.md todos/{new_filename}
-   ```
-
-4. **Populate the file:**
-   ```yaml
-   ---
-   status: pending
-   priority: p1  # or p2, p3 based on severity
-   issue_id: "042"
-   tags: [category, relevant-tags]
-   dependencies: []
-   ---
-
-   # [Issue Title]
-
-   ## Problem Statement
-   [Description from finding]
-
-   ## Findings
-   - [Key discoveries]
-   - Location: [file_path:line_number]
-   - [Scenario details]
-
-   ## Proposed Solutions
-
-   ### Option 1: [Primary solution]
-   - **Pros**: [Benefits]
-   - **Cons**: [Drawbacks if any]
-   - **Effort**: [Small/Medium/Large]
-   - **Risk**: [Low/Medium/High]
-
-   ## Recommended Action
-   [Leave blank - will be filled during approval]
-
-   ## Technical Details
-   - **Affected Files**: [List files]
-   - **Related Components**: [Components affected]
-   - **Database Changes**: [Yes/No - describe if yes]
-
-   ## Resources
-   - Original finding: [Source of this issue]
-   - Related issues: [If any]
-
-   ## Acceptance Criteria
-   - [ ] [Specific success criteria]
-   - [ ] Tests pass
-   - [ ] Code reviewed
-
-   ## Work Log
-
-   ### {date} - Initial Discovery
-   **By:** Claude Triage System
-   **Actions:**
-   - Issue discovered during [triage session type]
-   - Categorized as {severity}
-   - Estimated effort: {effort}
-
-   **Learnings:**
-   - [Context and insights]
-
-   ## Notes
-   Source: Triage session on {date}
-   ```
-
-5. **Confirm creation:**
-   "✅ Created: `{filename}` - Issue #{issue_id}"
-
-**When user says "next":**
-- Skip to the next item
-- Track skipped items for summary
-
-**When user says "custom":**
-- Ask what to modify (priority, description, details)
-- Update the information
-- Present revised version
-- Ask again: yes/next/custom
-
-### Step 3: Continue Until All Processed
-
-- Process all items one by one
-- Track using TodoWrite for visibility
-- Don't wait for approval between items - keep moving
-
-### Step 4: Final Summary
-
-After all items processed:
-
-```markdown
-## Triage Complete
-
-**Total Items:** [X]
-**Todos Created:** [Y]
-**Skipped:** [Z]
-
-### Created Todos:
-- `042-pending-p1-transaction-boundaries.md` - Transaction boundary issue
-- `043-pending-p2-cache-optimization.md` - Cache performance improvement
-...
-
-### Skipped Items:
-- Item #5: [reason]
-- Item #12: [reason]
-
-### Next Steps:
-1. Review pending todos: `ls todos/*-pending-*.md`
-2. Approve for work: Move from pending → ready status
-3. Start work: Use `/resolve_todo_parallel` or pick individually
-```
-
-## Example Response Format
-
-```
----
-Issue #5: Missing Transaction Boundaries for Multi-Step Operations
-
-Severity: 🔴 P1 (CRITICAL)
-
-Category: Data Integrity / Security
-
-Description:
-The google_oauth2_connected callback in GoogleOauthCallbacks concern performs multiple database
-operations without transaction protection. If any step fails midway, the database is left in an
-inconsistent state.
-
-Location: app/controllers/concerns/google_oauth_callbacks.rb:13-50
-
-Problem Scenario:
-1. User.update succeeds (email changed)
-2. Account.save! fails (validation error)
-3. Result: User has changed email but no associated Account
-4. Next login attempt fails completely
-
-Operations Without Transaction:
-- User confirmation (line 13)
-- Waitlist removal (line 14)
-- User profile update (line 21-23)
-- Account creation (line 28-37)
-- Avatar attachment (line 39-45)
-- Journey creation (line 47)
-
-Proposed Solution:
-Wrap all operations in ApplicationRecord.transaction do ... end block
-
-Estimated Effort: Small (30 minutes)
-
----
-Do you want to add this to the todo list?
-1. yes - create todo file
-2. next - skip this item
-3. custom - modify before creating
-```
-
-Do not code, and if you say yes, make sure to mark the to‑do as ready to pick up or something. If you make any changes, update the file and then continue to read the next one. If next is selecrte make sure to remove the to‑do from the list since its not relevant.
-
-Every time you present the to‑do as a header, can you say what the progress of the triage is, how many we have done and how many are left, and an estimated time for completion, looking at how quickly we go through them as well?
+- **Problem:** Cannot determine the next issue ID because `todos/` is empty.  
+  **Solution:** Initialize the directory with the provided templates and start numbering at `001` manually.
+- **Problem:** Duplicate filenames when batching creations.  
+  **Solution:** Recompute `next_id` immediately before each file creation or lock the directory while generating multiple todos.
+- **Problem:** User forgets to provide progress estimates.  
+  **Solution:** Maintain a simple counter (`processed/total`) and calculate ETA based on average time per item, announcing it before every header.
+- **Problem:** Severity level unclear.  
+  **Solution:** Revisit the original finding details (impact, exploitability, scope) and confirm with the requester before creating the todo.
+- **Problem:** Templates missing required fields.  
+  **Solution:** Copy fresh versions from `todos/000-pending-p*-TEMPLATE.md` and reapply the data, ensuring YAML front matter stays intact.

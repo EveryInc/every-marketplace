@@ -1,41 +1,76 @@
-# Resolve Todos in Parallel
+# /compounding-engineering:resolve_todo_parallel
 
-Resolve all TODO items from the todos/ directory using parallel processing.
+## Goal
 
-## Usage
+Resolve every outstanding TODO in `todos/*.md` by coordinating multiple `pr-comment-resolver` tasks in parallel, honoring dependencies, and committing the completed work back to the repository.
 
-```bash
-# With namespace (always works)
-claude /compounding-engineering:resolve_todo_parallel
+## Prerequisites
 
-# Set up alias for convenience (optional)
-alias resolve="claude /compounding-engineering:resolve_todo_parallel"
-```
+- `claude` CLI authenticated with access to `/compounding-engineering:resolve_todo_parallel` (optional alias: `alias resolve="claude /compounding-engineering:resolve_todo_parallel"`).
+- Clean working tree with write access to `todos/` and related source files.
+- Ability to commit and push to the current branch (Git configured, tests passing locally).
+- `TodoWrite` capability enabled to capture grouped plans and progress.
+- `pr-comment-resolver` Task agent available for launching one instance per TODO.
 
 ## Workflow
 
-### 1. Analyze
+1. **Invoke the command**  
+   ```bash
+   claude /compounding-engineering:resolve_todo_parallel
+   ```
 
-Get all unresolved TODOs from the /todos/\*.md directory
+2. **Analyze the backlog**  
+   - Enumerate all unresolved TODO entries across `todos/*.md`.  
+   - Capture each item’s file path, owner, blocking dependencies, and any linked tickets or PRs.
 
-### 2. Plan
+3. **Plan execution order**  
+   - Build a `TodoWrite` list grouped by type (e.g., migrations, UI fixes, infra).  
+   - Note dependencies that force sequential execution (e.g., rename before refactor).  
+   - Produce a Mermaid flow diagram that communicates what can run in parallel versus serially:  
+     ```mermaid
+     flowchart TD
+       rename[Rename model] --> docs[Update docs]
+       rename --> api[Refactor API clients]
+       tests[Add regression tests]
+     ```  
+   - Highlight which nodes can spawn concurrent Tasks and which must wait.
 
-Create a TodoWrite list of all unresolved items grouped by type.Make sure to look at dependencies that might occur and prioritize the ones needed by others. For example, if you need to change a name, you must wait to do the others. Output a mermaid flow diagram showing how we can do this. Can we do everything in parallel? Do we need to do one first that leads to others in parallel? I'll put the to-dos in the mermaid diagram flow‑wise so the agent knows how to proceed in order.
+4. **Implement in parallel**  
+   - Launch a `Task pr-comment-resolver(<todo>)` for every independent TODO, running as many as possible simultaneously:  
+     ```bash
+     Task pr-comment-resolver(todo_1)
+     Task pr-comment-resolver(todo_2)
+     Task pr-comment-resolver(todo_3)
+     ```  
+   - Keep downstream Tasks blocked until their prerequisites finish (per the Mermaid graph).  
+   - Ensure each Task removes the TODO marker from code and logs progress back into the TodoWrite board.
 
-### 3. Implement (PARALLEL)
+5. **Commit and push**  
+   - Verify all TODO markers are removed and the associated sections in `todos/*.md` are marked resolved.  
+   - Run the standard git workflow:
+     ```bash
+     git status
+     git add -A
+     git commit -m "Resolve TODO batch"
+     git push
+     ```  
+   - Summarize the mermaid flow and completion state in the PR or issue description.
 
-Spawn a pr-comment-resolver agent for each unresolved item in parallel.
+## Success Criteria
 
-So if there are 3 comments, it will spawn 3 pr-comment-resolver agents in parallel. liek this
+- [ ] Every TODO found in `todos/*.md` is resolved or explicitly deferred with justification.  
+- [ ] TodoWrite board shows grouped items, dependencies, and completion state.  
+- [ ] Mermaid flow diagram communicates ordering so future contributors can understand the parallelization plan.  
+- [ ] Each `pr-comment-resolver` Task ran in parallel whenever dependencies allowed.  
+- [ ] Commits remove resolved TODO markers and are pushed to the remote branch.
 
-1. Task pr-comment-resolver(comment1)
-2. Task pr-comment-resolver(comment2)
-3. Task pr-comment-resolver(comment3)
+## Troubleshooting
 
-Always run all in parallel subagents/Tasks for each Todo item.
-
-### 4. Commit & Resolve
-
-- Commit changes
-- Remove the TODO from the file, and mark it as resolved.
-- Push to remote
+- **Problem:** Command cannot access `/compounding-engineering:resolve_todo_parallel`.  
+  **Solution:** Re-authenticate `claude`, then confirm namespace availability via `claude namespaces list`.
+- **Problem:** `TodoWrite` fails to create grouped entries.  
+  **Solution:** Ensure the tool is enabled for the session or re-run the command after initializing TodoWrite with `TodoWrite.create("todo-batch", items)`.
+- **Problem:** Parallel Tasks collide with shared files causing git conflicts.  
+  **Solution:** Serialize conflicting Tasks, rebase on latest main, and re-run only the affected resolvers.
+- **Problem:** Rate limits prevent launching all `pr-comment-resolver` Tasks simultaneously.  
+  **Solution:** Dispatch Tasks in small batches while preserving dependency order, documenting any delays in the TodoWrite board.

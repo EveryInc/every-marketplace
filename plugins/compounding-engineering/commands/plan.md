@@ -1,373 +1,273 @@
-# Create GitHub Issue
+# /compounding-engineering:plan
 
-## Usage
+## Goal
 
-```bash
-# With namespace (always works)
-claude /compounding-engineering:plan "feature description"
+Transform any feature description, bug report, or improvement idea passed in through `#$ARGUMENTS` into a GitHub-ready markdown issue that follows project conventions, includes actionable structure, and clearly states acceptance criteria, metrics, and references.
 
-# Examples:
-claude /compounding-engineering:plan "Add user authentication with OAuth"
-claude /compounding-engineering:plan "Fix performance issue in search"
+## Prerequisites
 
-# Set up alias for convenience (optional)
-alias plan="claude /compounding-engineering:plan"
-```
+- `claude` CLI installed, authenticated, and allowed to call `/compounding-engineering:plan`.
+- GitHub CLI (`gh`) configured with permissions to read labels and create issues in the target repository.
+- Access to the repository (including `CLAUDE.md`, docs, and architecture references) plus write access to drafts or issue trackers.
+- The supporting Task agents `repo-research-analyst`, `best-practices-researcher`, and `framework-docs-researcher` available so they can run in parallel when requested.
+- A concise yet complete problem statement ready to pass as `claude /compounding-engineering:plan "#$ARGUMENTS"`.
+- Optional but recommended: alias `alias plan="claude /compounding-engineering:plan"` for quick reuse.
 
-## Introduction
+## Workflow
 
-Transform feature descriptions, bug reports, or improvement ideas into well-structured markdown files issues that follow project conventions and best practices. This command provides flexible detail levels to match your needs.
+1. **Invoke the planner**  
+   Run the command with a short but descriptive summary of the feature or bug.  
+   ```bash
+   claude /compounding-engineering:plan "Add user authentication with OAuth"
+   ```
 
-## Feature Description
+2. **Gather repository context**  
+   Think first, then run parallel research tasks to capture every relevant convention:  
+   ```bash
+   Task repo-research-analyst(#$ARGUMENTS)
+   Task best-practices-researcher(#$ARGUMENTS)
+   Task framework-docs-researcher(#$ARGUMENTS)
+   ```  
+   - Document findings with explicit file paths (e.g., `app/services/example_service.rb:42`).  
+   - Capture external references, prior issues/PRs, and any norms identified in `CLAUDE.md`.  
+   - Maintain a checklist of resources to cite later.
 
-<feature_description> #$ARGUMENTS </feature_description>
+3. **Plan the issue structure**  
+   - Title & categorization: draft searchable titles (`feat:`, `fix:`, `docs:`), choose labels via `gh label list`, and note the issue type.  
+   - Stakeholder analysis: list who is affected (end users, SRE, QA) and assess required expertise.  
+   - Content planning: select the detail tier (Minimal, More, A Lot), outline required sections, gather screenshots/logs, and prepare reproducible steps or mock filenames.
 
-## Main Tasks
+4. **Choose the implementation detail level**  
+   - **📄 MINIMAL (Quick Issue)** — ideal for simple bugs or tight fixes.  
+     - Include core problem statement, acceptance criteria, and essential context.  
+     - Template:  
+       ````markdown
+       [Brief problem/feature description]
 
-### 1. Repository Research & Context Gathering
+       ## Acceptance Criteria
 
-<thinking>
-First, I need to understand the project's conventions and existing patterns, leveraging all available resources and use paralel subagents to do this.
-</thinking>
+       - [ ] Core requirement 1
+       - [ ] Core requirement 2
 
-Runn these three agents in paralel at the same time:
+       ## Context
 
-- Task repo-research-analyst(feature_description)
-- Task best-practices-researcher (feature_description)
-- Task framework-docs-researcher (feature_description)
+       [Any critical information]
 
-**Reference Collection:**
+       ## MVP
 
-- [ ] Document all research findings with specific file paths (e.g., `app/services/example_service.rb:42`)
-- [ ] Include URLs to external documentation and best practices guides
-- [ ] Create a reference list of similar issues or PRs (e.g., `#123`, `#456`)
-- [ ] Note any team conventions discovered in `CLAUDE.md` or team documentation
+       ### test.rb
 
-### 2. Issue Planning & Structure
+       ```ruby
+       class Test
+         def initialize
+           @name = "test"
+         end
+       end
+       ```
 
-<thinking>
-Think like a product manager - what would make this issue clear and actionable? Consider multiple perspectives
-</thinking>
+       ## References
 
-**Title & Categorization:**
+       - Related issue: #[issue_number]
+       - Documentation: [relevant_docs_url]
+       ````
+   - **📋 MORE (Standard Issue)** — default for most collaborative work.  
+     - Adds motivation, technical considerations, dependencies, and success metrics.  
+     - Template:  
+       ```markdown
+       ## Overview
 
-- [ ] Draft clear, searchable issue title using conventional format (e.g., `feat:`, `fix:`, `docs:`)
-- [ ] Identify appropriate labels from repository's label set (`gh label list`)
-- [ ] Determine issue type: enhancement, bug, refactor
+       [Comprehensive description]
 
-**Stakeholder Analysis:**
+       ## Problem Statement / Motivation
 
-- [ ] Identify who will be affected by this issue (end users, developers, operations)
-- [ ] Consider implementation complexity and required expertise
+       [Why this matters]
 
-**Content Planning:**
+       ## Proposed Solution
 
-- [ ] Choose appropriate detail level based on issue complexity and audience
-- [ ] List all necessary sections for the chosen template
-- [ ] Gather supporting materials (error logs, screenshots, design mockups)
-- [ ] Prepare code examples or reproduction steps if applicable, name the mock filenames in the lists
+       [High-level approach]
 
-### 3. Choose Implementation Detail Level
+       ## Technical Considerations
 
-Select how comprehensive you want the issue to be:
+       - Architecture impacts
+       - Performance implications
+       - Security considerations
 
-#### 📄 MINIMAL (Quick Issue)
+       ## Acceptance Criteria
 
-**Best for:** Simple bugs, small improvements, clear features
+       - [ ] Detailed requirement 1
+       - [ ] Detailed requirement 2
+       - [ ] Testing requirements
 
-**Includes:**
+       ## Success Metrics
 
-- Problem statement or feature description
-- Basic acceptance criteria
-- Essential context only
+       [How we measure success]
 
-**Structure:**
+       ## Dependencies & Risks
 
-````markdown
-[Brief problem/feature description]
+       [What could block or complicate this]
 
-## Acceptance Criteria
+       ## References & Research
 
-- [ ] Core requirement 1
-- [ ] Core requirement 2
+       - Similar implementations: [file_path:line_number]
+       - Best practices: [documentation_url]
+       - Related PRs: #[pr_number]
+       ```
+   - **📚 A LOT (Comprehensive Issue)** — for major features or architecture.  
+     - Expands on phases, alternatives, risk mitigation, resources, and documentation plans.  
+     - Template:  
+       ```markdown
+       ## Overview
 
-## Context
+       [Executive summary]
 
-[Any critical information]
+       ## Problem Statement
 
-## MVP
+       [Detailed problem analysis]
 
-### test.rb
+       ## Proposed Solution
 
-```ruby
-class Test
-  def initialize
-    @name = "test"
-  end
-end
-```
+       [Comprehensive solution design]
 
-## References
+       ## Technical Approach
 
-- Related issue: #[issue_number]
-- Documentation: [relevant_docs_url]
-````
+       ### Architecture
 
-#### 📋 MORE (Standard Issue)
+       [Detailed technical design]
 
-**Best for:** Most features, complex bugs, team collaboration
+       ### Implementation Phases
 
-**Includes everything from MINIMAL plus:**
+       #### Phase 1: [Foundation]
 
-- Detailed background and motivation
-- Technical considerations
-- Success metrics
-- Dependencies and risks
-- Basic implementation suggestions
+       - Tasks and deliverables
+       - Success criteria
+       - Estimated effort
 
-**Structure:**
+       #### Phase 2: [Core Implementation]
 
-```markdown
-## Overview
+       - Tasks and deliverables
+       - Success criteria
+       - Estimated effort
 
-[Comprehensive description]
+       #### Phase 3: [Polish & Optimization]
 
-## Problem Statement / Motivation
+       - Tasks and deliverables
+       - Success criteria
+       - Estimated effort
 
-[Why this matters]
+       ## Alternative Approaches Considered
 
-## Proposed Solution
+       [Other solutions evaluated and why rejected]
 
-[High-level approach]
+       ## Acceptance Criteria
 
-## Technical Considerations
+       ### Functional Requirements
 
-- Architecture impacts
-- Performance implications
-- Security considerations
+       - [ ] Detailed functional criteria
 
-## Acceptance Criteria
+       ### Non-Functional Requirements
 
-- [ ] Detailed requirement 1
-- [ ] Detailed requirement 2
-- [ ] Testing requirements
+       - [ ] Performance targets
+       - [ ] Security requirements
+       - [ ] Accessibility standards
 
-## Success Metrics
+       ### Quality Gates
 
-[How we measure success]
+       - [ ] Test coverage requirements
+       - [ ] Documentation completeness
+       - [ ] Code review approval
 
-## Dependencies & Risks
+       ## Success Metrics
 
-[What could block or complicate this]
+       [Detailed KPIs and measurement methods]
 
-## References & Research
+       ## Dependencies & Prerequisites
 
-- Similar implementations: [file_path:line_number]
-- Best practices: [documentation_url]
-- Related PRs: #[pr_number]
-```
+       [Detailed dependency analysis]
 
-#### 📚 A LOT (Comprehensive Issue)
+       ## Risk Analysis & Mitigation
 
-**Best for:** Major features, architectural changes, complex integrations
+       [Comprehensive risk assessment]
 
-**Includes everything from MORE plus:**
+       ## Resource Requirements
 
-- Detailed implementation plan with phases
-- Alternative approaches considered
-- Extensive technical specifications
-- Resource requirements and timeline
-- Future considerations and extensibility
-- Risk mitigation strategies
-- Documentation requirements
+       [Team, time, infrastructure needs]
 
-**Structure:**
+       ## Future Considerations
 
-```markdown
-## Overview
+       [Extensibility and long-term vision]
 
-[Executive summary]
+       ## Documentation Plan
 
-## Problem Statement
+       [What docs need updating]
 
-[Detailed problem analysis]
+       ## References & Research
 
-## Proposed Solution
+       ### Internal References
 
-[Comprehensive solution design]
+       - Architecture decisions: [file_path:line_number]
+       - Similar features: [file_path:line_number]
+       - Configuration: [file_path:line_number]
 
-## Technical Approach
+       ### External References
 
-### Architecture
+       - Framework documentation: [url]
+       - Best practices guide: [url]
+       - Industry standards: [url]
 
-[Detailed technical design]
+       ### Related Work
 
-### Implementation Phases
+       - Previous PRs: #[pr_numbers]
+       - Related issues: #[issue_numbers]
+       - Design documents: [links]
+       ```
 
-#### Phase 1: [Foundation]
+5. **Draft and format the issue**  
+   - Headings: enforce hierarchy (##, ###), use emojis for quick scanning (🐛, ✨, 📚, ♻️).  
+   - Code: wrap examples with language fences and note file references (`app/services/user_service.rb:42`).  
+   - Rich media: attach screenshots/mockups; wrap long logs in `<details>`.  
+   - Cross-references: link #issues, #PRs, commits (permalinks), @mention stakeholders, and cite external resources descriptively.  
+   - AI-era considerations: record prompts used, tools invoked (Claude, Copilot), testing expectations, and highlight any AI-generated code that still needs human review.  
+   - Example snippet:  
+     ```markdown
+     ```ruby
+     # app/services/user_service.rb:42
+     def process_user(user)
+       # Implementation here
+     end
+     ```
 
-- Tasks and deliverables
-- Success criteria
-- Estimated effort
+     <details>
+     <summary>Full error stacktrace</summary>
 
-#### Phase 2: [Core Implementation]
+     ```
+     Error details here...
+     ```
+     </details>
+     ```
 
-- Tasks and deliverables
-- Success criteria
-- Estimated effort
+6. **Review and prepare for submission**  
+   - Final checklist: searchable title, accurate labels, completed sections, working links, measurable acceptance criteria, named mock files, ERD diagram for new data models.  
+   - Wrap the finished body inside `<github_issue>` tags.  
+   - Use GitHub CLI to file it:  
+     ```bash
+     gh issue create --title "[TITLE]" --body "[CONTENT]" --label "[LABELS]"
+     ```
 
-#### Phase 3: [Polish & Optimization]
+## Success Criteria
 
-- Tasks and deliverables
-- Success criteria
-- Estimated effort
+- [ ] Issue content reflects the selected detail level (Minimal/More/A Lot) with all required sections filled.  
+- [ ] Research references include concrete file paths, links, and prior work numbers.  
+- [ ] Acceptance criteria and success metrics are measurable, testable, and aligned with `CLAUDE.md` standards.  
+- [ ] Final markdown is wrapped in `<github_issue>` tags and ready for `gh issue create`.  
+- [ ] Namespace usage remains `/compounding-engineering:plan` throughout the workflow and examples.
 
-## Alternative Approaches Considered
+## Troubleshooting
 
-[Other solutions evaluated and why rejected]
-
-## Acceptance Criteria
-
-### Functional Requirements
-
-- [ ] Detailed functional criteria
-
-### Non-Functional Requirements
-
-- [ ] Performance targets
-- [ ] Security requirements
-- [ ] Accessibility standards
-
-### Quality Gates
-
-- [ ] Test coverage requirements
-- [ ] Documentation completeness
-- [ ] Code review approval
-
-## Success Metrics
-
-[Detailed KPIs and measurement methods]
-
-## Dependencies & Prerequisites
-
-[Detailed dependency analysis]
-
-## Risk Analysis & Mitigation
-
-[Comprehensive risk assessment]
-
-## Resource Requirements
-
-[Team, time, infrastructure needs]
-
-## Future Considerations
-
-[Extensibility and long-term vision]
-
-## Documentation Plan
-
-[What docs need updating]
-
-## References & Research
-
-### Internal References
-
-- Architecture decisions: [file_path:line_number]
-- Similar features: [file_path:line_number]
-- Configuration: [file_path:line_number]
-
-### External References
-
-- Framework documentation: [url]
-- Best practices guide: [url]
-- Industry standards: [url]
-
-### Related Work
-
-- Previous PRs: #[pr_numbers]
-- Related issues: #[issue_numbers]
-- Design documents: [links]
-```
-
-### 4. Issue Creation & Formatting
-
-<thinking>
-Apply best practices for clarity and actionability, making the issue easy to scan and understand
-</thinking>
-
-**Content Formatting:**
-
-- [ ] Use clear, descriptive headings with proper hierarchy (##, ###)
-- [ ] Include code examples in triple backticks with language syntax highlighting
-- [ ] Add screenshots/mockups if UI-related (drag & drop or use image hosting)
-- [ ] Use task lists (- [ ]) for trackable items that can be checked off
-- [ ] Add collapsible sections for lengthy logs or optional details using `<details>` tags
-- [ ] Apply appropriate emoji for visual scanning (🐛 bug, ✨ feature, 📚 docs, ♻️ refactor)
-
-**Cross-Referencing:**
-
-- [ ] Link to related issues/PRs using #number format
-- [ ] Reference specific commits with SHA hashes when relevant
-- [ ] Link to code using GitHub's permalink feature (press 'y' for permanent link)
-- [ ] Mention relevant team members with @username if needed
-- [ ] Add links to external resources with descriptive text
-
-**Code & Examples:**
-
-```markdown
-# Good example with syntax highlighting and line references
-
-\`\`\`ruby
-
-# app/services/user_service.rb:42
-
-def process_user(user)
-
-# Implementation here
-
-end \`\`\`
-
-# Collapsible error logs
-
-<details>
-<summary>Full error stacktrace</summary>
-
-\`\`\` Error details here... \`\`\`
-
-</details>
-```
-
-**AI-Era Considerations:**
-
-- [ ] Account for accelerated development with AI pair programming
-- [ ] Include prompts or instructions that worked well during research
-- [ ] Note which AI tools were used for initial exploration (Claude, Copilot, etc.)
-- [ ] Emphasize comprehensive testing given rapid implementation
-- [ ] Document any AI-generated code that needs human review
-
-### 5. Final Review & Submission
-
-**Pre-submission Checklist:**
-
-- [ ] Title is searchable and descriptive
-- [ ] Labels accurately categorize the issue
-- [ ] All template sections are complete
-- [ ] Links and references are working
-- [ ] Acceptance criteria are measurable
-- [ ] Add names of files in pseudo code examples and todo lists
-- [ ] Add an ERD mermaid diagram if applicable for new model changes
-
-## Output Format
-
-Present the complete issue content within `<github_issue>` tags, ready for GitHub CLI:
-
-```bash
-gh issue create --title "[TITLE]" --body "[CONTENT]" --label "[LABELS]"
-```
-
-## Thinking Approaches
-
-- **Analytical:** Break down complex features into manageable components
-- **User-Centric:** Consider end-user impact and experience
-- **Technical:** Evaluate implementation complexity and architecture fit
-- **Strategic:** Align with project goals and roadmap
+- **Problem:** `claude` cannot find `/compounding-engineering:plan`.  
+  **Solution:** Run `claude namespaces list` or re-authenticate to ensure access to the `/compounding-engineering` namespace.
+- **Problem:** Research Task agents fail or return empty context.  
+  **Solution:** Verify that each Task agent exists, rerun them individually, and seed them with clearer prompts referencing specific directories or services.
+- **Problem:** Generated issue lacks required sections for the chosen detail level.  
+  **Solution:** Reapply the appropriate template snippet, ensuring every heading is filled before wrapping the issue in `<github_issue>` tags.
+- **Problem:** `gh issue create` rejects the payload due to formatting.  
+  **Solution:** Escape quotes inside the body, or pipe the markdown via `gh issue create --body-file issue.md` after saving the generated content locally.

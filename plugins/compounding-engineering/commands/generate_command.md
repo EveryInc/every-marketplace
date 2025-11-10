@@ -1,124 +1,123 @@
-# Create a Custom Claude Code Command
-
-## Usage
-
-```bash
-# With namespace (always works)
-claude /compounding-engineering:generate_command "command description"
-
-# Example:
-claude /compounding-engineering:generate_command "Create a command to run database migrations"
-
-# Set up alias for convenience (optional)
-alias gencommand="claude /compounding-engineering:generate_command"
-```
-
-Create a new slash command in `.claude/commands/` for the requested task.
+# /compounding-engineering:generate_command
 
 ## Goal
 
-#$ARGUMENTS
+Create a tailored Claude CLI command definition that lives in `.claude/commands/[name].md`, guiding agents through complex engineering work with clear steps, explicit tooling, and repeatable success criteria.
 
-## Key Capabilities to Leverage
+## Prerequisites
 
-**File Operations:**
-- Read, Edit, Write - modify files precisely
-- Glob, Grep - search codebase
-- MultiEdit - atomic multi-part changes
+- `claude` CLI installed and authenticated with access to the `/compounding-engineering` namespace.
+- Write access to the current repository's `.claude/commands/` directory.
+- A well-defined task description for the new command (use `#$ARGUMENTS` wherever the command should accept dynamic input).
+- Familiarity with relevant project conventions in `CLAUDE.md`, including required tests, linters, and deployment practices.
 
-**Development:**
-- Bash - run commands (git, tests, linters)
-- Task - launch specialized agents for complex tasks
-- TodoWrite - track progress with todo lists
+## Workflow
 
-**Web & APIs:**
-- WebFetch, WebSearch - research documentation
-- GitHub (gh cli) - PRs, issues, reviews
-- Puppeteer - browser automation, screenshots
+1. **Invoke the generator**  
+   Run the command with a concise description of the command you need:  
+   ```bash
+   claude /compounding-engineering:generate_command "Create a command to run database migrations"
+   ```  
+   Optional alias for repeated use: `alias gencommand="claude /compounding-engineering:generate_command"`.
 
-**Integrations:**
-- AppSignal - logs and monitoring
-- Context7 - framework docs
-- Stripe, Todoist, Featurebase (if relevant)
+2. **Describe the desired command**  
+   Provide context, constraints, and expected outputs. Reference `#$ARGUMENTS` anywhere the generated command should accept user-provided values and call out required validations (tests, linting, docs).
 
-## Best Practices
+3. **Adopt the standard structure**  
+   Use the following markdown template when drafting the new command, replacing bracketed sections with command-specific details:  
+   ```markdown
+   # [Command Name]
 
-1. **Be specific and clear** - detailed instructions yield better results
-2. **Break down complex tasks** - use step-by-step plans
-3. **Use examples** - reference existing code patterns
-4. **Include success criteria** - tests pass, linting clean, etc.
-5. **Think first** - use "think hard" or "plan" keywords for complex problems
-6. **Iterate** - guide the process step by step
+   [Brief description of what this command does]
 
-## Structure Your Command
+   ## Steps
 
-```markdown
-# [Command Name]
+   1. [First step with specific details]
+      - Include file paths, patterns, or constraints
+      - Reference existing code if applicable
 
-[Brief description of what this command does]
+   2. [Second step]
+      - Use parallel tool calls when possible
+      - Check/verify results
 
-## Steps
+   3. [Final steps]
+      - Run tests
+      - Lint code
+      - Commit changes (if appropriate)
 
-1. [First step with specific details]
-   - Include file paths, patterns, or constraints
-   - Reference existing code if applicable
+   ## Success Criteria
 
-2. [Second step]
-   - Use parallel tool calls when possible
-   - Check/verify results
+   - [ ] Tests pass
+   - [ ] Code follows style guide
+   - [ ] Documentation updated (if needed)
+   ```
 
-3. [Final steps]
-   - Run tests
-   - Lint code
-   - Commit changes (if appropriate)
+4. **Leverage the available capabilities**  
+   - **File Operations:** Read, edit, write, glob, grep, multi-edit for atomic updates.  
+   - **Development:** Bash for git/tests/linters, Task for complex workflows, TodoWrite for progress tracking.  
+   - **Web & APIs:** WebFetch, WebSearch, GitHub CLI, Puppeteer for research or automation.  
+   - **Integrations:** AppSignal, Context7, Stripe, Todoist, Featurebase if the command interacts with those systems.
+
+5. **Apply best practices**  
+   - Be specific and clear; break down complex work into steps.  
+   - Reference project examples and include verification commands.  
+   - Define explicit success criteria and call out constraints (e.g., do not touch certain files).  
+   - Use XML tags like `<task>`, `<requirements>`, `<constraints>` when structured prompts improve clarity.  
+   - Iterate—guide the agent to plan before making large, risky changes.
+
+6. **Use the example pattern when in doubt**  
+   ```markdown
+   Implement #$ARGUMENTS following these steps:
+
+   1. Research existing patterns
+      - Search for similar code using Grep
+      - Read relevant files to understand approach
+
+   2. Plan the implementation
+      - Think through edge cases and requirements
+      - Consider test cases needed
+
+   3. Implement
+      - Follow existing code patterns (reference specific files)
+      - Write tests first if doing TDD
+      - Ensure code follows CLAUDE.md conventions
+
+   4. Verify
+      - Run tests:
+        - Rails: `bin/rails test` or `bundle exec rspec`
+        - TypeScript: `npm test` or `yarn test` (Jest/Vitest)
+        - Python: `pytest` or `python -m pytest`
+      - Run linter:
+        - Rails: `bundle exec standardrb` or `bundle exec rubocop`
+        - TypeScript: `npm run lint` or `eslint .`
+        - Python: `ruff check .` or `flake8`
+      - Check changes with git diff
+
+   5. Commit (optional)
+      - Stage changes
+      - Write clear commit message
+   ```
+
+7. **Save the command file**  
+   Persist the finished instructions to `.claude/commands/[name].md`, review the diff, and ensure the command explicitly tells the agent to run the validations listed in the success criteria.
 
 ## Success Criteria
 
-- [ ] Tests pass
-- [ ] Code follows style guide
-- [ ] Documentation updated (if needed)
-```
+- [ ] Generated command markdown lives in `.claude/commands/[name].md` with an accurate title and description.
+- [ ] Steps walk through actionable tasks with explicit file paths, commands, and verification guidance.
+- [ ] Success checklist matches the validations the agent must run (tests, linters, documentation updates).
+- [ ] Namespace references consistently use `/compounding-engineering:` and placeholders like `#$ARGUMENTS` are intentional.
 
-## Tips for Effective Commands
+## Troubleshooting
 
-- **Use $ARGUMENTS** placeholder for dynamic inputs
-- **Reference CLAUDE.md** patterns and conventions
-- **Include verification steps** - tests, linting, visual checks
-- **Be explicit about constraints** - don't modify X, use pattern Y
-- **Use XML tags** for structured prompts: `<task>`, `<requirements>`, `<constraints>`
+- **Problem:** `claude` cannot find `/compounding-engineering:generate_command`.  
+  **Solution:** Run `claude namespaces list` to confirm access; re-authenticate if the namespace is missing.
 
-## Example Pattern
+- **Problem:** Output omits key sections (Steps, Success Criteria).  
+  **Solution:** Provide a fuller description when invoking the command and reapply the standard structure template before saving.
 
-```markdown
-Implement #$ARGUMENTS following these steps:
+- **Problem:** Command file does not save to `.claude/commands/`.  
+  **Solution:** Verify the directory exists or create it, then re-run the generator output into the correct path.
 
-1. Research existing patterns
-   - Search for similar code using Grep
-   - Read relevant files to understand approach
-
-2. Plan the implementation
-   - Think through edge cases and requirements
-   - Consider test cases needed
-
-3. Implement
-   - Follow existing code patterns (reference specific files)
-   - Write tests first if doing TDD
-   - Ensure code follows CLAUDE.md conventions
-
-4. Verify
-   - Run tests:
-     - Rails: `bin/rails test` or `bundle exec rspec`
-     - TypeScript: `npm test` or `yarn test` (Jest/Vitest)
-     - Python: `pytest` or `python -m pytest`
-   - Run linter:
-     - Rails: `bundle exec standardrb` or `bundle exec rubocop`
-     - TypeScript: `npm run lint` or `eslint .`
-     - Python: `ruff check .` or `flake8`
-   - Check changes with git diff
-
-5. Commit (optional)
-   - Stage changes
-   - Write clear commit message
-```
-
-Now create the command file at `.claude/commands/[name].md` with the structure above.
+- **Problem:** Placeholder text (`#$ARGUMENTS`, `[Command Name]`) leaks into final instructions.  
+  **Solution:** Replace placeholders manually and review for lingering template markers before finalizing the file.
