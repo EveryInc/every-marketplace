@@ -71,6 +71,14 @@ Get productive with the Compounding Engineering plugin in 10 minutes.
 - Claude Code CLI installed ([Installation Guide](https://docs.claude.com/claude-code))
 - Git repository with a main branch
 - Terminal access with bash/zsh
+- **For `/review` and `/triage` commands:** GitHub CLI (`gh`) installed and authenticated
+  ```bash
+  # Check if gh is installed
+  which gh
+
+  # Authenticate (if needed)
+  gh auth login
+  ```
 
 ### Installation Steps
 
@@ -160,14 +168,14 @@ alias resolve="claude /compounding-engineering:resolve_todo_parallel"
 
 6 powerful commands for workflow automation:
 
-| Command | Purpose | When to Use |
-|---------|---------|-------------|
-| `/plan` | Create structured implementation plans | Starting features, planning refactors |
-| `/work` | Execute work plans in isolated worktrees | Implementing features, fixing bugs |
-| `/review` | Multi-agent code quality assessment | Before merging, quality checks |
-| `/triage` | Prioritize findings and issues | After reviews, organizing work |
-| `/generate_command` | Create custom slash commands | Automating repetitive workflows |
-| `/resolve_todo_parallel` | Resolve TODOs in parallel | Batch fixing issues, cleanup |
+| Command | Purpose | When to Use | Time Estimate |
+|---------|---------|-------------|----------------|
+| `/plan` | Create structured implementation plans with research and acceptance criteria | Starting features, planning refactors, complex bug analysis | 5-15 min |
+| `/work` | Execute work plans systematically in isolated git worktrees | Implementing features, fixing bugs, executing multi-step tasks | Varies (typically 1-4 hours) |
+| `/review` | Multi-agent code quality assessment using 10+ specialized agents | Before merging PRs, post-implementation checks, security/performance audits | 10-20 min |
+| `/triage` | Interactively prioritize findings and convert to tracked TODO items | After `/review` runs, processing audit results, organizing technical debt | 5-15 min per batch |
+| `/generate_command` | Create custom slash commands for team-specific workflows | Automating repetitive processes, codifying standards, building shortcuts | 10-30 min |
+| `/resolve_todo_parallel` | Resolve multiple TODO items using parallel processing and dependency analysis | Batch fixing all review findings, cleanup sprints, clearing technical debt | Varies by issue count |
 
 ### Specialized Agents
 
@@ -771,6 +779,393 @@ claude agent pattern-recognition-specialist "Identify anti-patterns in our servi
 claude agent pattern-recognition-specialist "What design patterns are used in the notification system?"
 ```
 
+---
+
+#### `kieran-typescript-reviewer`
+
+Expert TypeScript code review with strict quality standards.
+
+**When to Use:**
+
+- After implementing TypeScript features
+- Modifying existing TypeScript code
+- Creating new React/Vue/Angular components
+- Pre-merge TypeScript quality checks
+
+**Example Usage:**
+
+```bash
+# Review a React component
+claude agent kieran-typescript-reviewer "Review the UserProfile component for TypeScript best practices"
+
+# Review API types
+claude agent kieran-typescript-reviewer "Check if our API response types are properly defined and exported"
+
+# Review state management
+claude agent kieran-typescript-reviewer "Evaluate the Redux store implementation for type safety"
+```
+
+**What It Checks:**
+
+- TypeScript type safety and inference
+- React/Vue/Angular patterns
+- Enum vs union type choices
+- Generic type constraints
+- Interface composition
+- Error handling type coverage
+- Null/undefined safety
+- Utility type optimization
+
+**Output:** Detailed review with type examples and improvement suggestions
+
+---
+
+#### `kieran-python-reviewer`
+
+Expert Python code review with strict quality standards.
+
+**When to Use:**
+
+- After implementing Python features
+- Modifying existing Python code
+- Creating new services or libraries
+- Pre-merge Python quality checks
+
+**Example Usage:**
+
+```bash
+# Review a FastAPI endpoint
+claude agent kieran-python-reviewer "Review the user registration endpoint for best practices"
+
+# Review a service class
+claude agent kieran-python-reviewer "Check if UserService follows our conventions and is testable"
+
+# Review async patterns
+claude agent kieran-python-reviewer "Evaluate the async/await patterns in our data processing pipeline"
+```
+
+**What It Checks:**
+
+- Python naming conventions (PEP 8)
+- Type hints completeness
+- Docstring quality and format
+- Exception handling patterns
+- List comprehension vs loops
+- Context manager usage
+- Property vs method choices
+- Testability and mocking patterns
+
+**Output:** Detailed review with Python examples and improvement suggestions
+
+---
+
+#### `dhh-rails-reviewer`
+
+Rails code review from the perspective of David Heinemeier Hansson (DHH).
+
+**When to Use:**
+
+- Reviewing Rails features with a Rails-first philosophy
+- Ensuring Rails conventions aren't being violated
+- Preventing JavaScript framework patterns in Rails code
+- Catching over-engineering in Rails context
+
+**Example Usage:**
+
+```bash
+# Review Rails architecture
+claude agent dhh-rails-reviewer "Is our authentication approach following Rails conventions?"
+
+# Check for over-engineering
+claude agent dhh-rails-reviewer "Review our service layer - are we over-engineering when Rails conventions would be simpler?"
+
+# Evaluate framework choice
+claude agent dhh-rails-reviewer "Should we use Hotwire/Turbo for this feature instead of a JavaScript framework?"
+```
+
+**What It Checks:**
+
+- Rails convention adherence
+- JavaScript framework contamination
+- Service object necessity
+- Hotwire/Turbo appropriateness
+- Convention-over-configuration violations
+- Premature optimization
+- Testing philosophy alignment
+- Simplicity vs complexity trade-offs
+
+**Output:** Candid assessment with Rails philosophy perspective
+
+---
+
+#### `code-simplicity-reviewer`
+
+Identifies opportunities to simplify code and remove unnecessary complexity.
+
+**When to Use:**
+
+- After feature implementation (before final review)
+- Identifying over-engineering
+- Applying YAGNI principle
+- Improving code maintainability
+
+**Example Usage:**
+
+```bash
+# Simplify complex logic
+claude agent code-simplicity-reviewer "Can we simplify the PaymentProcessor class? It feels complex."
+
+# Check YAGNI violations
+claude agent code-simplicity-reviewer "Review the validation system - are we building features we don't need?"
+
+# Reduce abstraction layers
+claude agent code-simplicity-reviewer "Do we need all these adapter patterns or can we simplify?"
+```
+
+**What It Checks:**
+
+- Unnecessary abstraction layers
+- Over-generalization
+- Unused code paths
+- Complex solutions to simple problems
+- Premature performance optimization
+- Testing complexity
+- Feature creep
+- YAGNI violations
+
+**Output:** Specific simplification suggestions with before/after examples
+
+---
+
+#### `data-integrity-guardian`
+
+Database safety and data integrity specialist.
+
+**When to Use:**
+
+- Before deploying database migrations
+- After implementing data manipulation code
+- Reviewing transaction handling
+- Pre-release data integrity audits
+
+**Example Usage:**
+
+```bash
+# Review database migration
+claude agent data-integrity-guardian "Check this migration for data safety - we're renaming a column with data"
+
+# Validate transaction handling
+claude agent data-integrity-guardian "Review the payment transaction logic for atomicity and consistency"
+
+# Check referential integrity
+claude agent data-integrity-guardian "Ensure our foreign key constraints are properly enforced"
+```
+
+**What It Checks:**
+
+- Migration safety (data preservation, rollback ability)
+- Transaction boundaries and atomicity
+- Referential integrity constraints
+- Data consistency rules
+- Concurrency issues (race conditions)
+- Lock deadlock potential
+- Data type appropriateness
+- Backup/recovery considerations
+
+**Output:** Data integrity assessment with specific concerns and mitigations
+
+---
+
+#### `git-history-analyzer`
+
+Code archaeology and historical context specialist.
+
+**When to Use:**
+
+- Understanding why code exists
+- Identifying pattern origins
+- Tracing regression introduction
+- Learning from code evolution
+
+**Example Usage:**
+
+```bash
+# Understand code history
+claude agent git-history-analyzer "Why does this payment processing have so many try-catch blocks?"
+
+# Find pattern origins
+claude agent git-history-analyzer "When was the service layer pattern introduced and why?"
+
+# Trace bug introduction
+claude agent git-history-analyzer "When did this race condition get introduced and what was the original intent?"
+```
+
+**What It Checks:**
+
+- Commit history for specific code
+- Original implementation context
+- Pattern introduction timing
+- Key contributor expertise areas
+- Regression-inducing changes
+- Decision context from commit messages
+
+**Output:** Historical analysis with context about why decisions were made
+
+---
+
+#### `repo-research-analyst`
+
+Repository structure and codebase pattern specialist.
+
+**When to Use:**
+
+- Onboarding to new codebases
+- Planning new features (understanding existing patterns)
+- Identifying architectural improvements
+- Documenting project structure
+
+**Example Usage:**
+
+```bash
+# Understand codebase structure
+claude agent repo-research-analyst "How is our Rails project organized? What patterns do we use?"
+
+# Plan new feature based on existing patterns
+claude agent repo-research-analyst "Show me how authentication is currently implemented so I can follow the same pattern"
+
+# Identify architectural issues
+claude agent repo-research-analyst "Is our current folder structure scalable for 10x growth?"
+```
+
+**What It Checks:**
+
+- Folder organization and conventions
+- Existing design patterns
+- Naming conventions
+- Module/package structure
+- Dependency organization
+- Configuration patterns
+- Testing structure
+- Documentation organization
+
+**Output:** Comprehensive analysis of repository structure and implementation patterns
+
+---
+
+#### `framework-docs-researcher`
+
+Framework and library documentation expert.
+
+**When to Use:**
+
+- Learning new frameworks
+- Implementing unfamiliar library features
+- Resolving version-specific issues
+- Staying current with framework updates
+
+**Example Usage:**
+
+```bash
+# Learn framework feature
+claude agent framework-docs-researcher "How do we use Active Storage attachments in Rails 7?"
+
+# Resolve library issue
+claude agent framework-docs-researcher "What's the proper way to use React Query with TypeScript and type-safe endpoints?"
+
+# Version compatibility
+claude agent framework-docs-researcher "How does Rails 8 change how we handle authentication?"
+```
+
+**What It Checks:**
+
+- Official documentation accuracy
+- Version-specific features and changes
+- API usage patterns
+- Common pitfalls documented
+- Performance considerations
+- Migration guides for version changes
+- Best practices from framework authors
+
+**Output:** Framework guidance with official documentation references
+
+---
+
+#### `pr-comment-resolver`
+
+Converts code review comments into actionable fixes.
+
+**When to Use:**
+
+- After receiving review feedback
+- Addressing specific PR comments
+- Batch fixing review suggestions
+- Creating issues from review feedback
+
+**Example Usage:**
+
+```bash
+# Implement feedback from review
+claude agent pr-comment-resolver "The reviewer said: 'Extract this validation logic to a separate service.' Here's the code:"
+
+# Handle multiple review comments
+claude agent pr-comment-resolver "Address these 5 code review comments systematically"
+
+# Create improvements from feedback
+claude agent pr-comment-resolver "Convert this review feedback into a PR that addresses all points"
+```
+
+**What It Does:**
+
+1. Parses review comment intent
+2. Understands context from surrounding code
+3. Implements suggested improvements
+4. Validates changes don't break functionality
+5. Creates well-tested implementation
+6. Provides before/after explanation
+
+**Output:** Code changes addressing review feedback with explanation
+
+---
+
+#### `every-style-editor`
+
+Every.to writing style and documentation specialist.
+
+**When to Use:**
+
+- Writing documentation or READMEs
+- Creating blog posts or articles
+- Editing user-facing content
+- Ensuring consistent voice and tone
+
+**Example Usage:**
+
+```bash
+# Review documentation style
+claude agent every-style-editor "Review this README for clarity and Every.to style"
+
+# Improve writing clarity
+claude agent every-style-editor "Make this technical explanation more accessible to non-technical readers"
+
+# Check consistency
+claude agent every-style-editor "Does this documentation match our style guide and voice?"
+```
+
+**What It Checks:**
+
+- Every.to voice and tone consistency
+- Headline clarity and structure
+- Sentence case vs title case usage
+- Passive voice reduction
+- Company name capitalization
+- Overused word detection
+- Number formatting conventions
+- Punctuation patterns
+- Reader accessibility
+- Narrative flow
+
+**Output:** Specific style improvements with explanations
+
 ## Common Workflows
 
 ### Workflow 1: Feature Development
@@ -1106,6 +1501,44 @@ git pull origin main
 
 # Try worktree creation again
 claude /compounding-engineering:work docs/plan.md
+```
+
+---
+
+### GitHub CLI Setup
+
+**Issue:** `gh` command not found
+
+```bash
+# Install gh CLI
+# macOS
+brew install gh
+
+# Ubuntu/Debian
+sudo apt install gh
+
+# Or download from https://github.com/cli/cli
+```
+
+**Issue:** Not authenticated with GitHub
+
+```bash
+# Authenticate
+gh auth login
+
+# Verify authentication
+gh auth status
+```
+
+**Issue:** `/review` command fails with "authentication error"
+
+```bash
+# Refresh GitHub authentication
+gh auth logout
+gh auth login
+
+# Verify CLI has access to your repository
+gh repo view
 ```
 
 ---
