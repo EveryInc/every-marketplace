@@ -2,6 +2,25 @@
 
 <command_purpose> Perform exhaustive code reviews using multi-agent analysis, ultra-thinking, and Git worktrees for deep local inspection. </command_purpose>
 
+## Usage
+
+```bash
+# With namespace (always works)
+claude /compounding-engineering:review [PR_NUMBER|PR_URL|FILE_PATH]
+
+# Examples:
+claude /compounding-engineering:review 123
+claude /compounding-engineering:review https://github.com/owner/repo/pull/123
+claude /compounding-engineering:review docs/plan.md
+
+# Set up alias for convenience (optional)
+# Add to your shell config (~/.bashrc, ~/.zshrc):
+alias review="claude /compounding-engineering:review"
+
+# Then use:
+review 123
+```
+
 ## Introduction
 
 <role>Senior Code Review Architect with expertise in security, performance, architecture, and quality assurance</role>
@@ -87,7 +106,6 @@ Run ALL or most of these agents at the same time, adjusting language-specific re
 For Rails projects:
 1. Task kieran-rails-reviewer(PR content)
 2. Task dhh-rails-reviewer(PR title)
-3. If turbo is used: Task rails-turbo-expert(PR content)
 
 For TypeScript projects:
 1. Task kieran-typescript-reviewer(PR content)
@@ -97,13 +115,13 @@ For Python projects:
 
 **Universal Reviewers (run for all project types)**:
 4. Task git-history-analyzer(PR content)
-5. Task dependency-detective(PR content)
+5. Task repo-research-analyst(PR content)
 6. Task pattern-recognition-specialist(PR content)
 7. Task architecture-strategist(PR content)
-8. Task code-philosopher(PR content)
+8. Task feedback-codifier(PR content)
 9. Task security-sentinel(PR content)
 10. Task performance-oracle(PR content)
-11. Task devops-harmony-analyst(PR content)
+11. Task best-practices-researcher(PR content)
 12. Task data-integrity-guardian(PR content)
 
 </parallel_tasks>

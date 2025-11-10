@@ -1,4 +1,16 @@
-Resolve all TODO comments using parallel processing.
+# Resolve Todos in Parallel
+
+Resolve all TODO items from the todos/ directory using parallel processing.
+
+## Usage
+
+```bash
+# With namespace (always works)
+claude /compounding-engineering:resolve_todo_parallel
+
+# Set up alias for convenience (optional)
+alias resolve="claude /compounding-engineering:resolve_todo_parallel"
+```
 
 ## Workflow
 

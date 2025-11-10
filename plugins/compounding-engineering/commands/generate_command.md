@@ -1,5 +1,18 @@
 # Create a Custom Claude Code Command
 
+## Usage
+
+```bash
+# With namespace (always works)
+claude /compounding-engineering:generate_command "command description"
+
+# Example:
+claude /compounding-engineering:generate_command "Create a command to run database migrations"
+
+# Set up alias for convenience (optional)
+alias gencommand="claude /compounding-engineering:generate_command"
+```
+
 Create a new slash command in `.claude/commands/` for the requested task.
 
 ## Goal

@@ -1,5 +1,19 @@
 # Create GitHub Issue
 
+## Usage
+
+```bash
+# With namespace (always works)
+claude /compounding-engineering:plan "feature description"
+
+# Examples:
+claude /compounding-engineering:plan "Add user authentication with OAuth"
+claude /compounding-engineering:plan "Fix performance issue in search"
+
+# Set up alias for convenience (optional)
+alias plan="claude /compounding-engineering:plan"
+```
+
 ## Introduction
 
 Transform feature descriptions, bug reports, or improvement ideas into well-structured markdown files issues that follow project conventions and best practices. This command provides flexible detail levels to match your needs.

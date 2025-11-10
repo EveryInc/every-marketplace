@@ -1,5 +1,19 @@
 # Work Plan Execution Command
 
+## Usage
+
+```bash
+# With namespace (always works)
+claude /compounding-engineering:work [PATH_TO_PLAN|TODO_FILE]
+
+# Examples:
+claude /compounding-engineering:work docs/feature-plan.md
+claude /compounding-engineering:work todos/042-approved-p1-fix.md
+
+# Set up alias for convenience (optional)
+alias work="claude /compounding-engineering:work"
+```
+
 ## Introduction
 
 This command helps you analyze a work document (plan, Markdown file, specification, or any structured document), create a comprehensive todo list using the TodoWrite tool, and then systematically execute each task until the entire plan is completed. It combines deep analysis with practical execution to transform plans into reality.

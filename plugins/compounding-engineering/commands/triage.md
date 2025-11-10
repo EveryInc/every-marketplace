@@ -1,6 +1,20 @@
+# Triage Command
+
 Present all findings, decisions, or issues here one by one for triage. The goal is to go through each item and decide whether to add it to the CLI todo system.
 
 **IMPORTANT: DO NOT CODE ANYTHING DURING TRIAGE!**
+
+## Usage
+
+```bash
+# With namespace (always works)
+claude /compounding-engineering:triage
+
+# Set up alias for convenience (optional)
+alias triage="claude /compounding-engineering:triage"
+```
+
+## Purpose
 
 This command is for:
 - Triaging code review findings
