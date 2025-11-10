@@ -447,7 +447,7 @@ For common issues with worktrees (already exists, uncommitted changes, prunable 
 
 ### Related Commands
 - `/work` - Uses these practices
-- `/review` - Uses these practices
+- `/compounding-engineering:review` - Uses these practices
 
 ## Compounding Engineering Philosophy
 

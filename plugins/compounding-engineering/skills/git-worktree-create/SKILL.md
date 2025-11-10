@@ -15,7 +15,7 @@ Creates isolated git worktrees for PR reviews, feature development, experiments,
 
 ## When to Use This Skill
 
-- **PR Review Workflows**: Setting up `/review` command worktrees
+- **PR Review Workflows**: Setting up `/compounding-engineering:review` command worktrees
 - **Feature Development**: Creating `/work` command worktrees
 - **Experiment/Spikes**: Establishing temporary isolated environments
 - **Parallel Development**: Working on multiple features simultaneously
@@ -62,7 +62,7 @@ See [Git Worktree Documentation](https://git-scm.com/docs/git-worktree) for comp
 
 ### Pattern 1: PR Reviews
 
-**Use Case**: Reviewing pull requests with the `/review` command
+**Use Case**: Reviewing pull requests with the `/compounding-engineering:review` command
 
 **Directory Structure**:
 ```
@@ -462,8 +462,8 @@ git sparse-checkout set src/specific/directory
 claude "Create worktree for PR 123 review"
 # Skill auto-invokes and creates .worktrees/reviews/pr-123
 
-# 2. Use /review command (uses skill internally)
-claude /review 123
+# 2. Use /compounding-engineering:review command (uses skill internally)
+claude /compounding-engineering:review 123
 # Automatically uses worktree created by skill
 
 # 3. After review, cleanup
@@ -595,12 +595,12 @@ claude /work "Build payment processing system"
 # 5. Starts work execution
 ```
 
-### `/review` Command
+### `/compounding-engineering:review` Command
 
-The `/review` command uses this skill automatically:
+The `/compounding-engineering:review` command uses this skill automatically:
 
 ```bash
-claude /review 456
+claude /compounding-engineering:review 456
 # Internally:
 # 1. Invokes git-worktree-create skill
 # 2. Creates .worktrees/reviews/pr-456
@@ -644,7 +644,7 @@ claude /review 456
 ## Related Commands
 
 - `/work` - Uses this skill for feature development
-- `/review` - Uses this skill for PR reviews
+- `/compounding-engineering:review` - Uses this skill for PR reviews
 
 ## Official Resources
 

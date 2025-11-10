@@ -617,7 +617,7 @@ git worktree prune
 ## Related Commands
 
 - **`/work`** - Interactive worktree creation
-- **`/review`** - PR review with auto-cleanup
+- **`/compounding-engineering:review`** - PR review with auto-cleanup
 
 ## Official Resources
 
