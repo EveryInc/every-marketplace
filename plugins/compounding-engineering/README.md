@@ -44,6 +44,7 @@ Next cycle: Higher baseline, faster execution ✨
 - [Philosophy](#philosophy)
 - [Quick Start](#quick-start)
 - [Installation](#installation)
+- [Compounding Engine](#compounding-engine)
 - [Components Overview](#components-overview)
   - [Slash Commands](#slash-commands)
   - [Specialized Agents](#specialized-agents)
@@ -161,6 +162,29 @@ alias triage="claude /compounding-engineering:triage"
 alias gencommand="claude /compounding-engineering:generate_command"
 alias resolve="claude /compounding-engineering:resolve_todo_parallel"
 ```
+
+## Compounding Engine
+
+Each component of this plugin doesn't just solve today's problem—it makes tomorrow's work faster.
+
+### How Compounding Works in Practice
+
+**Week 1:** `/plan` researches your architecture patterns and documents them.
+
+**Week 2:** `/review` finds 15 code style issues. `/triage` converts them to standards.
+
+**Week 3:** `/feedback-codifier` ingests those standards into reviewer agents.
+
+**Week 4:** New `/review` run catches those same 15 issues *automatically*. What took 2 hours now takes 20 minutes. Each standard added reduces review time.
+
+**Result:** By Week 12, your review cycles run 80% faster because your team's learnings compound.
+
+### Knowledge Assets Built During Work
+
+- **Standards Catalog:** Each `/review` surfaces team patterns → `/triage` + `/feedback-codifier` store them
+- **TODO Repository:** `/triage` creates `todos/` as decision records → future `/work` runs reference them
+- **Implementation Patterns:** `/plan` studies your codebase → each `/work` run reuses those patterns
+- **Architecture Knowledge:** `/review` agents learn from feedback → `/generate_command` can codify your conventions
 
 ## Components Overview
 
