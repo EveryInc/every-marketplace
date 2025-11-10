@@ -29,97 +29,97 @@
     "code-review": [
       {
         "name": "kieran-rails-reviewer",
-        "description": "Rails/Ruby expert code review with strict quality standards",
+        "description": "Reviews Rails code with strict quality standards so that future PRs can build on higher quality foundations, reducing technical debt and rework",
         "use_cases": ["Rails code review", "Ruby conventions", "Quality standards"]
       },
       {
         "name": "kieran-typescript-reviewer",
-        "description": "TypeScript expert code review with high quality bar",
+        "description": "Reviews TypeScript code with high quality bar so that type safety and patterns established today prevent bugs and confusion tomorrow",
         "use_cases": ["TypeScript review", "Type safety", "Best practices"]
       },
       {
         "name": "kieran-python-reviewer",
-        "description": "Python expert code review with strict quality standards",
+        "description": "Reviews Python code with strict quality standards so that Pythonic patterns and type hints make future code more maintainable",
         "use_cases": ["Python review", "Code quality", "Best practices"]
       },
       {
         "name": "dhh-rails-reviewer",
-        "description": "Brutally honest Rails review from DHH philosophy perspective",
+        "description": "Provides brutally honest Rails review from DHH philosophy so that Rails conventions are reinforced and complexity is eliminated before it spreads",
         "use_cases": ["Rails philosophy", "Convention validation", "Architecture review"]
       },
       {
         "name": "code-simplicity-reviewer",
-        "description": "Code simplification and YAGNI principles",
+        "description": "Simplifies code using YAGNI principles so that each line removed makes the codebase easier to understand and maintain for all future work",
         "use_cases": ["Simplification", "Reduce complexity", "YAGNI enforcement"]
       }
     ],
     "architecture": [
       {
         "name": "architecture-strategist",
-        "description": "System design and architectural decision analysis",
+        "description": "Analyzes system design and architectural decisions so that changes align with established patterns, making future integrations and extensions easier",
         "use_cases": ["Architecture review", "Design decisions", "System planning"]
       },
       {
         "name": "pattern-recognition-specialist",
-        "description": "Design pattern and anti-pattern identification",
+        "description": "Identifies design patterns and anti-patterns so that good patterns are reinforced and bad patterns are eliminated before they replicate",
         "use_cases": ["Pattern detection", "Anti-pattern identification", "Design improvement"]
       }
     ],
     "quality": [
       {
         "name": "performance-oracle",
-        "description": "Performance optimization and scalability analysis",
+        "description": "Identifies performance issues early so that subsequent optimizations are based on data and systems scale smoothly as they grow",
         "use_cases": ["Performance review", "Optimization", "Scalability"]
       },
       {
         "name": "security-sentinel",
-        "description": "Security vulnerability detection and remediation",
+        "description": "Detects security vulnerabilities before deployment so that each security improvement raises the baseline for all future code",
         "use_cases": ["Security audit", "Vulnerability scan", "Security review"]
       },
       {
         "name": "data-integrity-guardian",
-        "description": "Database migration and data safety review",
+        "description": "Reviews database migrations and data operations so that data integrity is protected and future migrations can build on solid foundations",
         "use_cases": ["Migration review", "Data safety", "Schema validation"]
       }
     ],
     "analysis": [
       {
         "name": "git-history-analyzer",
-        "description": "Git history and code evolution analysis",
+        "description": "Analyzes git history and code evolution so that lessons from past changes inform better decisions for future work",
         "use_cases": ["Code archaeology", "Change analysis", "History review"]
       },
       {
         "name": "repo-research-analyst",
-        "description": "Repository structure and organization analysis",
+        "description": "Analyzes repository structure and organization so that existing patterns are understood and followed, maintaining consistency",
         "use_cases": ["Repo structure", "Organization patterns", "Navigation"]
       }
     ],
     "workflow": [
       {
         "name": "best-practices-researcher",
-        "description": "Research and gather best practices",
+        "description": "Researches and gathers best practices so that proven patterns are discovered once and applied consistently across all future work",
         "use_cases": ["Best practice research", "Standards discovery", "Framework conventions"]
       },
       {
         "name": "framework-docs-researcher",
-        "description": "Framework and library documentation research",
+        "description": "Researches framework documentation so that correct patterns are understood once and reused, preventing repeated research",
         "use_cases": ["Documentation lookup", "API research", "Framework guidance"]
       },
       {
         "name": "feedback-codifier",
-        "description": "Convert feedback into actionable patterns",
+        "description": "Converts review feedback into reusable patterns so that similar issues are prevented in future work through systematic knowledge capture",
         "use_cases": ["Feedback synthesis", "Pattern extraction", "Knowledge capture"]
       },
       {
         "name": "pr-comment-resolver",
-        "description": "Address code review comments systematically",
+        "description": "Addresses code review comments systematically so that feedback is incorporated quickly and patterns are learned for future PRs",
         "use_cases": ["Comment resolution", "Review feedback", "Systematic fixes"]
       }
     ],
     "documentation": [
       {
         "name": "every-style-editor",
-        "description": "Every.to writing style and voice editing",
+        "description": "Edits content to match Every.to style guide so that each piece maintains consistency and the style becomes internalized over time",
         "use_cases": ["Content editing", "Style consistency", "Voice alignment"]
       }
     ]
@@ -128,29 +128,29 @@
     "workflow": [
       {
         "name": "plan",
-        "description": "Create detailed GitHub issue plans from feature descriptions"
+        "description": "Creates structured plans with research and references so that work execution is efficient and learnings are captured for future planning"
       },
       {
         "name": "work",
-        "description": "Execute work plans with task tracking and git worktree isolation"
+        "description": "Executes plans in isolated worktrees while capturing learnings so that future work builds on documented patterns and parallel development is enabled"
       },
       {
         "name": "review",
-        "description": "Deep code review with multi-agent quality assessment"
+        "description": "Performs multi-agent code review in isolated worktrees so that quality standards compound and issues are caught before they spread"
       },
       {
         "name": "triage",
-        "description": "Triage and prioritize findings and decisions"
+        "description": "Systematically organizes findings into actionable todos so that work is prioritized and context is preserved for efficient execution"
       }
     ],
     "utility": [
       {
         "name": "generate_command",
-        "description": "Generate new custom slash command templates"
+        "description": "Generates custom command templates so that new workflows can be codified and reused, expanding the plugin's capabilities"
       },
       {
         "name": "resolve_todo_parallel",
-        "description": "Resolve TODO comments using parallel processing"
+        "description": "Resolves multiple todos in parallel so that backlog items are cleared efficiently and learnings from each resolution inform others"
       }
     ]
   },
