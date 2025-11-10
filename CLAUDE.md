@@ -231,3 +231,41 @@ The initial marketplace.json included many custom fields (downloads, stars, rati
 - Plugin entries: `name`, `description`, `version`, `author`, `homepage`, `tags`, `source`
 
 **Learning:** Stick to the official spec. Custom fields may confuse users or break compatibility with future versions.
+
+### 2025-11-10: Comprehensive standardization using Codex-driven review
+
+Executed a multi-phase standardization using Codex skill (gpt-5-codex with high reasoning effort) to review and improve all 17 agents, 6 commands, and documentation. Results:
+
+**Phase 1: Agent Standardization** (17 agents)
+- Standardized YAML frontmatter across all agents using block scalars (|) instead of inline escapes
+- Normalized examples to structured array format with context/user/assistant/commentary keys
+- Created TEMPLATE.md as canonical agent structure reference
+- All agents validated with 100% YAML compliance
+
+**Phase 2: Command Standardization** (6 commands)
+- Applied consistent Goal → Prerequisites → Workflow → Success Criteria → Troubleshooting structure
+- Fixed typos (Runn→Run, paralel→parallel in plan.md)
+- Enhanced namespace consistency (all use /compounding-engineering: prefix)
+- Added concrete usage examples where missing
+- Preserved all functionality while improving clarity
+
+**Phase 3: README Documentation**
+- Documented all 10 previously undocumented agents with use cases and examples
+- Added GitHub CLI prerequisite section (critical for /review and /triage)
+- Added GitHub CLI Setup troubleshooting (installation, authentication, errors)
+- Enhanced command reference table with time estimates and detailed context
+
+**Phase 4: Compounding Philosophy**
+- Added "Compounding Engine" section with concrete Week 1→4→12 timeline showing 80% velocity improvement
+- Demonstrated how standards catalog, todos, patterns, and architecture knowledge compound
+- Made implicit compounding promise explicit and measurable
+- Updated Table of Contents to reflect new section
+
+**Key Improvements:**
+- All 17 agents now have detailed README documentation with examples
+- Consistent structure makes maintenance easier
+- Explicit GitHub CLI requirements prevent setup issues
+- Concrete velocity metrics make compounding promise tangible
+- Knowledge assets (standards catalog, todos, patterns) clearly identified
+
+**Learning:** A comprehensive review cycle using high-reasoning Codex analysis reveals opportunities for standardization, documentation gaps, and philosophical clarity that improve user experience and maintenance burden. Timeline progressions (Week 1/4/12) are more compelling than abstract promises of compounding value.
