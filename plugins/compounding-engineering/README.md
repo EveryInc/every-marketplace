@@ -10,7 +10,7 @@ This plugin embodies the compounding engineering philosophy by providing AI agen
 
 ## What's Included
 
-- **15 Specialized Agents** - AI experts for specific engineering tasks
+- **17 Specialized Agents** - AI experts for specific engineering tasks
 - **6 Slash Commands** - Quick workflow automation
 - **3 Reusable Skills** - Git worktree management for isolation and parallelization
 
@@ -43,49 +43,49 @@ claude /plugin install compounding-engineering
 
 Quick access to common workflows:
 
-1. **`/review`** - Deep code review with quality assessment
-2. **`/reflect`** - Analyze and document engineering decisions
-3. **`/improve`** - Enhance code quality and patterns
-4. **`/plan`** - Create detailed implementation plans
-5. **`/work`** - Execute work plans with task tracking (uses git-worktree-create skill)
-6. **`/context`** - Generate project context for AI
+1. **`/plan`** - Create detailed GitHub issue plans from feature descriptions
+2. **`/work`** - Execute work plans with task tracking and git worktree isolation
+3. **`/review`** - Deep code review with multi-agent quality assessment
+4. **`/triage`** - Triage and prioritize findings and decisions
+5. **`/generate_command`** - Generate new custom slash command templates
+6. **`/resolve_todo_parallel`** - Resolve TODO comments using parallel processing
 
 ## Specialized Agents
 
 ### Code Review Specialists
 
-- **kieran-rails-reviewer** - Rails/Ruby expert code review
-- **kieran-react-reviewer** - React/TypeScript expert code review
-- **kieran-typescript-reviewer** - TypeScript expert code review
-- **kieran-python-reviewer** - Python expert code review
+- **kieran-rails-reviewer** - Rails/Ruby expert code review with strict quality standards
+- **kieran-typescript-reviewer** - TypeScript expert code review with high quality bar
+- **kieran-python-reviewer** - Python expert code review with strict quality standards
+- **dhh-rails-reviewer** - Brutally honest Rails review from DHH philosophy perspective
+- **code-simplicity-reviewer** - Code simplification and YAGNI principles
 
 ### Architecture & Design
 
-- **architecture-strategist** - System design and architectural decisions
-- **pattern-recognition-specialist** - Design pattern and anti-pattern analysis
+- **architecture-strategist** - System design and architectural decision analysis
+- **pattern-recognition-specialist** - Design pattern and anti-pattern identification
 
-### Quality & Testing
+### Quality & Performance
 
-- **code-simplicity-reviewer** - Code simplification and YAGNI principles
-- **performance-oracle** - Performance optimization and scalability
+- **performance-oracle** - Performance optimization and scalability analysis
 - **security-sentinel** - Security vulnerability detection and remediation
 - **data-integrity-guardian** - Database migration and data safety review
 
-### Documentation & Analysis
+### Analysis & Research
 
-- **kieran-documentation** - Code documentation generation
-- **git-history-analyzer** - Git history and evolution analysis
-
-### Process & Workflow
-
+- **git-history-analyzer** - Git history and code evolution analysis
+- **repo-research-analyst** - Repository structure and organization analysis
 - **best-practices-researcher** - Research and gather best practices
-- **framework-docs-researcher** - Framework and library documentation
+- **framework-docs-researcher** - Framework and library documentation research
+
+### Workflow & Feedback
+
 - **feedback-codifier** - Convert feedback into actionable patterns
 - **pr-comment-resolver** - Address code review comments systematically
 
-### Code Review Integration
+### Documentation
 
-- **dhh-rails-reviewer** - Rails best practices from Rails perspective (brutally honest)
+- **every-style-editor** - Every.to writing style and voice editing
 
 ## Reusable Skills
 
@@ -150,16 +150,16 @@ claude /work "Add user authentication"
 # Starts execution
 ```
 
-### Generate Documentation
-
-```bash
-claude agent kieran-documentation "document the API endpoints"
-```
-
 ### Create Implementation Plan
 
 ```bash
 claude /plan "Refactor payment processing"
+```
+
+### Research Best Practices
+
+```bash
+claude agent best-practices-researcher "find React testing best practices"
 ```
 
 ### Analyze for Security Issues
@@ -202,10 +202,10 @@ claude /work "Component library implementation"
 # (uses git-worktree-create skill)
 
 # Review the work
-claude /review 789
+claude /review
 
-# Document decisions
-claude /reflect "Why we chose this architecture"
+# Triage findings
+claude /triage
 ```
 
 ### Expert Analysis Agents
@@ -277,5 +277,5 @@ Created by Kieran Klaassen
 
 ### 1.0.0
 - Initial release
-- 15 specialized agents
+- 17 specialized agents
 - 6 slash commands

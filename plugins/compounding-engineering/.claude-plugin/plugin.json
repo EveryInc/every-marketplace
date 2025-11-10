@@ -1,7 +1,7 @@
 {
   "name": "compounding-engineering",
   "version": "1.1.0",
-  "description": "AI-powered development tools that get smarter with every use. Make each unit of engineering work easier than the last. Includes 15 specialized agents, 6 commands, and 3 git worktree skills.",
+  "description": "AI-powered development tools that get smarter with every use. Make each unit of engineering work easier than the last. Includes 17 specialized agents, 6 commands, and 3 git worktree skills.",
   "author": {
     "name": "Kieran Klaassen",
     "email": "kieran@every.to",
@@ -20,10 +20,139 @@
     "git-worktrees"
   ],
   "components": {
-    "agents": 15,
+    "agents": 17,
     "commands": 6,
     "skills": 3,
     "hooks": 0
+  },
+  "agents": {
+    "code-review": [
+      {
+        "name": "kieran-rails-reviewer",
+        "description": "Rails/Ruby expert code review with strict quality standards",
+        "use_cases": ["Rails code review", "Ruby conventions", "Quality standards"]
+      },
+      {
+        "name": "kieran-typescript-reviewer",
+        "description": "TypeScript expert code review with high quality bar",
+        "use_cases": ["TypeScript review", "Type safety", "Best practices"]
+      },
+      {
+        "name": "kieran-python-reviewer",
+        "description": "Python expert code review with strict quality standards",
+        "use_cases": ["Python review", "Code quality", "Best practices"]
+      },
+      {
+        "name": "dhh-rails-reviewer",
+        "description": "Brutally honest Rails review from DHH philosophy perspective",
+        "use_cases": ["Rails philosophy", "Convention validation", "Architecture review"]
+      },
+      {
+        "name": "code-simplicity-reviewer",
+        "description": "Code simplification and YAGNI principles",
+        "use_cases": ["Simplification", "Reduce complexity", "YAGNI enforcement"]
+      }
+    ],
+    "architecture": [
+      {
+        "name": "architecture-strategist",
+        "description": "System design and architectural decision analysis",
+        "use_cases": ["Architecture review", "Design decisions", "System planning"]
+      },
+      {
+        "name": "pattern-recognition-specialist",
+        "description": "Design pattern and anti-pattern identification",
+        "use_cases": ["Pattern detection", "Anti-pattern identification", "Design improvement"]
+      }
+    ],
+    "quality": [
+      {
+        "name": "performance-oracle",
+        "description": "Performance optimization and scalability analysis",
+        "use_cases": ["Performance review", "Optimization", "Scalability"]
+      },
+      {
+        "name": "security-sentinel",
+        "description": "Security vulnerability detection and remediation",
+        "use_cases": ["Security audit", "Vulnerability scan", "Security review"]
+      },
+      {
+        "name": "data-integrity-guardian",
+        "description": "Database migration and data safety review",
+        "use_cases": ["Migration review", "Data safety", "Schema validation"]
+      }
+    ],
+    "analysis": [
+      {
+        "name": "git-history-analyzer",
+        "description": "Git history and code evolution analysis",
+        "use_cases": ["Code archaeology", "Change analysis", "History review"]
+      },
+      {
+        "name": "repo-research-analyst",
+        "description": "Repository structure and organization analysis",
+        "use_cases": ["Repo structure", "Organization patterns", "Navigation"]
+      }
+    ],
+    "workflow": [
+      {
+        "name": "best-practices-researcher",
+        "description": "Research and gather best practices",
+        "use_cases": ["Best practice research", "Standards discovery", "Framework conventions"]
+      },
+      {
+        "name": "framework-docs-researcher",
+        "description": "Framework and library documentation research",
+        "use_cases": ["Documentation lookup", "API research", "Framework guidance"]
+      },
+      {
+        "name": "feedback-codifier",
+        "description": "Convert feedback into actionable patterns",
+        "use_cases": ["Feedback synthesis", "Pattern extraction", "Knowledge capture"]
+      },
+      {
+        "name": "pr-comment-resolver",
+        "description": "Address code review comments systematically",
+        "use_cases": ["Comment resolution", "Review feedback", "Systematic fixes"]
+      }
+    ],
+    "documentation": [
+      {
+        "name": "every-style-editor",
+        "description": "Every.to writing style and voice editing",
+        "use_cases": ["Content editing", "Style consistency", "Voice alignment"]
+      }
+    ]
+  },
+  "commands": {
+    "workflow": [
+      {
+        "name": "plan",
+        "description": "Create detailed GitHub issue plans from feature descriptions"
+      },
+      {
+        "name": "work",
+        "description": "Execute work plans with task tracking and git worktree isolation"
+      },
+      {
+        "name": "review",
+        "description": "Deep code review with multi-agent quality assessment"
+      },
+      {
+        "name": "triage",
+        "description": "Triage and prioritize findings and decisions"
+      }
+    ],
+    "utility": [
+      {
+        "name": "generate_command",
+        "description": "Generate new custom slash command templates"
+      },
+      {
+        "name": "resolve_todo_parallel",
+        "description": "Resolve TODO comments using parallel processing"
+      }
+    ]
   },
   "skills": {
     "git-workflow": [
