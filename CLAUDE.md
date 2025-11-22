@@ -12,10 +12,11 @@ every-marketplace/
     └── compounding-engineering/   # The actual plugin
         ├── .claude-plugin/
         │   └── plugin.json        # Plugin metadata
-        ├── agents/                # 15 specialized AI agents
+        ├── agents/                # 17 specialized AI agents
         ├── commands/              # 6 slash commands
-        ├── hooks/                 # 2 automated hooks
-        └── README.md              # Plugin documentation
+        ├── skills/                # 1 skill (gemini-imagegen)
+        ├── README.md              # Plugin documentation
+        └── CHANGELOG.md           # Version history
 ```
 
 ## Philosophy: Compounding Engineering
@@ -47,32 +48,58 @@ When working on this repository, follow the compounding engineering process:
 
 ### Updating the Compounding Engineering Plugin
 
-When agents or commands are added/removed:
+When agents, commands, or skills are added/removed, follow this checklist:
 
-1. **Scan for actual files:**
+#### 1. Count all components accurately
 
-   ```bash
-   # Count agents
-   ls plugins/compounding-engineering/agents/*.md | wc -l
+```bash
+# Count agents
+ls plugins/compounding-engineering/agents/*.md | wc -l
 
-   # Count commands
-   ls plugins/compounding-engineering/commands/*.md | wc -l
-   ```
+# Count commands
+ls plugins/compounding-engineering/commands/*.md | wc -l
 
-2. **Update plugin.json** at `plugins/compounding-engineering/.claude-plugin/plugin.json`:
+# Count skills
+ls -d plugins/compounding-engineering/skills/*/ 2>/dev/null | wc -l
+```
 
-   - Update `components.agents` count
-   - Update `components.commands` count
-   - Update `agents` object to reflect which agents exist
-   - Update `commands` object to reflect which commands exist
+#### 2. Update ALL description strings with correct counts
 
-3. **Update plugin README** at `plugins/compounding-engineering/README.md`:
+The description appears in multiple places and must match everywhere:
 
-   - Update agent/command counts in the intro
-   - Update the agent/command lists to match what exists
+- [ ] `plugins/compounding-engineering/.claude-plugin/plugin.json` → `description` field
+- [ ] `.claude-plugin/marketplace.json` → plugin `description` field
+- [ ] `plugins/compounding-engineering/README.md` → intro paragraph
 
-4. **Update marketplace.json** at `.claude-plugin/marketplace.json`:
-   - Usually doesn't need changes unless changing plugin description/tags
+Format: `"Includes X specialized agents, Y commands, and Z skill(s)."`
+
+#### 3. Update version numbers
+
+When adding new functionality, bump the version in:
+
+- [ ] `plugins/compounding-engineering/.claude-plugin/plugin.json` → `version`
+- [ ] `.claude-plugin/marketplace.json` → plugin `version`
+
+#### 4. Update documentation
+
+- [ ] `plugins/compounding-engineering/README.md` → list all components
+- [ ] `plugins/compounding-engineering/CHANGELOG.md` → document changes
+- [ ] `CLAUDE.md` → update structure diagram if needed
+
+#### 5. Validate JSON files
+
+```bash
+cat .claude-plugin/marketplace.json | jq .
+cat plugins/compounding-engineering/.claude-plugin/plugin.json | jq .
+```
+
+#### 6. Verify before committing
+
+```bash
+# Ensure counts in descriptions match actual files
+grep -o "Includes [0-9]* specialized agents" plugins/compounding-engineering/.claude-plugin/plugin.json
+ls plugins/compounding-engineering/agents/*.md | wc -l
+```
 
 ### Marketplace.json Structure
 
@@ -187,6 +214,33 @@ cat plugins/compounding-engineering/.claude-plugin/plugin.json | jq .
 3. Update README.md command list
 4. Test with `claude /new-command`
 
+### Adding a New Skill
+
+1. Create skill directory: `plugins/compounding-engineering/skills/skill-name/`
+2. Add skill structure:
+   ```
+   skills/skill-name/
+   ├── SKILL.md           # Skill definition with frontmatter (name, description)
+   └── scripts/           # Supporting scripts (optional)
+   ```
+3. Update plugin.json description with new skill count
+4. Update marketplace.json description with new skill count
+5. Update README.md with skill documentation
+6. Update CHANGELOG.md with the addition
+7. Test with `claude skill skill-name`
+
+**Skill file format (SKILL.md):**
+```markdown
+---
+name: skill-name
+description: Brief description of what the skill does
+---
+
+# Skill Title
+
+Detailed documentation...
+```
+
 ### Updating Tags/Keywords
 
 Tags should reflect the compounding engineering philosophy:
@@ -222,7 +276,13 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 _This section captures important learnings as we work on this repository._
 
-### 2025-10-09: Simplified marketplace.json to match official spec
+### 2024-11-22: Added gemini-imagegen skill and fixed component counts
+
+Added the first skill to the plugin and discovered the component counts were wrong (said 15 agents, actually had 17). Created a comprehensive checklist for updating the plugin to prevent this in the future.
+
+**Learning:** Always count actual files before updating descriptions. The counts appear in multiple places (plugin.json, marketplace.json, README.md) and must all match. Use the verification commands in the checklist above.
+
+### 2024-10-09: Simplified marketplace.json to match official spec
 
 The initial marketplace.json included many custom fields (downloads, stars, rating, categories, trending) that aren't part of the Claude Code specification. We simplified to only include:
 
