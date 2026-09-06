@@ -38,37 +38,24 @@ For human-facing shipping, invoke `ce-code-review` without `mode:agent` if markd
 - Full finding detail when needed: `review.json` / artifact `findings`, or `{reviewer}.json` for `why_it_matters` and `evidence`
 - Stable finding `#` — reuse in commits, residual sinks, and subagent prompts
 
-## What to apply
+## Adjudicate before applying
 
-Default to applying every actionable finding. Applying is a reversible edit to a tracked tree; diffs are reviewed before commit (below) and tests run after — so leaving a clear, reversible fix unapplied "to be safe" is the failure mode, not the safe choice. Bias to act:
+The caller owns judgment as well as apply authority. Review output is a set of claims, not a work queue. Verify the relevant evidence and decide whether the remedy materially improves the authorized outcome. Reject disproven claims, unsupported hypotheticals, and preferences whose benefit does not justify the disruption. Record why; rejected claims are not residual work.
 
-- **Apply** any finding with a concrete `suggested_fix` that is a clear improvement — the common case. `confidence` and `autofix_class` tell you what to prioritize and what to flag, not whether you may apply: `autofix_class` is signal, **never permission**.
-- **Push back** — keep the finding, don't apply — when the reviewer is wrong; note why.
-- **Flag, don't block, green-but-unverifiable edits** — when an applied fix touches auth/authz, a public or cross-service contract/schema, or concurrency, a passing test does not prove safety; apply it when there is a clear `suggested_fix` and confidence, and call it out prominently in the diff review.
+Apply warranted, reversible fixes within the existing scope. Resolve bounded engineering choices from the project's evidence and conventions; a design choice does not inherently need a human decision. Neither `confidence`, `autofix_class`, nor a concrete `suggested_fix` grants permission or proves benefit. A missing suggestion is a reason to investigate a material problem, not automatically defer it.
 
-There is no precondition safety checklist and no deny-list — a code-review fix is a reversible edit, so downside is controlled after the fact (diff review + tests + the commit checkpoint), not by gating the apply.
+Defer when essential evidence is unavailable or the right remedy depends on an unsettled product preference, expanded scope, or authority the caller lacks. Passing tests do not resolve unverified safety or authorize a changed contract. Surface the remaining decision and its consequence together at the Residual Work Gate.
 
-**Evidence still matches the code** — the fix subagent confirms at `file:line` before editing. The orchestrator does **not** open files just to decide eligibility or dispatch.
+Use targeted source reads or a bounded investigation subagent to resolve uncertainty. Invoke `ce-pov` only when a consequential, bounded choice warrants an independently grounded position beyond ordinary inspection; reviewer disagreement alone does not warrant it. Pass the subject, known constraints, and evidence pointers. Consume its position or missing framing as input to the caller's decision, not as edit authority or a reason to start a panel automatically.
 
-## What to defer (to the Residual Work Gate)
+## Execution — orchestrator adjudicates and batches, subagents apply
 
-- `autofix_class: advisory` — report-only.
-- Findings with no concrete `suggested_fix` to act on.
-- Findings whose right fix depends on a design or product decision — architecture direction, contract shape, or a behavior change needing sign-off. These need a human call before code changes.
+The orchestrator owns final disposition, batch scope, diff review, tests, and the Residual Work Gate. It may investigate directly when the evidence is bounded; delegate broader investigation rather than loading every cited file. Fix subagents confirm current evidence and apply within that same scope, returning unresolved decisions with their evidence.
 
-Surface what was deferred and why; never silently drop.
-
-## Execution — orchestrator batches, subagents apply
-
-The orchestrator **does not investigate findings** (no pre-read of cited files to judge complexity or inline vs subagent). That would spend the context window you are trying to protect.
-
-**Orchestrator owns:** parse review output → **eligibility filter on JSON fields only** → build batches → dispatch fix subagents → review diffs → tests → commit → Residual Work Gate.
-
-**Fix subagents own:** read `file:line`, confirm evidence still matches, apply or skip with reason, return summary.
 
 ### Default: batched fix subagents
 
-After eligibility filtering, **dispatch subagents for all remaining applicable findings** unless the optional inline shortcut below applies. Do not classify findings by complexity in the parent thread.
+After adjudication, **dispatch subagents for all remaining applicable findings** unless the optional inline shortcut below applies. Do not classify findings by complexity in the parent thread.
 
 **Batching (primary rule — group by file):**
 
@@ -80,7 +67,7 @@ After eligibility filtering, **dispatch subagents for all remaining applicable f
 
 **Subagent prompt (per batch):** the assigned findings only (`#`, severity, file, line, title, `suggested_fix`, `requires_verification`; add `why_it_matters` from `{reviewer}.json` in the run artifact when useful), plus:
 - Work through assigned `#` in severity order; at each `file:line`, skip with a one-line reason if evidence no longer matches
-- Apply the mechanical bar from § What to apply / What not to apply — skip anything that needs design judgment
+- Apply the adjudication and authority boundary above; resolve grounded engineering choices and return essential missing decisions to the caller
 - Do not re-run `ce-code-review`
 - Shared-directory fallback: do not stage or commit — return which `#` were applied or skipped and which files changed
 
@@ -90,7 +77,7 @@ After eligibility filtering, **dispatch subagents for all remaining applicable f
 
 Use **only** when **all** of the following hold:
 
-- Exactly **one** eligible finding after JSON filtering, **and**
+- Exactly **one** applicable finding after adjudication, **and**
 - The orchestrator **already** has that file's relevant region in context from Phase 2 work this session (no new Read/Grep expedition)
 
 Otherwise dispatch a subagent — even for a single finding. When unsure, dispatch.
@@ -101,4 +88,4 @@ Report: batches dispatched, `#` applied vs skipped (with reasons from subagents)
 
 ## Handoff to Residual Work Gate
 
-Any actionable finding not applied in this pass is **residual work** — proceed to the Residual Work Gate with an updated count. Do not re-invoke `ce-code-review` solely to re-apply the same findings unless the diff changed materially after fixes.
+Any warranted finding still unresolved after this pass is **residual work** — proceed to the Residual Work Gate with an updated count. Do not re-invoke `ce-code-review` solely to re-apply the same findings unless the diff changed materially after fixes.

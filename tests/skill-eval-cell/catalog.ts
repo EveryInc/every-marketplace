@@ -14,6 +14,7 @@
  *   extraction probe for that skill.
  */
 import { WORKTREE_REF } from "./extract"
+import { CALIBRATION_SCENARIOS } from "./calibration-scenarios"
 
 export const PRE_SWEEP_REF = "309611f6b5198528c1c98f83fb6b3c90637e523c"
 export const ISSUE_1482_BASE_REF = "66ccf579f8c1ef2ccfc642c317ba53151eeb1ebb"
@@ -133,6 +134,7 @@ export const WAVE1 = [
 ] as const
 
 export const SCENARIOS: Scenario[] = [
+  ...CALIBRATION_SCENARIOS,
   {
     id: "ce-babysit-pr/refuse-unasked-update",
     skill: "ce-babysit-pr",

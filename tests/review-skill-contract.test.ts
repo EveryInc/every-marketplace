@@ -1022,7 +1022,7 @@ describe("ce-code-review contract", () => {
     // cold-caller fallback only (it must not start a second review in the ce-work Tier 2 path).
     expect(followup).toMatch(/consume the completed review/i)
     expect(followup).toMatch(/invoke[^\n]*review[^\n]*cold caller/i)
-    expect(followup).toMatch(/does not investigate findings/i)
+    expect(followup).toContain("The caller owns judgment as well as apply authority")
     expect(followup).toMatch(/Group by `file`/i)
     expect(followup).toMatch(/batch/i)
     expect(followup).toContain("mode:agent")
@@ -1045,23 +1045,11 @@ describe("ce-code-review contract", () => {
         /no-sink/,
       )
 
-      // Gate step is explicitly labeled and required after Tier 2.
       expect(workflow).toContain("**Residual Work Gate**")
-      expect(workflow).toMatch(/do not proceed to Final Validation/i)
-
-      // Three forward options + one abort; labels are self-contained.
-      expect(workflow).toContain("Apply/fix now")
-      expect(workflow).toContain("File tickets via project tracker")
-      expect(workflow).toContain("Accept and proceed")
-      expect(workflow).toContain("Stop — do not ship")
-
-      // Accept-and-proceed path threads findings into the PR description under the
-      // heading ce-resolve-pr-feedback ticks; see the cross-skill heading test below.
+      expect(workflow).toContain("Rejected claims are closed, not residual work")
+      expect(workflow).toContain("Autonomous runs return the blocker")
+      expect(workflow).toContain("Nonblocking residuals do not require an interactive routing menu")
       expect(workflow).toContain("## Unapplied review findings")
-      expect(workflow).toContain("If the user later chooses the no-PR `ce-commit` path")
-      // With no PR and no reachable tracker there is no durable sink, so the run says so
-      // outright. The committed record file that used to fill this slot was removed: it
-      // fired once in the repo's history, wrongly, and outlived the ticket it duplicated.
       expect(workflow).toContain("recorded nowhere else")
       expect(workflow).not.toContain("residual-review-findings")
     }

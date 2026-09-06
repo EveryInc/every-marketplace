@@ -9,6 +9,12 @@
 - **Interactive:** stop and name the missing path(s): "Document(s) not found on disk: <paths>. Check out the branch containing them, use a worktree, or provide corrected readable paths before retrying the review."
 - **Non-interactive:** output "Review failed: document(s) not found on disk: <paths>. Expected input: paths to readable files on disk; check out the branch containing them or provide corrected paths." and return without dispatching reviewers.
 
+### Resume a completed review
+
+Reuse complete prior reviewer returns, evidence, classifications, and decision state when they cover the same document and scope, and the relevant source has not materially changed. Confirm that identity and freshness from the current document and available review state. A summary envelope alone is insufficient. A new interaction mode or a request to handle existing findings is not a new review.
+
+On a valid resume, go directly to synthesis and presentation with the retained state; do not redispatch personas or repeat the cross-model pass. Reconcile new user decisions there. Missing complete evidence, material source changes, or an explicit request for a fresh review takes the normal dispatch path. Preserve prior applied and rejected decisions on either path.
+
 ### Classify Document Type
 
 Classify by **content shape and metadata, not file path** — under the unified plan contract a requirements-only and an implementation-ready plan both live in `<root>/plans/`, so location no longer signals type. Reviewers operate differently per classification, so a misclassification produces noisy or under-scrutinized findings.

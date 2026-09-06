@@ -8,7 +8,7 @@ Dispatch is tiered by task shape, never hardcoded to a model name:
 
 - **Extraction tier** — the project-grounding scout and the precedent-&-activity scout: search-and-quote work. Use the platform's cheapest capable model when the harness exposes a known override; otherwise inherit.
 - **Generation tier** — the external-evidence researcher: web/docs retrieval and entailment checking. Use the platform's mid-tier model when a known override exists; otherwise inherit.
-- **Ceiling tier** — the POV reasoning itself (the grounding gate, the skeptic synthesis, the subject-shape contract). This runs in the main conversation on the orchestrator's model; nothing is dispatched for it.
+- **Ceiling tier** — the POV reasoning itself (the grounding gate, the skeptic synthesis, the subject-shape contract). This stays with the agent invoking ce-pov, including when that agent is a delegated caller. It does not delegate its own synthesis to a scout.
 
 **Degradation rule.** When the platform's subagent primitive cannot select per-agent models, dispatch every scout on the inherited model and keep their read budgets — cost control then comes from the read budgets and the tier-sensitive scout count, not from tiering.
 

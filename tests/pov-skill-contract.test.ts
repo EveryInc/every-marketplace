@@ -59,7 +59,7 @@ describe("ce-pov subject-shape contract", () => {
 
   test("keeps user-facing copy decision-oriented without exposing project internals", async () => {
     const skill = await skillFile("SKILL.md")
-    const userCopy = between(skill, "## User-facing communication", "## Interaction Method")
+    const userCopy = between(skill, "## User-facing communication", "## Context and return boundary")
 
     expect(userCopy).toContain("person deciding")
     expect(userCopy).toContain("decision, question, or recommendation")
@@ -149,20 +149,19 @@ describe("ce-pov cross-model panel contract", () => {
     expect(panel).toMatch(/summons was present but the panel branch never entered/)
   })
 
-  // Split by load-time: Phase 4 always reads followup.md, so the body pins the
-  // shapes the offer is reasoned from and the reference owns the tier gates.
-  test("follow-up covers every subject shape while retaining adoption tier gates", async () => {
-    const skill = await skillFile("SKILL.md")
-    const phaseFour = skill.slice(skill.indexOf("### Phase 4: Follow-up"))
-    const followup = await skillFile("references/followup.md")
-
-    expect(phaseFour).toContain("references/followup.md")
-    expect(phaseFour).toContain("active subject shape")
-    expect(phaseFour).toContain("Document take")
-    expect(phaseFour).toContain("Approach-set position")
-    expect(followup).toContain("For adoption subjects")
-    expect(followup).toContain("Tier 1")
-    expect(followup).toContain("Tier 2/3")
+  test("follow-up returns every subject shape without an interview and preserves handoff authority", async () => {
+    const [skill, followup] = await Promise.all([
+      skillFile("SKILL.md"),
+      skillFile("references/followup.md"),
+    ])
+    expect(skill).toContain("references/followup.md")
+    expect(skill).toContain("Blocked — missing framing")
+    expect(skill).toContain("The caller owns any clarification")
+    expect(followup).toContain("External adoption")
+    expect(followup).toContain("Document take")
+    expect(followup).toContain("Approach-set position")
+    expect(followup).toContain("Do not use a blocking menu")
+    expect(followup).toContain("all four pass")
   })
 
   test("warm invocations return a POV block without proactive follow-up", async () => {

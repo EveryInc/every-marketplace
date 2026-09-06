@@ -11,7 +11,7 @@ Load this when the input's fit for `ce-pov` is in doubt, or to route a Hold (SKI
 | If the user wants... | Route to | The line |
 |---|---|---|
 | A neutral explainer ("tell me about X") | general research / answer it directly | `ce-pov` only returns a project-grounded verdict; with no project angle, answer it as a normal research question — or a dedicated deep-research-style tool *if the environment has one* — rather than forcing a verdict |
-| A holistic take on a supplied document ("what do you think of this doc?") | `ce-pov` | A take judges the document's direction, strengths, risks, and bottom line; "review this doc" or "find the issues" asks for findings and routes to `ce-doc-review`. When the wording is ambiguous, ask one clarifying line rather than guessing |
+| A holistic take on a supplied document ("what do you think of this doc?") | `ce-pov` | A take judges the document's direction, strengths, risks, and bottom line; "review this doc" or "find the issues" asks for findings and routes to `ce-doc-review`. When context cannot resolve materially ambiguous wording, return the missing framing to the caller |
 | A judgment among approaches the user already supplied | `ce-pov` | Options supplied → judge them against the project; options still need to be invented → `ce-ideate` |
 | Options invented from an open field | `ce-ideate` | Invented vs. discovered: ideate invents; `ce-pov` judges/selects from a discoverable field |
 | To scope an idea already chosen | `ce-brainstorm` | `ce-pov` decides *whether*; brainstorm scopes *what* once it's a yes |
@@ -32,4 +32,4 @@ Running a verdict on an unbounded field turns `ce-pov` into disguised requiremen
 
 ## Universal grounding (designed-in, deferred)
 
-`ce-pov` grounds against the project's available context, and "project" includes a non-code folder (docs, decks, markdown, data), not only a git repo. The only case out of scope is *no local material at all* — a pure user-described situation with nothing to ground against. Treat that as out of scope: say the verdict would be ungrounded and ask for the project context, rather than dispensing generic advice dressed as a POV.
+`ce-pov` grounds against the project's available context, and "project" includes a non-code folder (docs, decks, markdown, data), not only a git repo. The only case out of scope is *no local material at all* — a pure user-described situation with nothing to ground against. Treat that as out of scope: return the missing project context and explain why the verdict would be ungrounded, rather than dispensing generic advice dressed as a POV.

@@ -14,6 +14,12 @@ Check each agent's returned JSON against the findings schema:
 
 **Do not narrate remap / validation diagnostics to the user.** Schema-drift notes ("persona X returned unknown enum Y, remapped to Z"), persona-prompt-drift commentary, and other validator-internal diagnostics are maintainer-facing information. They do not belong in the Phase 4 output the user reads. If a persona's output is malformed, the only user-visible consequence is a Coverage-row annotation (e.g., the persona shows fewer findings or a `malformed` marker). Everything else stays internal.
 
+### 3.1b Admit Findings by Consequence
+
+Treat reviewer returns as claims. Check them against the document's purpose and next consumer before applying confidence gates. Retain a finding only when the evidence establishes a concrete correctness or execution consequence, or a worthwhile improvement whose benefit exceeds the disruption. Research discoverable uncertainty within the review scope; do not turn it into a question for the author.
+
+Discard preferences, unsupported hypotheticals, and completeness demands that do not change the intended outcome. Do not move rejected claims into FYI or residual questions. Zero findings is a valid result. Neither a high anchor nor reviewer agreement substitutes for this judgment. Maintainability and clarity can matter without a runtime failure, but the finding must explain the actual benefit.
+
 ### 3.2 Confidence Gate (Anchor-Based)
 
 Gate findings by their `confidence` anchor value. Anchors are discrete integers (`0`, `25`, `50`, `75`, `100`) with behavioral definitions documented in `references/findings-schema.json` and embedded in the persona rubric (`references/subagent-template.md`). This replaces the prior continuous 0.0-1.0 scale with per-severity gates — doc-review economics do not warrant threshold gradation by severity, and coarse anchors prevent false-precision gaming.
@@ -22,12 +28,12 @@ Gate findings by their `confidence` anchor value. Anchors are discrete integers 
 |--------|---------|-------|
 | `0`    | False positive or pre-existing issue | Drop silently |
 | `25`   | Might be real but could not verify | Drop silently |
-| `50`   | Verified real but nitpick / advisory / not very important | Surface in FYI subsection |
+| `50`   | Verified, useful advisory concern below the actionable bar | Surface in FYI subsection |
 | `75`   | Double-checked, will hit in practice, directly impacts correctness | Enter actionable tier (classify by `autofix_class`) |
 | `100`  | Evidence directly confirms; will happen frequently | Enter actionable tier (classify by `autofix_class`) |
 
 - **Dropped silently** (anchors `0` and `25`): these do not surface in any output bucket — not as findings, not as FYI observations, not as residual concerns. Record the total drop count as a Coverage footnote line when non-zero: `Dropped: N (anchors 0/25 suppressed)`. The footnote appears below the Coverage table. This is the canonical location for drop-count reporting — not the summary line and not a per-persona Coverage column. Omit the footnote when N is zero.
-- **FYI-subsection** (anchor `50`): surface in the presentation layer's FYI subsection regardless of `autofix_class`. These do not enter the walk-through or any bulk action — observational value without forcing a decision. Advisory observations ("nothing breaks, but...") naturally land here.
+- **FYI-subsection** (anchor `50`): surface in the presentation layer's FYI subsection regardless of `autofix_class`. These do not enter the walk-through or any bulk action — observational value without forcing a decision. Only useful advisory observations that passed 3.1b land here; FYI is not a destination for rejected nits.
 - **Actionable** (anchors `75` and `100`): enter the classification pipeline. Route by `autofix_class` (see 3.7).
 
 **Why the surfacing floor sits at `50` while the actionable floor stays at `75`:** a planning document has no linter behind it, so this review is its only automated check, and premise-level concerns (product-lens, adversarial) cap at 50-75 because "is the motivation valid?" cannot be verified against the document. A `50` costs the reader one line in an observational subsection and never becomes a question, while missed-and-shipped derails implementation. That asymmetry justifies filtering low (`≥ 50`), and it holds **only** because `50` stays out of the pipeline — not because a menu makes dismissal cheap. The cost of a surfaced finding is the reader holding one more open question, not the keystroke that dismisses it; nothing downstream absorbs volume on its behalf.
@@ -49,7 +55,7 @@ When findings merge:
 - **Retain each constituent finding as a record**, with its own `section`, `title`, and `evidence` intact. Round-to-round memory — R29, R30, the decision primer, and the open-questions dedup key — matches on a single finding's section, title, and evidence overlap. A merged group has none of those, so collapsing the constituents away would make every finding the user settled re-raise on the next round.
 - **Coverage attribution:** attribute the merged finding to the persona with the highest confidence anchor; on a tie, to the persona appearing first in document order. Decrement the losing persona's Findings count and its route bucket so totals stay exact.
 
-**Merging never drops.** A merge regroups findings; it never removes one from the review. Every finding that cleared 3.2 still reaches the user — as its own entry or inside the merged finding that carries its concern.
+**Merging never drops.** A merge regroups findings; it never removes one from the review. Every finding that survives lead adjudication reaches the user — as its own entry or inside the merged finding that carries its concern. Rejected claims are recorded internally, not lost through merging.
 
 **Cross-model returns.** A `<reviewer-name>-<provider>` return merges with its in-process twin under the same one-fix test. Whether that merge counts as *independent corroboration* is decided in 3.4 by the return's `independence_verified` flag — not here.
 
@@ -57,62 +63,25 @@ When findings merge:
 
 ### 3.4 Cross-Persona Agreement Promotion
 
-When 2+ independent personas flagged the same merged finding (from 3.3), promote the merged finding's anchor by one step: `50 → 75`, `75 → 100`. Anchor `100` does not promote further (already at the ceiling). Findings at anchors `0` or `25` do not reach this step (they were dropped in 3.2). For local personas, independent means the review came from a separate dispatched context; an inline fallback remains attributed evidence but cannot count toward promotion, and Coverage names the lost independence.
+Agreement is corroboration, not evidence of importance. Promote by at most **one anchor step** only when the combined evidence itself meets the higher anchor's definition. Multiple reviewers noticing the same nit does not make it actionable. A material defect needs no second vote to survive.
 
-Independent corroboration is strong signal — multiple reviewers converging on the same issue is more reliable than any single reviewer's anchor. Promoting by one anchor step is semantically meaningful (a "verified but nitpick" finding that two personas independently surface is plausibly "will hit in practice"). This replaces the prior `+0.10` boost — the magic-number bump was calibrated to the continuous scale and no longer applies.
+For local personas, independence requires separate dispatched contexts; an inline fallback cannot trigger anchor promotion. Cross-model corroboration requires `independence_verified: true`, at least one in-process contributor, and an independence-verified peer. A missing or false flag cannot trigger anchor promotion. Cursor default/Auto is not verified independence without a receipt. Peer-only agreement never promotes, and additional peers never stack the promotion.
 
-Note the promotion in the Reviewer column of the output (e.g., `coherence, feasibility (+1 anchor)`).
-
-**Cross-model returns count as independent personas here only when the return's top-level `independence_verified` is `true`.** A return with `false` or a missing flag remains useful attributed reviewer evidence, but it cannot trigger anchor promotion or be described as different-model corroboration. It still merges in 3.3 under the one-fix test like any other finding — merging and corroboration are separate questions. This is especially important for Cursor default/Auto, whose serving family is unverified unless a receipt proves otherwise.
-
-When the cross-model judgment pass ran (see `references/cross-model-review.md`), each peer return enters synthesis as a reviewer named `<reviewer-name>-<provider>` (e.g. `adversarial-codex`, `security-lens-grok`, `product-lens-composer` — whichever different provider was resolved). For this 3.4 promotion, only an independence-verified return is treated like an independent persona. Agreement between such a `<reviewer-name>-<provider>` return and its in-process twin (`<reviewer-name>`) is the **strongest** corroboration signal in the set — different model providers in separate processes, not one model's self-agreement — so it promotes by the normal one anchor step and is rendered `<reviewer-name>, <reviewer-name>-<provider> (+1 anchor)` (e.g. `adversarial, adversarial-codex (+1 anchor)`). **In user-facing Phase 4 output, render the peer legibly as a cross-model reviewer that names its model** — e.g. `adversarial + cross-model: Grok 4.6 (+1 anchor)`, and for a cursor-agent route name the route too (`… via cursor-agent`) so grok-vs-composer is unambiguous — rather than surfacing the raw `<lens>-<provider>` token; the stored `reviewer` field keeps the `<lens>-<provider>` form so its provenance survives. Whether a peer and its twin describe one problem was already decided in 3.3 by the one-fix test; this step reads that result rather than re-matching. **The whole-document sweep** (`whole-doc-<provider>`, R20) has **no in-process twin**, so its findings reach this step only when 3.3 merged them with an in-process reviewer's; when independence is verified, such a merge promotes one anchor step just the same (rendered e.g. `feasibility, whole-doc-codex (+1 anchor)`). **Corroboration only, never apply authority:** a peer-only finding is never silently applied as `safe_auto` — not by the peer returning that class, and **not via the 3.6 promotion scan** (see the cross-model peer cap in 3.6 and the safeguard in 3.7); it caps at `gated_auto` unless an in-process reviewer independently corroborates it. **Peer agreement alone also does not promote the anchor.** The one-step promotion in this rule requires at least one in-process contributor and at least one independence-verified peer — mirroring the 3.6 autofix cap on the anchor axis. A merged finding whose contributors are all cross-model peers is **not** promoted. This holds *a fortiori* in the default single-peer config, where peer-peer agreement can be one model agreeing with itself. Cross-model agreement adds **at most one** anchor step even when an opt-in second peer also agrees; the bonus does not stack.
-
-This replaces the earlier residual-concern promotion step. Findings at anchors `0` / `25` are not promoted back into the review surface; they appear only as drop counts in Coverage. If a dropped finding is genuinely important, the reviewer should raise their anchor to `50` or higher through stronger evidence rather than relying on a promotion rule.
+Record any justified promotion in the Reviewer column as `(+1 anchor)`, naming the cross-model reviewer and its verified model or route legibly. Keep the stored reviewer identities. Findings dropped at anchors 0/25 do not return through agreement. Corroboration never grants apply authority: the peer caps in 3.6 and 3.7 still apply.
 
 ### 3.5 Resolve Contradictions
 
-When personas disagree — on the same section, or in different sections about the same underlying decision:
+Adjudicate opposing claims against the document, project evidence, and intended outcome before treating them as a user decision. Discard a disproven claim or a preference with no material benefit; reviewer disagreement alone is not a document defect. Record the reason internally so a discarded claim cannot re-enter through merging or action selection.
 
-- Create a combined finding presenting both perspectives
-- Set `autofix_class: manual` (contradictions are by definition judgment calls)
-- Set `finding_type: error` (contradictions are about conflicting things the document says, not things it omits)
-- Frame as a tradeoff, not a verdict
+When competing resolutions remain viable and the choice depends on an unsettled user preference, scope, or authority, retain one combined `manual` finding with both perspectives and the missing decision. Classify `finding_type` from the actual document defect, not the existence of disagreement. Preserve the opposing remedies even across sections; never schedule both as independent fixes.
 
-Specific conflict patterns:
+### 3.5b Lead Recommended Action
 
-- Coherence says "keep for consistency" + scope-guardian says "cut for simplicity" → combined finding, let user decide
-- Feasibility says "this is impossible" + product-lens says "this is essential" → P1 finding framed as a tradeoff
-- Multiple personas flag the same issue (no disagreement) → handled in 3.3 merge, not here
-- **Opposing recommendations 3.3 refused to merge → resolve them here, including when they sit in different sections.** 3.3 applies its one-fix test across sections, so it detects a cut-versus-keep pair wherever the two reviewers attached it, and hands the pair on rather than merging. If this step only looked at same-section disagreements, that pair would survive as two independent decisions — and the best-judgment route would then execute both, applying mutually incompatible fixes. The section is where a disagreement was *noticed*; the decision it turns on is what makes it one contradiction.
+Every surviving merged finding carries one `recommended_action`: Apply, Defer, or Skip. The lead chooses it from the verified consequence, benefit of the proposed remedy, intended scope, and existing decisions. Reviewer classifications and votes are inputs, not the decision rule.
 
-### 3.5b Deterministic Recommended-Action Tie-Break
+Recommend Apply when a concrete remedy is warranted. Recommend Defer when essential evidence or a genuine user decision remains missing, including when no executable fix is available. Skip a claim that does not survive adjudication; it does not become an FYI or an open question merely because a reviewer raised it. A recommendation never changes the edit authority in 3.7: semantic corrections still require the grouped confirmation, and real forks remain manual.
 
-Every merged finding carries exactly one `recommended_action` field consumed by the walk-through (`references/walkthrough.md`) to mark the `(recommended)` option, by the best-judgment path (`references/bulk-preview.md`) to choose what to execute in bulk, and by the stem's yes/no framing. When a merged finding was flagged by multiple personas who implied different actions, synthesis picks the recommended action deterministically so identical review artifacts produce identical walk-through and best-judgment behavior across runs.
-
-**Tie-break order (most conservative first):** `Skip > Defer > Apply`. The first action that at least one contributing persona implied wins, scanning in that order.
-
-- If any contributing persona implied Skip → `recommended_action: Skip`
-- Else if any contributing persona implied Defer → `recommended_action: Defer`
-- Else → `recommended_action: Apply`
-
-**Persona-to-action mapping.** A persona implies an action through its classification:
-
-- `safe_auto` or `gated_auto` → implies Apply
-- `manual` with a concrete `suggested_fix` and a recommended resolution → implies Apply (the persona has an opinion about what to do)
-- `manual` flagged as a tradeoff or scope question with no recommended resolution → implies Defer (worth revisiting, not worth acting now)
-- Any persona flagging the finding as low-confidence or suppression-eligible via residual concerns → implies Skip
-- Persona in the contradiction set (3.5) implying "keep as-is / do not change" → implies Skip
-
-If the contributing personas are all silent on action (e.g., a merged `manual` finding from personas that all flagged it as observation without recommendation), pick the default based on whether the merged finding carries an executable `suggested_fix`:
-
-- `suggested_fix` present → `recommended_action: Apply` as the pragmatic default.
-- `suggested_fix` absent → `recommended_action: Defer` (the walk-through and best-judgment path cannot execute Apply without a fix; routing an actionless finding to Defer surfaces it in Open Questions where the user can decide what to do with it).
-
-This gate holds for every branch of the tie-break: if the winning action is `Apply` but the merged finding has no `suggested_fix` after 3.6 (Promote) and 3.7 (Route) have run, downgrade to `Defer`. The walk-through still lets the user pick any of the four options; this rule only governs the agent's default recommendation so the best-judgment path and bulk-preview never schedule a non-executable Apply.
-
-**Conflict-context surface.** When the tie-break fires (contributing personas implied different actions), record a one-line conflict-context string on the merged finding. The walk-through renders this on the R15 conflict-context line (see `references/walkthrough.md`). Example: `Coherence recommends Apply; scope-guardian recommends Skip. Agent's recommendation: Skip.`
-
-**Downstream invariant.** The walk-through and bulk-preview never recompute the recommendation — they read `recommended_action` and render `(recommended)` on the matching option. Best-judgment-the-rest and routing option B execute the `recommended_action` across the scoped finding set in bulk. This keeps best-judgment outcomes reproducible and auditable: the same review artifact always produces the same bulk plan.
+When contributing recommendations differed, retain one line of conflict context explaining the lead's resolution and evidence. Downstream walk-through and bulk-preview read `recommended_action`; they never recompute it. Recheck that an Apply still has an executable `suggested_fix` after 3.6 and 3.7; otherwise use Defer.
 
 ### 3.6 Promote Auto-Eligible Findings
 
@@ -190,16 +159,11 @@ Sort findings for presentation: P0 → P1 → P2 → P3, then by finding type (e
 
 ### 3.9 Suppress Restatements in Residual Concerns and Deferred Questions
 
-Persona outputs carry `residual_risks` and `deferred_questions` arrays alongside `findings`. After the actionable-tier set is finalized (post-3.7 routing), personas often re-surface the same substance in their residual/deferred arrays — the persona's own finding and the persona's own residual concern are about the same issue. Rendering both sections verbatim inflates the output with restatements that carry no new signal.
+Apply the consequence and relevance boundary in 3.1b to every persona's `residual_risks` and `deferred_questions`, not only its findings. Retain uncertainty only when project evidence establishes why it matters to the document's outcome. Rejected preferences and unsupported hypotheticals do not return through another output field.
 
-For every `residual_risk` and `deferred_question` across all persona outputs, check against the finalized actionable-finding set (findings at confidence anchor `75` or `100`, plus FYI-subsection findings at anchor `50`). Drop the residual/deferred item if either of these holds:
+Compare surviving residuals and questions with the finalized findings, including FYI. Suppress a residual or question when it adds no distinct concern beyond an existing finding or its recommended resolution. Preserve genuinely distinct, relevant uncertainty; shared wording alone does not prove duplication.
 
-- **Section-and-substance overlap.** The residual/deferred item names the same section as an actionable finding AND its substance fuzzy-matches the finding's `title` or `why_it_matters` (shared key nouns/verbs indicating the same concern).
-- **Question form of an actionable finding.** A deferred question whose subject is directly answered by or obviated by an actionable finding's recommendation. Example: actionable finding "Motivation cites no real incident" → deferred question "Is there a concrete triggering event?" — the finding already raised this; the question restates it interrogatively.
-
-Do NOT drop residual/deferred items that introduce genuinely new signal (a concern or question the actionable findings do not touch). When in doubt, keep — this pass is for obvious restatements, not borderline calls.
-
-Run this pass on the merged set across all personas. Record the count dropped as a Coverage footnote line when non-zero: `Restated: N (residual/deferred items suppressed as duplicates of actionable findings)`. Ordering: footnotes appear in the sequence `Dropped:`, `Restated:` below the Coverage table, each on its own line. Omit any footnote whose count is zero.
+Run this pass on the merged set across all personas. Record the count suppressed as duplicates as a Coverage footnote line when non-zero: `Restated: N (residual/deferred items suppressed as duplicates of actionable findings)`. Ordering: footnotes appear in the sequence `Dropped:`, `Restated:` below the Coverage table, each on its own line. Omit any footnote whose count is zero.
 
 ## Phase 4: Apply and Present
 
@@ -235,7 +199,7 @@ After the applied changes land, the rest split by the route 3.7 assigned — not
 - **Grouped confirmation** — every finding 3.7 sent there, obligations and Apply-diverted peer-only findings among them. One confirmation covering the batch, rendered in full first. In interactive mode this fires as its own step before the routing question (see `references/walkthrough.md`); it is never folded into the routing question, and a run that reaches routing without asking it leaves the batch unapplied. In non-interactive mode the batch is returned unapplied for the caller to confirm.
 - **Decisions** — `manual` findings at anchor `75` or `100`. These enter the routing question and the walk-through (see `references/walkthrough.md`), and carry a which-remedy sub-question only when the finding holds competing remedies — in practice a 3.5 contradiction, per the note under the routing table.
 - **FYI** — anchor `50`, presentation only, no routing.
-- **Nothing in the decision surface** → skip the routing question. **Interactive mode only:** after the grouped confirmation has been answered, emit the completion report, then flow to the Phase 5 terminal question — applied changes and an answered confirmation do not warrant a routing question, but they are what the run did and still warrant a report. **Non-interactive mode emits no completion report at all**; the envelope above is the whole output, and an empty decision surface is its ordinary case, so printing an interactive report beside or instead of the envelope would corrupt what the caller parses. In either mode, when the decision surface is empty but the grouped confirmation is not, the confirmation is still the reader's to answer — it is a separate step, not a branch of routing, and nothing reports "complete" before it is settled.
+- **Nothing in the decision surface** → skip the routing question. **Interactive mode only:** after the grouped confirmation has been answered, emit the completion report, then return through Phase 5 — applied changes and an answered confirmation do not warrant a routing question, but they are what the run did and still warrant a report. **Non-interactive mode emits no completion report at all**; the envelope above is the whole output, and an empty decision surface is its ordinary case, so printing an interactive report beside or instead of the envelope would corrupt what the caller parses. In either mode, when the decision surface is empty but the grouped confirmation is not, the confirmation is still the reader's to answer — it is a separate step, not a branch of routing, and nothing reports "complete" before it is settled.
 
 **Self-contained rendered lines (both modes, including the Applied-fixes list).** Every rendered line —
 an applied fix, proposed fix, decision, FYI observation, residual concern, or deferred question —
@@ -358,47 +322,15 @@ This rule prevents two failure modes: (1) regressions where a fix didn't actuall
 
 During synthesis, discard any finding that recommends deleting or removing a CE pipeline artifact: any file **under** a `plans/`, `solutions/`, `ideation/`, `explainers/`, `pulse-reports/`, `dogfood-reports/`, `feedback-sweep/`, or `personas/` directory (or the legacy `brainstorms/` one) **whose immediate parent is the artifact root**. The artifact root is a directory named `docs` — the default, and where unmigrated legacy artifacts stay even after a project sets `docs_root` — or the configured `docs_root` when this run resolved it. Matching by that parent covers nested category files (`solutions/<category>/foo.md`) while leaving a same-named directory elsewhere — a skill's own `references/personas/` prompt assets, whose parent is `references` — as ordinary code whose deletion finding stands. A review that never resolved a configured root still protects the `docs`-parented tree (default and legacy); a configured-root artifact seen by such a run is the one honest gap.
 
-## Phase 5: Next Action — Terminal Question
+## Phase 5: Return to the Caller
 
-**Non-interactive mode:** Return "Review complete" immediately. Do not ask questions. The caller receives the text envelope from Phase 4 and handles any remaining findings.
+Return "Review complete" with the completion report or non-interactive envelope. A finished review does not need a terminal question. When nested, return control to the caller; do not start a nested planning or execution workflow merely because the review is complete.
 
-**Interactive mode:** fire the terminal question using the host's blocking question tool already in the current tool list (match by capability, not by a host-specific name). Presence in the current tool list is proof the tool exists; never call a user-facing question tool to discover whether it exists. If a matching tool is listed but unloaded, use the host's tool-discovery primitive to load that capability — do not search for another host's tool name. Fall back to numbered options on the host's user-visible chat surface only when no such tool is in the list or a real question call errors. Never silently skip the question. This question is distinct from the mid-flow routing question (`references/walkthrough.md`) — the routing question chooses *how* to engage with findings, this one chooses *what to do next* once engagement is complete. Do not merge them.
-
-**Stem:** `Apply decisions and what next?`
-
-**Options (three by default; two in the zero-actionable case):**
-
-When `fixes_applied_count > 0` (at least one applied fix or Apply decision has landed this session):
-
-```
-A. Apply decisions and proceed to <next stage>
-B. Apply decisions and re-review
-C. Exit without further action
-```
-
-When `fixes_applied_count == 0` (zero-actionable case, or the user took routing option D / every walk-through decision was Skip):
-
-```
-A. Proceed to <next stage>
-B. Exit without further action
-```
-
-The `<next stage>` substitution uses the document classification from Phase 1. Route by readiness, not file path — a requirements-only artifact's next stage is planning, an implementation-ready artifact's is execution:
-
-- `unified-requirements` (requirements-only unified plan) → `ce-plan` (enrich in place)
-- `requirements` (legacy standalone requirements doc) → `ce-plan`
-- `unified-plan` (implementation-ready unified plan) → `ce-work`
-- `plan` (legacy implementation plan) → `ce-work`
-
-**Label adaptation:** when no decisions are queued to apply, the primary option drops the `Apply decisions and` prefix — the label should match what the system is doing. `Apply decisions and proceed` when fixes are queued; `Proceed` when nothing is queued.
-
-**Caller-context handling (implicit):** the terminal question's "Proceed to <next stage>" option is interpreted contextually by the agent from the visible conversation state. When `ce-doc-review` is invoked from inside another skill's flow (e.g., `ce-brainstorm` Phase 4 re-review, `ce-plan` phase 5.3.8), the agent does not fire a nested `ce-plan` or `ce-work` dispatch — it returns control to the caller's flow which continues its own logic. When invoked standalone, "Proceed" dispatches the appropriate next skill. No explicit caller-hint argument is required; if this implicit handling proves unreliable in practice, an explicit `nested:true` flag can be added as a follow-up.
+For standalone use, a useful next step may be named without a blocking menu. A requirements-only unified plan or legacy standalone requirements doc routes to `ce-plan`; an implementation-ready unified plan or legacy implementation plan routes to `ce-work`. Invoke that next skill only when the user's existing request authorizes it. Review completion alone does not authorize new work.
 
 ### Iteration limit
 
-After 2 refinement passes, recommend completion — diminishing returns are likely. But if the user wants to continue, allow it; the primer carries all prior-round decisions so later rounds suppress repeat findings cleanly.
-
-Return "Review complete" as the terminal signal for callers, regardless of which option the user picked.
+After 2 refinement passes, recommend completion. An explicit request for another pass is honored with prior decisions preserved. Handling unchanged findings uses the intake reuse condition rather than starting a new pass.
 
 ## What NOT to Do
 
@@ -410,4 +342,4 @@ Return "Review complete" as the terminal signal for callers, regardless of which
 
 ## Iteration Guidance
 
-On subsequent passes, re-dispatch personas with the multi-round decision primer (see Unit 7) and re-synthesize. Fixed findings self-suppress because their evidence is gone from the current doc; rejected findings are handled by the R29 pattern-match suppression rule; applied-fix verification uses the R30 matching predicate above. If findings are repetitive across passes after these mechanisms run, recommend completion.
+On genuinely new review passes, re-dispatch personas with the multi-round decision primer (see Unit 7) and re-synthesize. Fixed findings self-suppress because their evidence is gone from the current doc; rejected findings are handled by the R29 pattern-match suppression rule; applied-fix verification uses the R30 matching predicate above. If findings are repetitive across passes after these mechanisms run, recommend completion.

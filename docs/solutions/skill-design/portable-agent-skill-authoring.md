@@ -311,6 +311,8 @@ Stable cross-skill fields, enums, and return statuses are protocols. Version or 
 
 A review agent is biased toward producing changes. Counter that bias directly.
 
+Review findings are claims for the owning caller to adjudicate against the intended outcome. Confidence and independent agreement can strengthen evidence; neither establishes importance or edit authority. Apply the same relevance boundary to advisory and residual output so rejected claims cannot return through another field. Grounded engineering choices belong to the agent within its authority; essential missing user preferences remain with the caller. A judgment utility returns the missing framing and its consequence rather than starting its own interview.
+
 ### Suspected defects
 
 A required correctness or protocol fix must cite one of:

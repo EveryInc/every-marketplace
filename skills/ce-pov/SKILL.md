@@ -17,9 +17,11 @@ Produce a decisive, project-grounded point of view in the subject's own shape: a
 
 Write for the person deciding what to do. Lead with the decision, question, or recommendation. Keep internal workflow vocabulary and mechanics out of chat unless asked, and put any consequence they need into ordinary language. Call the codebase "this project" or "the repository" unless the user supplied a recognizable name. Never promote a directory, worktree, checkout, branch, or path into the project name.
 
-## Interaction Method
+## Context and return boundary
 
-Ask through the host's blocking question tool, one question at a time: the host's blocking question tool already in the current tool list (match by capability, not by a host-specific name). Presence in the current tool list is proof the tool exists; never call a user-facing question tool to discover whether it exists. If a matching tool is listed but unloaded, use the host's tool-discovery primitive to load that capability — do not search for another host's tool name. Fall back to numbered chat options only when no such tool is in the list or a real question call errors. Never skip the question.
+Resolve the question from the invocation and active context, then inspect discoverable facts. Do not interview the user to complete the frame. When missing context would materially change the position and cannot be recovered, return **Blocked — missing framing**, naming what is missing, why it matters, and what would resolve it. The caller owns any clarification or next action. This is the default for direct and delegated invocations; no non-interactive mode is needed.
+
+Incidental uncertainty need not block a grounded position. State a defensible assumption when it does not invent a product commitment or decide an unsettled preference. Preserve separate approval requirements for an unexpected external recipient or action outside existing authority.
 
 ## Artifact Root
 
@@ -57,6 +59,6 @@ Only then emit the subject shape's contract, as a **compact chat block, not a re
 
 ### Phase 4: Follow-up
 
-The chat POV is the deliverable; implementation is not. **Read `references/followup.md`** for the four-part handoff gate, the routing, and the continuations. Hand the POV on without another question only when that gate passes. Otherwise offer one continuation and wait. Reason that offer from the active subject shape's result — external adoption, Document take, or Approach-set position — never from a fixed menu, and never assume everything routes to a plan. Block only where that reference says the user must choose.
+The chat POV is the deliverable; implementation is not. **Read `references/followup.md`** for the four-part handoff gate, the routing, and the continuations. Hand the POV on without another question only when that gate passes. Otherwise return the result to the caller. Name a useful next step without a blocking continuation menu; the result does not authorize new work.
 
 **Warm invocations stay a guest:** output the POV block, hand control back, and offer none of this unless asked.

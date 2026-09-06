@@ -33,7 +33,7 @@ After a position lands, it proposes one next step (edit, plan, scope, or spike).
 # Choose among approaches already on the table
 /ce-pov for this service, should we use polling or webhooks?
 
-# Bare link: fetches enough to name the thing, then proposes possible questions
+# Bare link: fetches enough to name the thing, then resolves the frame or returns essential missing context
 /ce-pov https://example.com/tool
 
 # Exposure: is this CVE or deprecation ours?
@@ -72,9 +72,9 @@ Every POV must clear a project floor: a verified fact about this project relevan
 
 A failed adoption floor returns a `Hold` subtype (`Hold: insufficient project grounding` or `Hold: external evidence unavailable`). A failed document or approach floor returns an explicit `Blocked` result. Neither turns into a confident guess.
 
-### Propose the frame, never guess it
+### Resolve the frame or return what is missing
 
-Before grounding, the skill orients on what you gave it (fetching a bare link to learn what it is) and settles the intent: adopt, migrate, compare, is-this-our-problem, document-take, approach-set, or plain explainer. Clear input gets a one-line inferred frame. Ambiguous input gets proposed framings to confirm. A pure explainer is answered as research, never forced into a verdict.
+Before grounding, the skill orients on what you gave it (fetching a bare link to learn what it is) and settles the intent: adopt, migrate, compare, is-this-our-problem, document-take, approach-set, or plain explainer. Clear input gets a one-line inferred frame. When available context cannot resolve materially ambiguous input, it returns `Blocked — missing framing` with what is missing, why it matters, and what would resolve it. It does not interview the user; direct and delegated callers own clarification. Discoverable facts are investigated, and incidental uncertainty does not block a supported position. A pure explainer is answered as research, never forced into a verdict.
 
 A selection question ("what should we use for auth?") belongs here only when the field is bounded, roughly five or fewer real candidates with knowable criteria. Otherwise it Holds and routes to `ce-ideate` or `ce-brainstorm`.
 
@@ -120,7 +120,7 @@ The chat verdict is the deliverable; implementation is outside this read-only co
 - A document take with actionable revisions offers to apply them through the workflow that owns the document
 - A chosen, defined approach proceeds through planning or execution. A toss-up or a Blocked result does not
 
-Handoff happens without another question only when the original request named that downstream action. Otherwise it offers one continuation and waits. A shareable write-up (HTML by default) and a `ce-compound` capture into `docs/solutions/` are both opt-in. Warm invocations skip all of this unless you ask.
+Handoff happens without another question only when the original request named that downstream action. Otherwise it returns control without a blocking continuation menu; naming a next step does not authorize it. A shareable write-up (HTML by default) and a `ce-compound` capture into `docs/solutions/` are both opt-in. Warm invocations skip all of this unless you ask.
 
 ---
 

@@ -1,0 +1,71 @@
+import type { Scenario } from "./catalog"
+
+const baseline_ref = "988eb4008e24e7c5cde2fc4a6141c6baf9e8f560"
+const fixture = "tests/skill-eval-cell/fixtures/review-calibration"
+const base = { cohort: "resized", key_behavior: "judgment", read_only: true, fixture, baseline_ref } as const
+
+export const CALIBRATION_SCENARIOS: Scenario[] = [
+  {
+    ...base,
+    id: "ce-doc-review/calibration-adjudication",
+    skill: "ce-doc-review",
+    why: "Exercise synthesis after independent reviewers returned: correlated low-impact observations, a fact-resolved disagreement, a real omission, and a product fork.",
+    pre_contract: "Synthesis gates anchors, promotes agreement, combines contradictions as manual, and preserves grouped confirmation for semantic edits.",
+    task: `Continue ce-doc-review at synthesis for PLAN.md. The reviewers have finished. Their findings are in REVIEW.json; source evidence is available in the workspace. Do not dispatch reviewers or edit the document. Return your final classification and proposed disposition for each finding ID and every residual risk or deferred question, with the evidence that decided it, then stop before presenting an interaction.`,
+    grade: { workspace_read: ["PLAN.md", "REVIEW.json"], actions: "none", delegates: "none", must_include: ["ownership", "retention"] },
+  },
+  {
+    ...base,
+    id: "ce-doc-review/calibration-resume",
+    skill: "ce-doc-review",
+    why: "Resuming decisions is not a new reviewer pass; actual dispatch is outside this decision-only cell.",
+    pre_contract: "Interactive re-entry reuses prior safe-auto and R29 state but normally traverses Phase 2 again.",
+    task: `We just completed a non-interactive ce-doc-review of PLAN.md. The complete reviewer returns are in REVIEW.json, the document has not changed, and no decisions have been answered. I now want to handle those existing findings. Resolve the next step and report whether a new reviewer pass is needed and why. Stop at that routing decision; do not dispatch or edit.`,
+    grade: { workspace_read: ["PLAN.md", "REVIEW.json"], actions: "none", delegates: "none" },
+  },
+  {
+    ...base,
+    id: "ce-pov/calibration-missing-framing",
+    skill: "ce-pov",
+    why: "An essential unstated product preference returns as missing context, not an interview or a confident guess.",
+    pre_contract: "Approach-set positions may say Either is viable; ambiguous criteria ordinarily ask or route to brainstorm.",
+    task: `Use ce-pov to choose the export retention approach in APPROACHES.md for this project.`,
+    grade: { workspace_read: ["APPROACHES.md"], actions: "none", delegates: "none", must_include: ["retention"] },
+  },
+  {
+    ...base,
+    id: "ce-pov/calibration-grounded-position",
+    skill: "ce-pov",
+    why: "Missing incidental detail must not prevent a position already decided by verified project requirements.",
+    pre_contract: "Clear approach-set intent grounds against source, returns a position, and stays read-only.",
+    task: `Use ce-pov: should the download endpoint use the existing assertOwner helper before signing, or rely solely on the signed URL? This is a bounded implementation choice for the project in PLAN.md.`,
+    grade: { workspace_read: ["PLAN.md", "src/export.js"], actions: "none", must_include: ["assertOwner"] },
+  },
+  {
+    ...base,
+    id: "ce-work/calibration-followup",
+    skill: "ce-work",
+    why: "Caller adjudication separates an authorized implementation choice from an unresolved product commitment before asking the human.",
+    pre_contract: "Followup biases to act but directs fixers to skip design judgment; interactive residuals always prompt.",
+    task: `We are at ce-work's review-findings followup. PLAN.md is the approved scope except its explicitly unresolved retention question. The completed review proposes two fixes: (1) replace the duplicated ownership condition in src/endpoint.js with the existing assertOwner helper, preserving behavior; (2) resolve retention by deleting exports after 7 days. Determine the disposition of each under the followup and residual-work rules. Stop before dispatch, edits, or shipping.`,
+    grade: { workspace_read: ["PLAN.md", "src/endpoint.js"], actions: "none", delegates: "none", must_include: ["assertOwner", "retention"] },
+  },
+  {
+    ...base,
+    id: "ce-work/calibration-required-decision",
+    skill: "ce-work",
+    why: "A user-owned decision that prevents the requested outcome must remain a blocker, unlike independent nonblocking residuals.",
+    pre_contract: "The old autonomous residual gate may record unsettled product decisions and continue shipping.",
+    task: `We are at ce-work's Residual Work Gate in an autonomous run. The user now explicitly requires automatic deletion of stored exports as part of the completed outcome, in addition to PLAN.md's ownership work. The ownership work is done, but the retention period in APPROACHES.md remains unapproved and no criteria settle it. Decide whether to ship, record a nonblocking residual, or return a blocker. Stop at the disposition; do not dispatch, edit, or ship.`,
+    grade: { workspace_read: ["APPROACHES.md"], actions: "none", delegates: "none", must_include: ["block", "retention"] },
+  },
+  {
+    ...base,
+    id: "ce-code-review/calibration-lead",
+    skill: "ce-code-review",
+    why: "Lead judgment must preserve a valid existing guard and reject reviewer-generated scope and abstraction work.",
+    pre_contract: "Report-only, no blocking questions, concrete consequences required; synthesis owns final routing.",
+    task: `Continue ce-code-review's lead judgment on src/export.js. Reviewers returned: A says download lacks an ownership check and proposes adding one; B says the injected sign function needs a new class hierarchy for future providers; C says the verified assertOwner call already enforces the required check; D asks to define the retention period as part of this change. B also returned the hypothetical provider hierarchy as a residual risk and a deferred question. PLAN.md states the intended scope. Inspect all returned claims and give the final verdict and disposition of each. This is report-only; stop after this bounded judgment, without dispatch or mutation.`,
+    grade: { workspace_read: ["PLAN.md", "src/export.js"], actions: "none", delegates: "none", must_include: ["assertOwner"] },
+  },
+]

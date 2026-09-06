@@ -20,7 +20,7 @@ The confidence check and ce-doc-review are complementary:
 - The confidence check strengthens rationale, sequencing, risk treatment, and grounding
 - Document-review checks coherence, feasibility, scope alignment, and surfaces role-specific issues
 
-Capture the non-interactive envelope so it can drive the contextual summary above the post-generation menu:
+Retain complete review returns and decision state with the reviewed document identity for any later interactive handoff; `ce-doc-review` owns whether that evidence is reusable. Capture the non-interactive envelope so it can drive the contextual summary above the post-generation menu:
 - The number of fixes auto-applied
 - The count of remaining findings, broken out by user-facing bucket (proposed fixes, decisions, FYI observations)
 - The severity breakdown of decisions and proposed fixes (specifically the P0/P1 count, since those benefit from explicit user attention)

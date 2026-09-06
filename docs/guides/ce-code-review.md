@@ -12,6 +12,8 @@ It is not a verdict on a document (`ce-pov`), not findings on a planning doc (`c
 
 `ce-work` invokes it as the portable review path before shipping. `ce-optimize` and `ce-debug` also call it on the diffs they produce. You can invoke it directly any time.
 
+The lead treats reviewer output as claims to verify. Findings need a concrete consequence or a worthwhile maintenance benefit; agreement and confidence alone do not qualify them. Rejected preferences and unsupported hypotheticals are closed rather than recycled as residual risks or testing gaps.
+
 ---
 
 ## TL;DR
