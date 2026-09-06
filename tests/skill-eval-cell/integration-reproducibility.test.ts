@@ -234,7 +234,10 @@ if (process.platform !== "win32") {
     const scripts = path.join(repo, "skills/fixture/scripts")
     fs.mkdirSync(scripts)
     fs.writeFileSync(path.join(scripts, "helper.py"), 'VALUE = "proof"\n')
-    fs.writeFileSync(path.join(scripts, "main.py"), `import helper
+    fs.writeFileSync(path.join(scripts, "main.py"), `import sys
+sys.dont_write_bytecode = False
+sys.pycache_prefix = None
+import helper
 from pathlib import Path
 marker = Path(__file__).with_name("ran.txt")
 assert not marker.exists(), "another host already used this skill copy"
@@ -251,7 +254,7 @@ else:
     host = Path.cwd().parent
     first_line = (host / "prompt.md").read_text().splitlines()[0]
     skill = Path(first_line.removeprefix("Read the skill at ").removesuffix(" first.")).parent
-    assert skill == host / "skill", "prompt must point to the host execution copy"
+    assert skill.resolve() == (host / "skill").resolve(), "prompt must point to the host execution copy"
     subprocess.run([sys.executable, str(skill / "scripts/main.py")], check=True)
 `)
     for (const host of ["codex", "claude"]) {
@@ -260,7 +263,7 @@ else:
     const out = path.join(root, "pack")
     const result = call("pack.ts", ["--hosts", "codex,claude", "--arm", "post", "--id", "fixture/pass", "--out", out], {
       CE_FAKE_PYTHON: python ?? undefined, CE_FAKE_HOST_SCRIPT: hostScript,
-      PYTHONDONTWRITEBYTECODE: undefined, PYTHONPYCACHEPREFIX: undefined,
+      PYTHONDONTWRITEBYTECODE: "1", PYTHONPYCACHEPREFIX: path.join(root, "external-cache"),
     })
     expect(result.status, result.stderr).toBe(0)
     const cell = path.join(out, "fixture__pass/post")
