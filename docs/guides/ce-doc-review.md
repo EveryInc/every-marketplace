@@ -2,7 +2,7 @@
 
 > Review a requirements or plan document with parallel persona agents, apply mechanical fixes, and route the rest.
 
-`ce-doc-review` is the findings skill for documents. Point it at a requirements-only unified plan, an implementation-ready plan, or a legacy requirements/plan doc. It picks reviewer personas from what the doc contains, dispatches them in parallel, applies only full-confidence mechanical fixes in the document's native format, then routes everything else to you.
+`ce-doc-review` is the findings skill for documents. Point it at a requirements-only unified plan, an implementation-ready plan, or a legacy requirements/plan doc. It picks reviewer personas from what the doc contains, dispatches them in parallel, applies only full-confidence mechanical fixes in the document's native format, then adjudicates which remaining concerns warrant your attention.
 
 It is the sibling of `/ce-code-review` for the docs side, and it is not a verdict. Use `/ce-pov` when you want a holistic take (strengths, risks, bottom line) instead of an issue list. Use `/ce-code-review` for findings on a diff, and `/ce-debug` when something is actually broken.
 
@@ -65,7 +65,7 @@ Document review is harder than code review in specific ways:
 - Two personas on every review: coherence and feasibility
 - Conditional personas selected from doc content: product-lens, design-lens, security-lens, scope-guardian, adversarial
 - Parallel persona dispatch with bounded concurrency
-- Synthesis that promotes on cross-persona agreement, resolves contradictions, and routes on confidence and fix class together. Only a mechanical correction at full confidence applies unattended. Everything else that touches meaning goes into one batched confirmation. Only a real fork becomes a question
+- Synthesis that verifies practical consequences, rejects unsupported or low-value claims, resolves disagreements from evidence, and routes surviving findings on confidence and fix class together. Agreement can strengthen evidence but does not make a nit important. Only a mechanical correction at full confidence applies unattended. Everything else that touches meaning goes into one batched confirmation. Only a real fork becomes a question
 - A decision primer that suppresses findings you rejected in earlier rounds and verifies the ones you applied
 - Four options for the remaining decisions: per-finding walk-through, auto-resolve with best judgment, append to Open Questions, report-only
 
@@ -91,7 +91,7 @@ Classification happens once, from readiness metadata, content-shape signals, fro
 
 ### Three surfaces, not a flat list
 
-After personas return, synthesis validates, drops unanchored findings, deduplicates, promotes on agreement, and routes:
+After personas return, the lead checks each claim against the intended outcome, rejects findings without a concrete consequence or worthwhile benefit, deduplicates, and routes:
 
 - **Applied** (reported): only `safe_auto` at confidence 100. Mechanical corrections with one right answer
 - **Proposed fixes** (grouped confirmation): everything with a concrete fix that touches meaning, plus obligations the document already entailed. One question over the batch, shown in full first
@@ -111,7 +111,7 @@ Without the evidence snippet, suppression falls back to title-only and either re
 
 ### Four-option interaction
 
-After mechanical fixes land and the grouped confirmation is answered, one routing question covers the whole remaining set:
+After mechanical fixes land and the grouped confirmation is answered, the skill follows your requested interaction route. When that intent is unclear, one routing question covers the remaining set:
 
 | Option | Effect |
 |--------|--------|
@@ -133,6 +133,8 @@ Each per-finding step prints a terminal block and duplicates What's wrong / Prop
 
 Non-interactive requires a path. Without one it errors rather than guessing.
 
+Handling existing findings reuses complete review evidence when the document and scope are unchanged. A summary alone is insufficient, and material changes require a new pass. Completed reviews return control without an extra next-step question. These rules apply to direct invocations and nested reviews alike.
+
 ### Coverage, settled decisions, and the rendering floor
 
 The output names which personas ran, which were activated by what signals, and whether any failed or timed out.
@@ -143,7 +145,7 @@ Findings lead with a recommendation and a one-sentence consequence that names no
 
 ### Cross-model judgment pass
 
-When the **conditional judgment trio** (adversarial, product-lens, security-lens) activates, those lenses also run through one different model provider than the host, in a separate read-only process. Agreement between a peer return and its in-process twin is the strongest promotion signal in synthesis. Coherence, scope-guardian, and feasibility stay single-model so the pass does not spawn a peer on every review.
+When the **conditional judgment trio** (adversarial, product-lens, security-lens) activates, those lenses also run through one different model provider than the host, in a separate read-only process. Verified independent agreement can support one confidence step only when the combined evidence meets the higher anchor. It never establishes importance or edit authority. Coherence, scope-guardian, and feasibility stay single-model so the pass does not spawn a peer on every review.
 
 A single **whole-document sweep** has one different-provider peer review the entire document as a general reviewer, folding in as `whole-doc-<provider>`. On unified plans the focused trio peers are sliced to match their in-process twins. The sweep reads the whole document.
 

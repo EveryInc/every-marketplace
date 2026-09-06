@@ -49,8 +49,8 @@ describe("ce-work review contract", () => {
     expect(shipping).toContain("mechanical diff")
     // The one escalation signal ce-code-review cannot infer is passed explicitly
     expect(shipping).toContain("depth:full")
-    // Autonomous Residual Gate branch keeps unattended pipelines unblocked
-    expect(shipping).toContain("Non-interactive / autonomous")
+    // Missing authority stays blocked in unattended pipelines.
+    expect(shipping).toContain("Autonomous runs return the blocker")
     // Two-step review -> fix, consumed by followup
     expect(shipping).toContain("review-findings-followup.md")
     expect(shipping).toMatch(/review is not fix|3a\. Review|3b\. Apply/i)
@@ -825,13 +825,10 @@ describe("ce-doc-review contract", () => {
     expect(synthesis).toContain("`gated_auto`")
     expect(synthesis).toContain("`manual`")
 
-    // Cross-persona agreement promotion (replaces +0.10 boost)
+    // Promotion requires independently verified evidence at the higher anchor.
     expect(synthesis).toContain("Cross-Persona Agreement Promotion")
     expect(synthesis).toContain("one anchor step")
-    expect(synthesis).toContain("`independence_verified` is `true`")
-    // Pins the rule, not the mechanism that carried it: an unverified peer stays
-    // attributed evidence and cannot promote. The twin *fingerprint* exception it
-    // used to name was deleted with 3.3's string matching.
+    expect(synthesis).toContain("`independence_verified: true`")
     expect(synthesis).toContain("cannot trigger anchor promotion")
     expect(synthesis).toContain("Cursor default/Auto")
 
@@ -857,29 +854,16 @@ describe("ce-doc-review contract", () => {
     expect(synthesis).toContain("Review complete")
   })
 
-  test("terminal question is three-option by default with label adaptation", async () => {
+  test("completed doc review returns control without authorizing another workflow", async () => {
     const synthesis = await readRepoFile(
       "skills/ce-doc-review/references/synthesis-and-presentation.md"
     )
-
-    // Three options when fixes are queued
-    expect(synthesis).toContain("Apply decisions and proceed to <next stage>")
-    expect(synthesis).toContain("Apply decisions and re-review")
-    expect(synthesis).toContain("Exit without further action")
-
-    // Two options in the zero-actionable case with the adapted label
-    expect(synthesis).toContain("fixes_applied_count == 0")
-    expect(synthesis).toContain("zero-actionable case")
-
-    // Next-stage substitution rules documented, readiness-aware: a
-    // requirements-only artifact routes to planning, implementation-ready to
-    // execution (unified and legacy classifications both covered).
+    expect(synthesis).toContain('Return "Review complete"')
+    expect(synthesis).toContain("does not need a terminal question")
     expect(synthesis).toContain("requirements-only unified plan")
     expect(synthesis).toContain("implementation-ready unified plan")
-    expect(synthesis).toContain("legacy standalone requirements doc")
-    expect(synthesis).toContain("legacy implementation plan")
-    expect(synthesis).toContain("ce-plan")
-    expect(synthesis).toContain("ce-work")
+    expect(synthesis).toContain("user's existing request authorizes it")
+    expect(synthesis).toContain("return control to the caller")
   })
 
   // Split by load-time: the question-tool rules and the dispatch backpressure
