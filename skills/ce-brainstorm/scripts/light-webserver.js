@@ -18,6 +18,8 @@ const BODY_LIMIT = 64 * 1024
 // Reserved URL namespace for the overlay, so a screen's own /annotate.js or
 // /annotate.css under screens/ is never shadowed.
 const OVERLAY_PREFIX = "/__ce-annotate"
+// Bump when a running annotate server can no longer satisfy the handoff contract.
+const ANNOTATE_PROTOCOL = 1
 const OVERLAY_FILES = {
   [`${OVERLAY_PREFIX}/annotate.js`]: "annotate.js",
   [`${OVERLAY_PREFIX}/annotate.css`]: "annotate.css",
@@ -392,6 +394,23 @@ function renderPage(options, origin) {
   return isFullDocument(html) ? injectRefresh(options, html) : wrapFragment(options, html)
 }
 
+// `next` is an origin-root-relative screen URL, separate from the bootstrap
+// query (including its credential). Keep application query/hash state intact.
+function authorizationDestination(req) {
+  const origin = "http://ce-preview.invalid"
+  try {
+    const next = new URL(req.url, origin).searchParams.get("next") ?? "/"
+    if (!next.startsWith("/") || next.startsWith("//") || /[\\\u0000-\u001f\u007f]/.test(next)) return null
+    const target = new URL(next, origin)
+    // Dot-segment normalization can expose a leading // even when the input
+    // did not have one. A relative redirect must not become a new authority.
+    if (target.origin !== origin || target.pathname.startsWith("//")) return null
+    return target.href.slice(origin.length)
+  } catch {
+    return null
+  }
+}
+
 function cookieValue(req, name) {
   const header = req.headers.cookie
   if (typeof header !== "string") return null
@@ -616,12 +635,18 @@ async function start(options) {
   ensureDirs(options)
   options.ownerPid = options.ownerPid ?? resolveOwnerPid()
   const running = getRunningInfo(options)
-  if (running && Boolean(running.annotate) === options.annotate && !running.session_ended) {
+  const compatibleHandoff = !options.annotate || (
+    running?.annotate_protocol === ANNOTATE_PROTOCOL &&
+    typeof running.authorize_url === "string" && running.authorize_url.length > 0
+  )
+  if (running && Boolean(running.annotate) === options.annotate && !running.session_ended && compatibleHandoff) {
     jsonOut({ ...running, status: "running" })
     return
   }
   // A server in the other mode cannot serve this start: a default server has
   // no token for wait, and an annotate server would gate a default preview.
+  // Also restart older annotate processes: replacing this script on disk does
+  // not update their credential issuance or published handoff metadata.
   if (running) await stopServer(options)
 
   fs.rmSync(options.pidFile, { force: true })
@@ -682,6 +707,12 @@ function localAddressFor(host) {
 }
 
 async function wait(options) {
+  // A closed consumer pipe is an output error, not the exit-1 session-ended
+  // signal. Successful writes otherwise drain through the normal event loop.
+  process.stdout.once("error", (error) => {
+    console.error(`Failed to write wait output: ${error.message}`)
+    process.exit(2)
+  })
   const info = getRunningInfo(options)
   if (!info?.port) {
     // Idle/owner shutdown records session_ended and exits; wait must still
@@ -707,12 +738,16 @@ async function wait(options) {
     if (response.status === 200) {
       const text = await response.text()
       process.stdout.write(text.endsWith("\n") ? text : `${text}\n`)
-      process.exit(0)
+      // stdout is asynchronous when piped. Let Node drain the complete batch
+      // before exiting; the server has already removed these notes from its queue.
+      process.exitCode = 0
+      return
     }
     if (response.status === 410) {
       const text = await response.text()
       process.stdout.write(text.endsWith("\n") ? text : `${text}\n`)
-      process.exit(1)
+      process.exitCode = 1
+      return
     }
     if (response.status === 204) continue
     process.exit(2)
@@ -945,9 +980,6 @@ async function serve(options) {
       ...NO_STORE,
       "Referrer-Policy": "no-referrer",
     }
-    if (cookieName && sessionToken) {
-      headers["Set-Cookie"] = `${cookieName}=${sessionToken}; HttpOnly; SameSite=Strict; Path=/`
-    }
     res.writeHead(200, headers)
     res.end(stampOverlayDocument(html, pending))
   }
@@ -975,6 +1007,33 @@ async function serve(options) {
     }
 
     if (options.annotate) {
+      // Viewing a screen is public, but control of its annotation session is
+      // not. Exchange an operator-delivered bearer link for a cookie before
+      // serving any authored script, then leave the credential out of its URL.
+      if (req.method === "GET" && urlPath === `${OVERLAY_PREFIX}/authorize`) {
+        if (!requireLiveAnnotate(req, res)) return
+        const destination = authorizationDestination(req)
+        if (destination === null) {
+          sendJson(res, 400, { error: "next must be an origin-root-relative URL" })
+          return
+        }
+        // A cross-site HTTP redirect can withhold a SameSite=Strict cookie.
+        // Commit a helper-owned document first, then navigate same-site. No
+        // authored code runs while the bearer token is in the document URL.
+        // Serialize as a JS string, then escape HTML's script terminator.
+        const navigate = `window.location.replace(${JSON.stringify(destination).replace(/</g, "\\u003c")})`
+        const scriptHash = createHash("sha256").update(navigate).digest("base64")
+        res.writeHead(200, {
+          ...NO_STORE,
+          "Content-Type": CONTENT_TYPES[".html"],
+          "Referrer-Policy": "no-referrer",
+          "Content-Security-Policy": `default-src 'none'; script-src 'sha256-${scriptHash}'; base-uri 'none'; frame-ancestors 'none'`,
+          "Set-Cookie": `${cookieName}=${sessionToken}; HttpOnly; SameSite=Strict; Path=/`,
+        })
+        res.end(`<!doctype html><html><head><title>Opening annotation session</title></head><body><script>${navigate}</script></body></html>`)
+        return
+      }
+
       if (req.method === "GET" && urlPath === "/wait") {
         unbindPendingFromSocket(req.socket)
         if (!requireAnnotateToken(req, res)) return
@@ -1085,7 +1144,7 @@ async function serve(options) {
 
       if (req.method === "GET" && urlPath === "/") {
         touch()
-        if (isDocumentNavigation(req)) {
+        if (isDocumentNavigation(req) && authorized(req)) {
           const renderedKey = screensChangeKey(options)
           serveAnnotateDocument(req, res, renderPage(options, requestOrigin(req)), renderedKey)
           return
@@ -1100,15 +1159,14 @@ async function serve(options) {
         return
       }
 
-      // A linked page under screens/ is a screen too: navigated to, it carries
-      // the same overlay and stream, or the session would end at the first
-      // navigation. It stays ungated like every other screen file. Fetched by
-      // a script, the same file is a partial and is served raw.
+      // An authorized navigation to a linked page carries the same overlay
+      // and stream. Public views and script fetches stay raw; they cannot
+      // acquire a credential or hold the annotation session open.
       if (req.method === "GET") {
         touch()
         const filePath = resolveContainedFile(options.screensDir, req, res)
         if (!filePath) return
-        if (contentType(filePath) === CONTENT_TYPES[".html"] && isDocumentNavigation(req)) {
+        if (contentType(filePath) === CONTENT_TYPES[".html"] && isDocumentNavigation(req) && authorized(req)) {
           const renderedKey = screensChangeKey(options)
           serveAnnotateDocument(req, res, annotateScreen(fs.readFileSync(filePath, "utf8"), requestOrigin(req), urlPath), renderedKey)
           return
@@ -1159,7 +1217,12 @@ async function serve(options) {
       state_dir: options.stateDir,
       pid: process.pid,
       owner_pid: options.ownerPid ?? null,
-      ...(sessionToken ? { token: sessionToken, annotate: true } : {}),
+      ...(sessionToken ? {
+        token: sessionToken,
+        annotate: true,
+        annotate_protocol: ANNOTATE_PROTOCOL,
+        authorize_url: `${baseUrl}${OVERLAY_PREFIX}/authorize?token=${encodeURIComponent(sessionToken)}`,
+      } : {}),
     }
     publishedInfo = info
     fs.writeFileSync(options.pidFile, `${process.pid}\n`)

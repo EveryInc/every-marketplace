@@ -79,10 +79,12 @@ describe("ce-prototype protocol", () => {
     expect(ANNOTATION_LOOP_BODY).toMatch(/Chat is valid only after wait has returned or cannot run/)
     expect(ANNOTATION_LOOP_BODY).not.toMatch(/explorer writing in chat/)
     expect(PREVIEW_BODY).toMatch(/start --root "\$PROTO_DIR" --annotate/)
-    expect(
-      /hand the explorer the helper's returned URL with only the host rewritten/.test(PREVIEW_BODY),
-      "A remote handoff rewrites only the host. The explorer URL is origin-only; visiting that origin sets the session cookie.",
-    ).toBe(true)
+    // Remote handoff preserves the private bootstrap path and query; a public
+    // origin visit must never be described as granting annotation authority.
+    expect(PREVIEW_BODY).toContain("use the returned `authorize_url`, not the public `url`")
+    expect(PREVIEW_BODY).toContain("rewrite only the handoff URL's host")
+    expect(PREVIEW_BODY).toContain("preserve its authorization path and complete query, including `token` and any encoded `next`")
+    expect(PREVIEW_BODY).toContain('handoff.searchParams.set("next", "/nested/checkout.html?variant=b&token=demo#details");')
     expect(PREVIEW_BODY).toMatch(/Do not also hand localhost/)
     expect(PREVIEW_BODY).toMatch(/Do not print the token/)
     expect(PREVIEW_BODY).toMatch(/Wait talks the bind address with the file token/)
@@ -179,7 +181,7 @@ describe("ce-prototype protocol", () => {
     const loadLine = (SKILL_BODY.match(/^.*references\/craft-floor\.md.*$/m) ?? [""])[0]
     expect(
       loadLine,
-      "SKILL.md must name references/craft-floor.md at the point the run decides how finished a seeing question has to get.",
+      "SKILL.md must name references/craft-floor.md at the point the run decides how finished the seeing dimension needs to be. Without that late-load anchor, a prototype can skip the floor entirely.",
     ).not.toBe("")
     expect(
       /settled by seeing/i.test(SKILL_BODY),
