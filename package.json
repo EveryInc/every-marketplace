@@ -8,9 +8,6 @@
   "pi": {
     "extensions": [
       "./.pi/extensions/compound-engineering.ts"
-    ],
-    "skills": [
-      "./skills"
     ]
   },
   "homepage": "https://github.com/EveryInc/compound-engineering-plugin",
