@@ -19,7 +19,7 @@ const BODY_LIMIT = 64 * 1024
 // /annotate.css under screens/ is never shadowed.
 const OVERLAY_PREFIX = "/__ce-annotate"
 // Bump when a running annotate server can no longer satisfy the handoff contract.
-const ANNOTATE_PROTOCOL = 1
+const ANNOTATE_PROTOCOL = 2
 const OVERLAY_FILES = {
   [`${OVERLAY_PREFIX}/annotate.js`]: "annotate.js",
   [`${OVERLAY_PREFIX}/annotate.css`]: "annotate.css",
@@ -890,6 +890,23 @@ async function serve(options) {
     return requestCredentials(req, cookieName).some((candidate) => tokenMatches(candidate, sessionToken))
   }
 
+  // Browser documents require the cookie established by the private handoff.
+  // Query/header credentials remain available only to helper control routes.
+  function authorizedDocument(req) {
+    return tokenMatches(cookieValue(req, cookieName), sessionToken)
+  }
+
+  function containsSessionQuery(url) {
+    return new URL(url, "http://ce-preview.invalid").searchParams.getAll("token")
+      .some((candidate) => tokenMatches(candidate, sessionToken))
+  }
+
+  function rejectScreenCredential(res) {
+    res.setHeader("Cache-Control", "no-store")
+    res.setHeader("Referrer-Policy", "no-referrer")
+    sendJson(res, 400, { error: "Use the private authorize_url, not a session token in a screen URL" })
+  }
+
   function requireAnnotateToken(req, res) {
     if (authorized(req)) return true
     sendJson(res, 401, { error: "unauthorized" })
@@ -1017,6 +1034,10 @@ async function serve(options) {
           sendJson(res, 400, { error: "next must be an origin-root-relative URL" })
           return
         }
+        if (containsSessionQuery(destination)) {
+          rejectScreenCredential(res)
+          return
+        }
         // A cross-site HTTP redirect can withhold a SameSite=Strict cookie.
         // Commit a helper-owned document first, then navigate same-site. No
         // authored code runs while the bearer token is in the document URL.
@@ -1142,9 +1163,18 @@ async function serve(options) {
         return
       }
 
+      // Omitting the overlay is insufficient: even a raw public HTML response
+      // would expose location.search to authored scripts. Reject the live
+      // credential before serving any screen, including fetches and frames.
+      // Application-owned token parameters remain valid unless they equal it.
+      if (req.method === "GET" && containsSessionQuery(req.url)) {
+        rejectScreenCredential(res)
+        return
+      }
+
       if (req.method === "GET" && urlPath === "/") {
         touch()
-        if (isDocumentNavigation(req) && authorized(req)) {
+        if (isDocumentNavigation(req) && authorizedDocument(req)) {
           const renderedKey = screensChangeKey(options)
           serveAnnotateDocument(req, res, renderPage(options, requestOrigin(req)), renderedKey)
           return
@@ -1166,12 +1196,12 @@ async function serve(options) {
         touch()
         const filePath = resolveContainedFile(options.screensDir, req, res)
         if (!filePath) return
-        if (contentType(filePath) === CONTENT_TYPES[".html"] && isDocumentNavigation(req) && authorized(req)) {
+        if (contentType(filePath) === CONTENT_TYPES[".html"] && isDocumentNavigation(req) && authorizedDocument(req)) {
           const renderedKey = screensChangeKey(options)
           serveAnnotateDocument(req, res, annotateScreen(fs.readFileSync(filePath, "utf8"), requestOrigin(req), urlPath), renderedKey)
           return
         }
-        // A reload must pick up a revised stylesheet or script whose URL did
+        // A reload must fetch the revised stylesheet or script whose URL did
         // not change; a cached copy would show the old screen.
         sendFile(filePath, res, NO_STORE)
         return

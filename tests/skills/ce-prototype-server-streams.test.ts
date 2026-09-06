@@ -37,7 +37,7 @@ describe("ce-prototype light-webserver.js / streams", () => {
     expect((await fetch(eventsUrl(origin, info.token), { signal: controller.signal })).status).toBe(200)
     controller.abort()
     await new Promise((resolve) => setTimeout(resolve, 200))
-    const page = await fetch(String(info.url), { headers: navigationHeaders(info.token) })
+    const page = await fetch(String(info.url), { headers: navigationHeaders(info) })
     expect(page.status).toBe(200)
     const documentId = overlayDocumentId(await page.text())
 
@@ -62,7 +62,7 @@ describe("ce-prototype light-webserver.js / streams", () => {
     const origin = `http://localhost:${info.port}`
     const controller = new AbortController()
     expect((await fetch(eventsUrl(origin, info.token), { signal: controller.signal })).status).toBe(200)
-    const page = await fetch(String(info.url), { headers: navigationHeaders(info.token) })
+    const page = await fetch(String(info.url), { headers: navigationHeaders(info) })
     expect(page.status).toBe(200)
     const documentId = overlayDocumentId(await page.text())
     controller.abort()
@@ -90,8 +90,8 @@ describe("ce-prototype light-webserver.js / streams", () => {
     expect((await fetch(eventsUrl(origin, info.token), { signal: first.signal })).status).toBe(200)
 
     // Two replacement documents outstanding; only one overlay reconnects.
-    const firstPage = await fetch(String(info.url), { headers: navigationHeaders(info.token) })
-    const secondPage = await fetch(String(info.url), { headers: navigationHeaders(info.token) })
+    const firstPage = await fetch(String(info.url), { headers: navigationHeaders(info) })
+    const secondPage = await fetch(String(info.url), { headers: navigationHeaders(info) })
     expect(firstPage.status).toBe(200)
     expect(secondPage.status).toBe(200)
     const firstDocument = overlayDocumentId(await firstPage.text())
@@ -118,13 +118,13 @@ describe("ce-prototype light-webserver.js / streams", () => {
       CE_LIGHT_WEB_WAIT_TIMEOUT_MS: "40",
     })
     const origin = `http://localhost:${info.port}`
-    const loadedPage = await fetch(String(info.url), { headers: navigationHeaders(info.token) })
+    const loadedPage = await fetch(String(info.url), { headers: navigationHeaders(info) })
     expect(loadedPage.status).toBe(200)
     const loadedDocument = overlayDocumentId(await loadedPage.text())
     const loaded = new AbortController()
     expect((await fetch(eventsUrl(origin, info.token, loadedDocument), { signal: loaded.signal })).status).toBe(200)
 
-    const pendingPage = await fetch(String(info.url), { headers: navigationHeaders(info.token) })
+    const pendingPage = await fetch(String(info.url), { headers: navigationHeaders(info) })
     expect(pendingPage.status).toBe(200)
     const pendingDocument = overlayDocumentId(await pendingPage.text())
     expect(pendingDocument).not.toBe(loadedDocument)

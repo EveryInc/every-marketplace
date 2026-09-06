@@ -94,7 +94,7 @@ export function flushAnnotations(origin: string, token: unknown) {
 // overlay still has to open /events on a new connection.
 export function fetchDocumentClosingConnection(url: string, token: unknown): Promise<string> {
   return new Promise((resolve, reject) => {
-    const req = http.get(url, { agent: false, headers: { ...navigationHeaders(token), Connection: "close" } }, (res) => {
+    const req = http.get(url, { agent: false, headers: { ...navigationHeaders({ token, port: new URL(url).port }), Connection: "close" } }, (res) => {
       const chunks: Buffer[] = []
       res.on("data", (chunk) => {
         chunks.push(chunk)
@@ -115,7 +115,7 @@ export function fetchDocumentClosingConnection(url: string, token: unknown): Pro
 
 export function fetchDocumentKeepAlive(url: string, agent: http.Agent, token: unknown): Promise<string> {
   return new Promise((resolve, reject) => {
-    const req = http.get(url, { agent, headers: navigationHeaders(token) }, (res) => {
+    const req = http.get(url, { agent, headers: navigationHeaders({ token, port: new URL(url).port }) }, (res) => {
       const chunks: Buffer[] = []
       res.on("data", (chunk) => {
         chunks.push(chunk)
@@ -126,8 +126,10 @@ export function fetchDocumentKeepAlive(url: string, agent: http.Agent, token: un
   })
 }
 
-export function navigationHeaders(token: unknown) {
-  return { ...NAVIGATE, Authorization: `Bearer ${token}` }
+// Document fixtures model the post-bootstrap browser cookie, not API bearer auth.
+// The bootstrap and credential-boundary suites exercise actual cookie issuance.
+export function navigationHeaders(info: { token?: unknown; port?: unknown }) {
+  return { ...NAVIGATE, cookie: `ce-light-web-${info.port}=${info.token}` }
 }
 
 // Each test file owns its roots, even in a non-isolated serial Bun run.

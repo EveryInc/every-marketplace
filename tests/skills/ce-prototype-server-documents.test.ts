@@ -23,7 +23,7 @@ describe("ce-prototype light-webserver.js / documents", () => {
     await fs.writeFile(path.join(String(info.screen_dir), "001-screen.html"), "<h1 id=\"heading\">Pin me</h1>")
     const origin = `http://localhost:${info.port}`
 
-    const page = await fetch(`${origin}/`, { headers: navigationHeaders(info.token) })
+    const page = await fetch(`${origin}/`, { headers: navigationHeaders(info) })
     expect(page.status).toBe(200)
     expect(page.headers.get("referrer-policy")).toBe("no-referrer")
     expect(page.headers.get("set-cookie")).toBeNull()
@@ -59,7 +59,7 @@ describe("ce-prototype light-webserver.js / documents", () => {
       path.join(String(info.screen_dir), "001-screen.html"),
       "<!DOCTYPE html><html><head></head><body><main><h1 id=\"heading\">Pin me</h1></main></body></html>",
     )
-    const full = await (await fetch(String(info.url), { headers: navigationHeaders(info.token) })).text()
+    const full = await (await fetch(String(info.url), { headers: navigationHeaders(info) })).text()
     expect(full).toMatch(/<body[^>]*>\s*<main>/)
     expect(full).not.toContain("ce-prototype-root")
     expect(full).not.toContain("CE local web")
@@ -71,13 +71,13 @@ describe("ce-prototype light-webserver.js / documents", () => {
   test("overlay session id is unique per server start and is not the auth token", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "ce-prototype-session-key-"))
     const first = await startServer(root, ["--annotate"])
-    const html1 = await (await fetch(String(first.url), { headers: navigationHeaders(first.token) })).text()
+    const html1 = await (await fetch(String(first.url), { headers: navigationHeaders(first) })).text()
     const session1 = overlaySessionId(html1)
     expect(session1).not.toBe(String(first.token))
     expect(html1).not.toContain(String(first.token))
     await runServerCommand(["stop", "--root", root])
     const second = await startServer(root, ["--annotate"])
-    const html2 = await (await fetch(String(second.url), { headers: navigationHeaders(second.token) })).text()
+    const html2 = await (await fetch(String(second.url), { headers: navigationHeaders(second) })).text()
     const session2 = overlaySessionId(html2)
     expect(session2).not.toBe(session1)
     expect(session2).not.toBe(String(second.token))
@@ -88,7 +88,7 @@ describe("ce-prototype light-webserver.js / documents", () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "ce-prototype-page-encode-"))
     const info = await startServer(root, ["--annotate"])
     await fs.writeFile(path.join(String(info.screen_dir), "001 special#view.html"), "<h1>Hash name</h1>")
-    const html = await (await fetch(String(info.url), { headers: navigationHeaders(info.token) })).text()
+    const html = await (await fetch(String(info.url), { headers: navigationHeaders(info) })).text()
     expect(html).toContain('data-ce-page="/001%20special%23view.html"')
     expect(html).not.toContain('data-ce-page="/001 special#view.html"')
     expect((await postAnnotation(String(info.url), info.token, {
@@ -143,7 +143,7 @@ describe("ce-prototype light-webserver.js / documents", () => {
     expect((await nextRecord()).screen).toBe("002-home.html")
     expect((await post({})).status).toBe(200)
     expect((await nextRecord()).screen).toBe("002-home.html")
-    const rootHtml = await (await fetch(String(info.url), { headers: navigationHeaders(info.token) })).text()
+    const rootHtml = await (await fetch(String(info.url), { headers: navigationHeaders(info) })).text()
     expect(rootHtml).toContain('data-ce-page="/002-home.html"')
     await new Promise((resolve) => setTimeout(resolve, 20))
     await fs.writeFile(path.join(screens, "003-next.html"), "<h1>Next</h1>")
@@ -174,7 +174,7 @@ describe("ce-prototype light-webserver.js / documents", () => {
     await fs.writeFile(path.join(String(info.screen_dir), "001-home.html"), '<a href="/details.html">details</a>')
     await fs.writeFile(path.join(String(info.screen_dir), "styles.css"), "h1 { color: red }")
 
-    const page = await fetch(`${origin}/details.html`, { headers: navigationHeaders(info.token) })
+    const page = await fetch(`${origin}/details.html`, { headers: navigationHeaders(info) })
     expect(page.status).toBe(200)
     expect(page.headers.get("content-type")).toBe("text/html; charset=utf-8")
     expect(page.headers.get("cache-control")).toBe("no-store")
@@ -182,26 +182,28 @@ describe("ce-prototype light-webserver.js / documents", () => {
     const pageHtml = await page.text()
     expect(pageHtml).toBe(`<!doctype html>\n${annotateBootFrom(pageHtml, origin, "/details.html")}\n${details}`)
     // A browser that sends no fetch metadata still navigates: it accepts HTML and states no mode.
-    const noMeta = await (await fetch(`${origin}/details.html`, { headers: { Authorization: `Bearer ${info.token}`, Accept: "text/html,application/xhtml+xml" } })).text()
+    const noMeta = await (await fetch(`${origin}/details.html`, { headers: { cookie: navigationHeaders(info).cookie, Accept: "text/html,application/xhtml+xml" } })).text()
     expect(noMeta).toBe(`<!doctype html>\n${annotateBootFrom(noMeta, origin, "/details.html")}\n${details}`)
-    const demoToken = await (await fetch(`${origin}/details.html?token=demo`, { headers: navigationHeaders(info.token) })).text()
+    const demoToken = await (await fetch(`${origin}/details.html?token=demo`, { headers: navigationHeaders(info) })).text()
     expect(demoToken).toBe(`<!doctype html>\n${annotateBootFrom(demoToken, origin, "/details.html")}\n${details}`)
-    const sessionDetails = await (await fetch(`${origin}/details.html?token=${info.token}`, { headers: navigationHeaders(info.token) })).text()
-    expect(sessionDetails).toBe(`<!doctype html>\n${annotateBootFrom(sessionDetails, origin, "/details.html")}\n${details}`)
+    // Even a valid cookie must not expose the bearer in an authored document URL.
+    const sessionDetails = await fetch(`${origin}/details.html?token=${info.token}`, { headers: navigationHeaders(info) })
+    expect(sessionDetails.status).toBe(400)
+    expect(await sessionDetails.text()).not.toContain(details)
     // A comment before the doctype is still a complete document, not a fragment.
-    const generatedPage = await (await fetch(`${origin}/generated.html`, { headers: navigationHeaders(info.token) })).text()
+    const generatedPage = await (await fetch(`${origin}/generated.html`, { headers: navigationHeaders(info) })).text()
     expect(generatedPage).toBe(`<!doctype html>\n${annotateBootFrom(generatedPage, origin, "/generated.html")}\n${generated}`)
     expect(generatedPage).not.toContain("CE local web")
-    const homeHtml = await (await fetch(String(info.url), { headers: navigationHeaders(info.token) })).text()
+    const homeHtml = await (await fetch(String(info.url), { headers: navigationHeaders(info) })).text()
     expect(homeHtml).toContain(annotateBootFrom(homeHtml, origin, "/001-home.html"))
 
     // A fragment page gets the same shell as a fragment root screen.
-    const part = await (await fetch(`${origin}/pages/part.html`, { headers: navigationHeaders(info.token) })).text()
+    const part = await (await fetch(`${origin}/pages/part.html`, { headers: navigationHeaders(info) })).text()
     expect(part).toContain("<h2>Part</h2>")
     expect(part).toContain("CE local web")
     expect(part).toMatch(/<head>[\s\S]*<script defer src="[^"]+\/__ce-annotate\/annotate\.js" data-ce-session="[0-9a-f-]{36}" data-ce-document="[0-9a-f-]{36}" data-ce-page="\/pages\/part\.html"><\/script>[\s\S]*<\/head>/)
     await fs.writeFile(path.join(String(info.screen_dir), "pages", "note.html"), "<!-- note --><h2>Note</h2>")
-    const note = await (await fetch(`${origin}/pages/note.html`, { headers: navigationHeaders(info.token) })).text()
+    const note = await (await fetch(`${origin}/pages/note.html`, { headers: navigationHeaders(info) })).text()
     expect(note).toContain("<h2>Note</h2>")
     expect(note).toContain("CE local web")
 
@@ -247,7 +249,7 @@ describe("ce-prototype light-webserver.js / documents", () => {
     await fs.writeFile(cssPath, "#heading{color:red}")
     await fs.writeFile(screenPath, "<!DOCTYPE html><html><head><link rel=\"stylesheet\" href=\"/styles.css\"></head><body><h1 id=\"heading\">Original</h1></body></html>")
     const origin = `http://localhost:${info.port}`
-    const page = await fetch(String(info.url), { headers: navigationHeaders(info.token) })
+    const page = await fetch(String(info.url), { headers: navigationHeaders(info) })
     expect(page.status).toBe(200)
     // A reload must fetch the revised screen and assets, never a cached copy.
     expect(page.headers.get("cache-control")).toBe("no-store")
@@ -309,7 +311,7 @@ describe("ce-prototype light-webserver.js / documents", () => {
     const screenPath = path.join(String(info.screen_dir), "001-screen.html")
     await fs.writeFile(screenPath, "<h1>Original</h1>")
     const origin = `http://localhost:${info.port}`
-    expect((await fetch(String(info.url), { headers: navigationHeaders(info.token) })).status).toBe(200)
+    expect((await fetch(String(info.url), { headers: navigationHeaders(info) })).status).toBe(200)
     const open = await fetch(`${origin}/events?token=${info.token}`)
     expect(open.status).toBe(200)
     const reader = open.body!.getReader()
@@ -336,7 +338,7 @@ describe("ce-prototype light-webserver.js / documents", () => {
     expect(events()).toBe(0)
 
     await fs.writeFile(screenPath, "<h1>Served</h1>")
-    const page = await fetch(String(info.url), { headers: navigationHeaders(info.token) })
+    const page = await fetch(String(info.url), { headers: navigationHeaders(info) })
     expect(page.status).toBe(200)
     expect(await page.text()).toContain("<h1>Served</h1>")
     await readUntil(() => events() >= 1, 2000)
@@ -379,7 +381,7 @@ describe("ce-prototype light-webserver.js / documents", () => {
     const origin = `http://localhost:${info.port}`
     const authored = '<!DOCTYPE html><html><head><base href="https://example.invalid/"></head><body><h1>Based</h1></body></html>'
     await fs.writeFile(path.join(String(info.screen_dir), "001-screen.html"), authored)
-    const html = await (await fetch(String(info.url), { headers: navigationHeaders(info.token) })).text()
+    const html = await (await fetch(String(info.url), { headers: navigationHeaders(info) })).text()
     // A full document is served verbatim behind our doctype and the deferred
     // boot; nothing in the authored text is located or rewritten.
     expect(html).toBe(`<!doctype html>\n${annotateBootFrom(html, origin, "/001-screen.html")}\n${authored}`)
@@ -391,18 +393,18 @@ describe("ce-prototype light-webserver.js / documents", () => {
     // The root serves the newest mtime; a write in the same filesystem tick as the previous screen ties.
     await new Promise((resolve) => setTimeout(resolve, 20))
     await fs.writeFile(path.join(String(info.screen_dir), "002-screen.html"), `\uFEFF${literalDoc}`)
-    const literal = await (await fetch(String(info.url), { headers: navigationHeaders(info.token) })).text()
+    const literal = await (await fetch(String(info.url), { headers: navigationHeaders(info) })).text()
     expect(literal).toBe(`<!doctype html>\n${annotateBootFrom(literal, origin, "/002-screen.html")}\n${literalDoc}`)
 
     await new Promise((resolve) => setTimeout(resolve, 20))
     const prologued = "<!-- generated -->\n<!DOCTYPE html><html><body><h1>Prologued</h1></body></html>"
     await fs.writeFile(path.join(String(info.screen_dir), "003-screen.html"), prologued)
-    const prologuedHtml = await (await fetch(String(info.url), { headers: navigationHeaders(info.token) })).text()
+    const prologuedHtml = await (await fetch(String(info.url), { headers: navigationHeaders(info) })).text()
     expect(prologuedHtml).toBe(`<!doctype html>\n${annotateBootFrom(prologuedHtml, origin, "/003-screen.html")}\n${prologued}`)
     expect(prologuedHtml).not.toContain("CE local web")
 
     // A Host header that cannot be reflected safely falls back to the listen address.
-    const odd = await fetch(String(info.url), { headers: { ...navigationHeaders(info.token), host: 'evil"><script>' } })
+    const odd = await fetch(String(info.url), { headers: { ...navigationHeaders(info), host: 'evil"><script>' } })
     expect(odd.status).toBe(200)
     const oddHtml = await odd.text()
     expect(oddHtml).toContain(annotateBootFrom(oddHtml, `http://localhost:${info.port}`, "/003-screen.html"))

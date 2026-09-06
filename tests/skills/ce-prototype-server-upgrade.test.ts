@@ -1,4 +1,4 @@
-import { test } from "bun:test"
+import { setDefaultTimeout, test } from "bun:test"
 import assert from "node:assert/strict"
 import { execFile, spawn } from "node:child_process"
 import { once } from "node:events"
@@ -7,11 +7,13 @@ import os from "node:os"
 import path from "node:path"
 import { promisify } from "node:util"
 
+// Metadata, start, reuse, and cleanup have separate bounded subprocess budgets.
+setDefaultTimeout(20_000)
 const exec = promisify(execFile)
 const sourcePath = path.resolve(import.meta.dir, "../../skills/ce-prototype/scripts/light-webserver.js")
 const navigation = { "Sec-Fetch-Dest": "document", "Sec-Fetch-Mode": "navigate", Accept: "text/html" }
 
-async function exerciseUpgrade(metadata: "legacy" | "unversioned" | "missing-link" | "current" | "plain") {
+async function exerciseUpgrade(metadata: "legacy" | "unversioned" | "missing-link" | "previous-protocol" | "current" | "plain") {
   const directory = await mkdtemp(path.join(os.tmpdir(), "ce-prototype-upgrade-"))
   const script = path.join(directory, "light-webserver.mjs")
   const root = path.join(directory, "run")
@@ -24,6 +26,10 @@ async function exerciseUpgrade(metadata: "legacy" | "unversioned" | "missing-lin
   }
   if (metadata === "legacy" || metadata === "missing-link") {
     previous = previous.replace(/^.*authorize_url:.*\n/m, "")
+  }
+  if (metadata === "previous-protocol") {
+    assert.ok(previous.includes("const ANNOTATE_PROTOCOL = 2"))
+    previous = previous.replace("const ANNOTATE_PROTOCOL = 2", "const ANNOTATE_PROTOCOL = 1")
   }
   const annotate = metadata !== "plain"
   let server: ReturnType<typeof spawn> | undefined
@@ -50,6 +56,7 @@ async function exerciseUpgrade(metadata: "legacy" | "unversioned" | "missing-lin
     })
     if (metadata === "legacy" || metadata === "unversioned") assert.equal(before.annotate_protocol, undefined)
     if (metadata === "legacy" || metadata === "missing-link") assert.equal(before.authorize_url, undefined)
+    if (metadata === "previous-protocol") assert.equal(before.annotate_protocol, 1)
     await writeFile(script, source)
     const { stdout } = await exec("node", [script, "start", "--root", root, "--port", "0", ...(annotate ? ["--annotate"] : [])], { timeout: 4000 })
     const after = JSON.parse(stdout)
@@ -63,7 +70,7 @@ async function exerciseUpgrade(metadata: "legacy" | "unversioned" | "missing-lin
     assert.equal(after.status, "started")
     assert.notEqual(after.pid, before.pid)
     assert.notEqual(after.token, before.token)
-    assert.equal(after.annotate_protocol, 1)
+    assert.equal(after.annotate_protocol, 2)
     assert.equal(new URL(after.authorize_url).searchParams.get("token"), after.token)
     const origin = `http://127.0.0.1:${after.port}`
     const publicPage = await fetch(origin, { headers: navigation })
@@ -91,7 +98,7 @@ async function exerciseUpgrade(metadata: "legacy" | "unversioned" | "missing-lin
   }
 }
 
-for (const metadata of ["legacy", "unversioned", "missing-link"] as const) {
+for (const metadata of ["legacy", "unversioned", "missing-link", "previous-protocol"] as const) {
   test(`ce-prototype upgrades live annotate servers with ${metadata} handoff metadata`, () => exerciseUpgrade(metadata))
 }
 test("ce-prototype reuses a compatible annotate server without rotating its token", () => exerciseUpgrade("current"))
