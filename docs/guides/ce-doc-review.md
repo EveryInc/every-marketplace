@@ -69,7 +69,7 @@ Document review is harder than code review in specific ways:
 - A decision primer that suppresses findings you rejected in earlier rounds and verifies the ones you applied
 - Four options for the remaining decisions: per-finding walk-through, auto-resolve with best judgment, append to Open Questions, report-only
 
-Collected review agents are released before the next batch or handoff when the harness provides caller-owned cleanup. When it does not, the review reports retained-capacity limitations without claiming that completion freed a slot.
+Collected agents are released before later work when the harness supports caller-owned cleanup. If retained capacity prevents the remaining reviewers from running and cannot recover, the review stops as incomplete and names the missing coverage. It does not continue to synthesis or fixes.
 
 ---
 

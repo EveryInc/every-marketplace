@@ -8,7 +8,7 @@ argument-hint: "[mode:non-interactive] [path/to/document.{md,html}]"
 
 Review a requirements or plan document with a team of reviewer personas. Dispatch generic subagents, each seeded with a skill-local reviewer prompt. Synthesis sorts the findings: apply and report the ones it routes to Apply, in the document's native format, and route the rest to the user.
 
-**Done when:** every dispatched reviewer returned or was named as failed in Coverage, the fixes routed to Apply are applied and reported, and the rest went through the four-option interaction (interactive) or came back as structured text with classifications intact (non-interactive).
+**Done when:** every selected reviewer completed its review or was named as failed in Coverage, the fixes routed to Apply are applied and reported, and the rest went through the four-option interaction (interactive) or came back as structured text with classifications intact (non-interactive).
 
 
 ## Interactive mode rules
@@ -49,7 +49,7 @@ The team is `coherence-reviewer` and `feasibility-reviewer` always, plus each ac
 
 Dispatch generic subagents with **bounded parallelism** through the platform's subagent primitive. Seed each one with the full content of its `references/personas/<reviewer-name>.md`. Never dispatch a standalone agent by type or name.
 
-A capacity rejection is backpressure, not reviewer failure. That reviewer stays queued and retries when a slot frees, and no reviewer is dropped because the harness cap is below the team size.
+A capacity rejection is backpressure, not reviewer failure. If capacity cannot recover and selected reviewers remain undispatched, stop as incomplete without synthesis, fixes, or a success handoff. Preserve collected outcomes and report which reviewers completed, failed, or could not run, and why.
 
 ### Cross-Model Judgment Pass
 
