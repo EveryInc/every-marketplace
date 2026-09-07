@@ -12,12 +12,12 @@ Check whether the input is:
 
 **If spec file provided:**
 1. Read the YAML spec file. The orchestrating agent parses YAML natively -- no shell script parsing.
-2. Validate the spec against **every** rule in the `validation_rules` section of `references/optimize-spec-schema.yaml` (that section is the single source of truth for what a valid spec requires — do not rely on a remembered subset; conditional rules such as the singleton-rubric and exclusive-resources requirements live only there).
+2. Validate the spec against **every** rule in the `validation_rules` section of `references/optimize-spec-schema.yaml` (that section is the single source of truth for what a valid spec requires: do not rely on a remembered subset; conditional rules such as the singleton-rubric and exclusive-resources requirements live only there).
 3. If any rule fails, report the specific failures and ask the user to fix them before proceeding
 
 **If description provided:**
-1. Analyze the project to understand what can be measured
-2. **Detect whether the optimization target is qualitative or quantitative** — this determines `type: hard` vs `type: judge` and is the single most important spec decision:
+1. Analyze the project to understand what can be measured. `references/usage-guide.md` has longer kickoff prompt shapes if the interview needs them.
+2. **Detect whether the optimization target is qualitative or quantitative**: this determines `type: hard` vs `type: judge` and is the single most important spec decision:
 
    **Use `type: hard`** when:
    - The metric is a scalar number with a clear "better" direction
@@ -35,9 +35,9 @@ Check whether the input is:
    - Examples: clustering quality, search relevance, summarization quality, code readability, UX copy, recommendation relevance
 
    **IMPORTANT**: If the target is qualitative, **strongly recommend `type: judge`**. Explain that hard metrics alone will optimize proxy numbers without checking actual quality. Show the user the three-tier approach:
-   - **Degenerate gates** (hard, cheap, fast): catch obviously broken solutions — e.g., "all items in 1 cluster" or "0% coverage". Run first. If gates fail, skip the expensive judge step.
+   - **Degenerate gates** (hard, cheap, fast): catch obviously broken solutions: e.g., "all items in 1 cluster" or "0% coverage". Run first. If gates fail, skip the expensive judge step.
    - **LLM-as-judge** (the actual optimization target): sample outputs, score them against a rubric, aggregate. This is what the loop optimizes.
-   - **Diagnostics** (logged, not gated): distribution stats, counts, timing — useful for understanding WHY a judge score changed.
+   - **Diagnostics** (logged, not gated): distribution stats, counts, timing: useful for understanding WHY a judge score changed.
 
    If the user insists on `type: hard` for a qualitative target, proceed but warn that the results may optimize a misleading proxy.
 
@@ -54,18 +54,18 @@ Check whether the input is:
    Example stratified sampling for clustering:
    ```yaml
    stratification:
-     - bucket: "top_by_size"     # largest clusters — check for degenerate mega-clusters
+     - bucket: "top_by_size"     # largest clusters: check for degenerate mega-clusters
        count: 10
-     - bucket: "mid_range"       # middle of non-solo cluster size range — representative quality
+     - bucket: "mid_range"       # middle of non-solo cluster size range: representative quality
        count: 10
-     - bucket: "small_clusters"  # clusters with 2-3 items — check if connections are real
+     - bucket: "small_clusters"  # clusters with 2-3 items: check if connections are real
        count: 10
-   singleton_sample: 15          # singletons — check for false negatives (items that should cluster)
+   singleton_sample: 15          # singletons: check for false negatives (items that should cluster)
    ```
 
    The sampling strategy is domain-specific. For search relevance, strata might be "top-3 results", "results 4-10", "tail results". For summarization, strata might be "short documents", "long documents", "multi-topic documents".
 
-   **Singleton evaluation is critical when the goal involves coverage** — sampling singletons with the singleton rubric checks whether the system is missing obvious groupings.
+   **Singleton evaluation is critical when the goal involves coverage**: sampling singletons with the singleton rubric checks whether the system is missing obvious groupings.
 
 4. **Design the rubric** (for `type: judge`):
 
@@ -73,7 +73,7 @@ Check whether the input is:
    - Has a 1-5 scale (or similar) with concrete descriptions for each level
    - Includes supplementary fields that help diagnose issues (e.g., `distinct_topics`, `outlier_count`)
    - Is specific enough that two judges would give similar scores
-   - Does NOT assume bigger/more is better — "3 items per cluster average" is not inherently good or bad
+   - Does NOT assume bigger/more is better: "3 items per cluster average" is not inherently good or bad
 
    Example for clustering:
    ```yaml
@@ -82,13 +82,13 @@ Check whether the input is:
      - 5: All items clearly about the same issue/feature
      - 4: Strong theme, minor outliers
      - 3: Related but covers 2-3 sub-topics that could reasonably be split
-     - 2: Weak connection — items share superficial similarity only
+     - 2: Weak connection: items share superficial similarity only
      - 1: Unrelated items grouped together
      Also report: distinct_topics (integer), outlier_count (integer)
    ```
 
 5. Guide the user through the remaining spec fields:
-   - What degenerate cases should be rejected? (gates — e.g., "solo_pct <= 0.95" catches all-singletons, "max_cluster_size <= 500" catches mega-clusters)
+   - What degenerate cases should be rejected? (gates: e.g., "solo_pct <= 0.95" catches all-singletons, "max_cluster_size <= 500" catches mega-clusters)
    - What command runs the measurement?
    - What files can be modified? What is immutable?
    - Any constraints or dependencies?

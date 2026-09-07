@@ -151,6 +151,11 @@ describe("skill-eval-cell catalog", () => {
         "ce-debug/pipeline-divergent-defer:references/pipeline-mode.md",
         "ce-handoff/resume-asks-does-not-act:references/resume.md",
         "ce-ideate/unidentified-subject-reads-scope-gates:references/scope-gates.md",
+        "ce-optimize/cost-attribution-before-search:references/loop.md",
+        "ce-optimize/legacy-qualitative-report:references/wrap-up.md",
+        "ce-optimize/opportunity-estimates:references/loop.md",
+        "ce-optimize/result-accounting:references/wrap-up.md",
+        "ce-optimize/variant-search-without-profile:references/loop.md",
         "ce-plan/chat-brief-small-no-file:references/output-contracts.md",
         "ce-plan/config-model-reaches-authoring-gate:references/reasoning-elevation.md",
         "ce-plan/direct-trivial-stays-in-chat:references/output-contracts.md",
@@ -248,5 +253,25 @@ describe("skill-eval-cell catalog", () => {
       if (!ok) bad.push(`${s.id}: preview_ref ${s.preview_ref} does not resolve`)
     }
     expect(bad).toEqual([])
+  })
+
+  test("ce-optimize eval needles are not satisfied by parroting the task or refusing the path", () => {
+    const accounting = SCENARIOS.find((s) => s.id === "ce-optimize/result-accounting")
+    expect(accounting?.grade.must_include).toContain("50 ms")
+    expect(accounting?.grade.must_include).toContain("integrated")
+    expect(accounting?.task.toLowerCase().includes("50 ms")).toBe(false)
+    expect(accounting?.task.toLowerCase().includes("integrated")).toBe(false)
+
+    const attribution = SCENARIOS.find((s) => s.id === "ce-optimize/cost-attribution-before-search")
+    const skipLocating = "No locating measurement is necessary; proceed with batching."
+    for (const needle of attribution?.grade.must_include ?? []) {
+      expect(skipLocating.toLowerCase().includes(needle.toLowerCase())).toBe(false)
+    }
+
+    const variants = SCENARIOS.find((s) => s.id === "ce-optimize/variant-search-without-profile")
+    const blocked = "Without a profile, HDBSCAN and boilerplate stripping are blocked"
+    expect(
+      variants?.grade.must_include?.some((needle) => !blocked.toLowerCase().includes(needle.toLowerCase())),
+    ).toBe(true)
   })
 })

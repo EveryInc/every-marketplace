@@ -1,10 +1,10 @@
 # `ce-optimize`
 
-> Define a measurable goal, build a harness, try many variants, keep the ones that score better.
+> Keep confirmed improvements to a measurable target. Attribute a named-workload cost, or search a scored variant space.
 
-`ce-optimize` is an on-demand **experimentation** skill. Use it when the right change is not obvious, you can try several variants, and "better" is a number or a judged score. If you already know the change, make it. If you need a root cause, that is `ce-debug`.
+`ce-optimize` is an on-demand **optimization** skill. The goal is confirmed improvements on an `optimize/<spec-name>` branch, not a one-shot edit. A first run stays short and serial until the harness is trusted; a harder target spends longer in the same phases. On a cost target (latency, CPU, memory, throughput, I/O, wall time), it attributes shares before it tries implementation experiments. On a scored variant space (judge, clustering, search, prompts, a multi-objective that is not a single hotspot), it searches and keeps. If you already know the change, make it. If you need a root cause, that is `ce-debug`.
 
-It writes a spec (or loads yours), measures a baseline, then runs experiments in isolated worktrees (or via Codex when the spec says so). Wins stay on an `optimize/<spec-name>` branch. Losses revert. It writes every result to disk, so a long run survives a crash or a compacted context.
+It writes a spec (or loads yours), measures a baseline, then runs the next cheapest action that would change what gets implemented: a locating measurement, or experiments in isolated worktrees (or via Codex when the spec says so). Wins stay on an `optimize/<spec-name>` branch. Losses revert. It writes every result to disk, so a long run survives a crash or a compacted context.
 
 It handles multi-file code changes and non-ML work alike: clustering, search, prompts, build time, latency, anything you can score the same way twice.
 
@@ -16,8 +16,8 @@ Skip it when you already know the change, when you are hunting a root cause, or 
 
 | Question | Answer |
 |----------|--------|
-| What does it do? | Writes or loads a spec, measures a baseline, runs experiments against gates and (when needed) an LLM judge, keeps the best, stops on a rule you set |
-| When to use it | Many plausible variants, a repeatable harness, and a metric or rubric that "better" can be scored against |
+| What does it do? | Writes or loads a spec, measures a baseline, attributes cost or searches scored variants against gates and (when needed) an LLM judge, keeps the best, stops on a rule you set |
+| When to use it | A named-workload cost you can attribute, or many plausible variants, plus a repeatable harness and a metric or rubric that "better" can be scored against |
 | What it produces | An `optimize/<spec-name>` branch with kept commits, plus a spec and experiment log under `.context/compound-engineering/ce-optimize/<spec-name>/` |
 | What's next | Review the cumulative diff, capture the winning strategy, open a PR, keep experimenting, or stop |
 
@@ -59,13 +59,13 @@ Pass a spec when the metric, gates, budget, or stop rule need a review before an
 
 ## The Problem
 
-Guess-and-check tries one change at a time and never sees the wider set. A convenient proxy (cluster count, response length) can improve while real quality falls. Degenerate answers look perfect on paper: one giant cluster, a 100% score that means nothing. Multi-hour runs die in chat and take the results with them.
+Guess-and-check tries one change at a time and never sees the wider set. Repeating an end-to-end total without attributing shares spends the same measurement on work that cannot move the number. A convenient proxy (cluster count, response length) can improve while real quality falls. Degenerate answers look perfect on paper: one giant cluster, a 100% score that means nothing. Multi-hour runs die in chat and take the results with them.
 
 A bug hunt is a different job. If you need a causal chain, that is `ce-debug`.
 
 ## The Solution
 
-The loop is spec, baseline, experiments, keep or revert:
+The next action is the cheapest step that would change what gets implemented. The loop is spec, baseline, then either locating work or experiments, then keep or revert:
 
 - A YAML spec names the metric, optional extra required objectives, gates, mutable files, measurement command, and stop rules. A description in the prompt becomes that spec through a short interview.
 - Evaluation is three layers: cheap degenerate gates, then the real metric or judge, then diagnostics that are logged and not gated. When the spec lists `metric.objectives`, an experiment is eligible if it improves one required objective without violating the others; the run is not done until every declared required target is met.
@@ -101,6 +101,15 @@ Each experiment owns a worktree and a branch. Merges are serial. After the winne
 
 After each batch a strategy digest (categories tried, what worked, what is still untried, current best) steers the next hypotheses. The digest is working state for the loop, not a kept deliverable.
 
+### Opportunity estimates carried through to measured results
+
+Before implementation, every hypothesis carries an opportunity record: workload, observed cost or rubric evidence, expected benefit with units and a comparison baseline, confidence, and implementation/measurement cost and behavioral risk. Estimates can be ranges or upper bounds. Unknown benefits stay unknown with a proposed measurement to resolve them. An unknown may sit on the backlog; it is not a runnable implementation experiment on a cost target while a cheaper locating measurement would change keep or skip. A scored variant space uses rubric evidence and does not require a performance profile or invented numerical forecasts.
+
+Selection favors credible benefit relative to cost and risk; the priority label does not rank the backlog, and there is no required hypothesis count. Each experiment retains its original forecast and the actual measured comparison identities. Standalone and combined results remain separate, so a runner-up's isolated improvement is not mistaken for its contribution after integration.
+
+Wrap-up reports every required objective from original baseline to confirmed final, each retained change's estimate versus measured contribution, uncertainty and correctness evidence, and remaining opportunities. Percentages are used only where meaningful, and successive gains are not added. Older logs still work: missing estimates and attribution evidence are reported as unrecorded.
+
+
 ---
 
 ## Quick Example
@@ -123,6 +132,7 @@ After four iterations the judge score is up 1.2 and three experiments sit on the
 
 Use `ce-optimize` when:
 
+- A named workload has a cost you can attribute, even if the first action is locating rather than a batch of variants
 - Several variants are plausible and you do not already know which one wins
 - You have a repeatable measurement command, or you can build one
 - "Better" is a hard metric or a rubric two judges would score similarly
@@ -131,9 +141,9 @@ Use `ce-optimize` when:
 Skip it when:
 
 - You already know the change → make it, or use `/ce-work`
-- You are tracing a bug to its cause → `/ce-debug`
+- You are tracing a bug, or why something is slow → `/ce-debug`
 - Nothing can be measured or judged the same way twice
-- There is only one plausible answer, so a search is theater
+- The target is a scored variant space with only one plausible answer, so a search is theater
 - Each evaluation is so expensive that multiple runs cannot pay for themselves
 
 ---
@@ -204,7 +214,7 @@ Yes. Put them in `metric.objectives` as `role: required`. An experiment that imp
 Use `stability.mode: ladder` and a relative or paired comparison. The five-run protocol is for baseline, a candidate you are about to keep, and final confirmation, not for every exploratory try. See `references/example-expensive-benchmark-spec.yaml`.
 
 **Does it debug?**
-No. It searches a scored design space. A failing test, a stack trace, or "why is this wrong" is `/ce-debug`.
+No. It attributes a named-workload cost or searches a scored variant space. A failing test, a stack trace, or "why is this wrong" is `/ce-debug`.
 
 ---
 

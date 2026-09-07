@@ -117,6 +117,30 @@ structure:
           type: array
           items:
             type: string
+        opportunity:
+          type: object
+          description: "Pre-implementation opportunity record; see opportunity_record below. Optional for legacy logs."
+
+opportunity_record:
+  children:
+    workload:
+      type: string
+      description: "Representative workload and input identity"
+    baseline:
+      type: string
+      description: "Revision or recorded snapshot against which the benefit is estimated"
+    evidence:
+      type: string
+      description: "Source location and observed cost with units or workload share; rubric evidence for qualitative work"
+    expected_benefit:
+      type: string
+      description: "Target metric, units, expected reduction/increase range or upper bound, and assumptions; unknown with the missing evidence and cheapest resolving measurement when not estimable"
+    confidence:
+      type: string
+      description: "Confidence and the evidence or uncertainty that justifies it"
+    cost_and_risk:
+      type: string
+      description: "Estimated implementation and measurement effort, behavioral risk, and required correctness checks"
 
 # ============================================================================
 # EXPERIMENT ENTRY
@@ -158,7 +182,7 @@ experiment_entry:
         - runner_up_kept          # file-disjoint runner-up that was cherry-picked and re-measured successfully
         - runner_up_reverted      # file-disjoint runner-up that was cherry-picked but combined measurement was not better
       description: >
-        Load-bearing state: the loop branches on this value.
+        The loop branches on this value.
         'measured' and 'promising' are non-terminal: CP-3 persists raw metrics
         before batch-level comparison, and 'promising' means the ladder still
         needs confirmation samples. An eligible decide `keep` stays `measured`
@@ -169,6 +193,40 @@ experiment_entry:
         that experiment.
 
   optional_children:
+
+    opportunity:
+      type: object
+      description: "Copy of opportunity_record made before this experiment's implementation; never reconstructed from its result. Missing in legacy logs means unrecorded."
+
+    comparisons:
+      type: array
+      description: "One record per distinct reference/candidate/workload pairing used in a decision. Later in-place updates must not replace a previously persisted distinct pairing. Absent legacy evidence is unknown, not inferred from the current best."
+      items:
+        type: object
+        children:
+          kind:
+            type: string
+            enum: [standalone, integrated]
+          reference_revision:
+            type: string
+            description: "Identity that uniquely identifies the measured reference bytes. A revision is enough when it names those bytes; a HEAD shared by different uncommitted trees is not."
+          candidate_revision:
+            type: string
+            description: "Identity that uniquely identifies the measured candidate bytes. A revision is enough when it names those bytes; a HEAD shared by different uncommitted trees is not."
+          workload:
+            type: string
+          reference:
+            type: object
+            description: "Existing snapshot shape: metrics and judge, with aggregates and samples where available"
+          candidate:
+            type: object
+            description: "Existing snapshot shape: metrics and judge, with aggregates and samples where available"
+          uncertainty:
+            type: string
+            description: "Configured comparison method, observed variability, confirmation status, and any missing uncertainty evidence"
+          correctness:
+            type: string
+            description: "Checks performed and results or exact unverified constraints; passing a timing comparison alone is not correctness evidence"
 
     changes:
       type: array
