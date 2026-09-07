@@ -153,12 +153,12 @@ If many invariants share one outcome, authority domain, mutable state, and defin
 
 The name and description are an activation contract. A correct body is useless if it never runs. For a model-invoked skill, the description is also a context pointer: it sits in the window every turn, so it is pruned harder than the body.
 
-- State what the skill is, front-loading the leading word that should fire it in prompts.
-- List one trigger per genuinely distinct branch in "Use when..." or "Use for..." form.
-- Keep adjacent negatives only when they block a real false-trigger neighbor; pair each hard guardrail with the positive trigger it protects.
+- Sentence 1 names the distinctive mechanism (what a sibling would not produce), front-loading the leading word that should fire it in prompts.
+- List one trigger per genuinely distinct branch in "Use when..." or "Use for..." form, written as an observable work-state.
+- Prefer "Use <sibling> for <that job>"; keep "Not for" only when the same words fire both skills. If the skill is harmful on the wrong job, put "Use only when" / "Skip when" in the description.
 - Preserve deliberate invocation as a fallback when automatic routing is unavailable.
 - Use capability language instead of relying on one harness's command syntax.
-- Do not open with identity boilerplate, catalog synonyms or examples of one branch, dump workflow, flags, or procedure, or spend description words on content the body already carries.
+- Do not open with identity boilerplate, catalog synonyms or examples of one branch, stuff quoted utterances or slash names into a model-invoked description, dump workflow, flags, or phase lists, or spend description words on content the body already carries. Distinctive how may stay. Quoted phrases and `/name` aliases belong only on a user-invoked or `disable-model-invocation` skill, after the mechanism.
 
 For an automatically routed follow-up that writes a durable artifact, a completion signal identifies the checkpoint, not eligibility. Pair it with a value condition that distinguishes knowledge missing from the primary artifacts from facts a reader can readily recover there. Put the cheap full gate in the caller and repeat the no-yield boundary in the skill, so routine completion does not launch an expensive workflow and direct routing still self-skips when it has nothing durable to add. A useful counterfactual is whether removing the secondary artifact would make a future maintainer likely to repeat the mistake or redo substantial investigation.
 
