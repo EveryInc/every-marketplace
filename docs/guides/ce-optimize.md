@@ -141,7 +141,7 @@ Use `ce-optimize` when:
 Skip it when:
 
 - You already know the change → make it, or use `/ce-work`
-- You are tracing a bug to its cause → `/ce-debug`
+- You are tracing a bug, or why something is slow → `/ce-debug`
 - Nothing can be measured or judged the same way twice
 - The target is a scored variant space with only one plausible answer, so a search is theater
 - Each evaluation is so expensive that multiple runs cannot pay for themselves

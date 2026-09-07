@@ -182,7 +182,7 @@ experiment_entry:
         - runner_up_kept          # file-disjoint runner-up that was cherry-picked and re-measured successfully
         - runner_up_reverted      # file-disjoint runner-up that was cherry-picked but combined measurement was not better
       description: >
-        Load-bearing state: the loop branches on this value.
+        The loop branches on this value.
         'measured' and 'promising' are non-terminal: CP-3 persists raw metrics
         before batch-level comparison, and 'promising' means the ladder still
         needs confirmation samples. An eligible decide `keep` stays `measured`

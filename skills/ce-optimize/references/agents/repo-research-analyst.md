@@ -152,7 +152,7 @@ This context informs all subsequent research phases -- use it to focus documenta
 **Core Responsibilities:**
 
 1. **Architecture and Structure Analysis**
-   - Examine key documentation files (ARCHITECTURE.md, README.md, CONTRIBUTING.md, and the project's root agent-instruction file for this harness — e.g., AGENTS.md, CLAUDE.md, GEMINI.md, or .cursor/rules — when present)
+   - Examine key documentation files (ARCHITECTURE.md, README.md, CONTRIBUTING.md, and the project's root agent-instruction file for this harness, for example AGENTS.md, CLAUDE.md, GEMINI.md, or .cursor/rules, when present)
    - Map out the repository's organizational structure
    - Identify architectural patterns and design decisions
    - Note any project-specific conventions or standards

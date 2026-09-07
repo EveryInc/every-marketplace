@@ -1,6 +1,6 @@
 # Phase 4: wrap-up
 
-Read this at wrap-up. The body owns the post-completion options the user chooses from; this file carries what each one needs — the deferred-hypothesis presentation, the results summary, what is preserved and what is not, the mechanical-apply bar for review findings, and the cleanup rules.
+Read this at wrap-up. The body owns the post-completion options the user chooses from; this file carries what each one needs: the deferred-hypothesis presentation, the results summary, what is preserved and what is not, the mechanical-apply bar for review findings, and the cleanup rules.
 
 ## Phase 4: Wrap-Up
 
@@ -33,12 +33,12 @@ Present these options after the summary:
 1. **Run `ce-code-review`** on the cumulative diff (baseline to final), on the optimization branch. Do not commit or push from this step.
 2. **Run `ce-compound`** to document the winning strategy as an institutional learning.
 3. **Create PR** from the optimization branch to the default branch.
-4. **Continue** — re-enter Phase 3, state re-read first.
-5. **Done** — leave the branch for manual review.
+4. **Continue**: re-enter Phase 3, state re-read first.
+5. **Done**: leave the branch for manual review.
 
 For option 1, load `ce-code-review` on the optimization branch, interactive or `mode:agent`, and land eligible fixes under the bar below before moving to the next option.
 
-**Mechanical-apply bar:** apply any finding with a concrete `suggested_fix` that is a clear, reversible improvement; push back (keep, don't apply) when the reviewer is wrong, noting why. Defer anything whose right fix needs a design or product decision (architecture direction, contract shape, behavior change needing sign-off) and any finding with no concrete fix to act on — surface what was deferred. Confirm evidence still matches at `file:line` before editing. After applying, run tests (at least targeted tests for what changed; broader suite for multi-file edits). Do not commit or push from this step — leave the diff on the optimization branch for the Create PR option.
+**Mechanical-apply bar:** apply any finding with a concrete `suggested_fix` that is a clear, reversible improvement; push back (keep, don't apply) when the reviewer is wrong, noting why. Defer anything whose right fix needs a design or product decision (architecture direction, contract shape, behavior change needing sign-off) and any finding with no concrete fix to act on: surface what was deferred. Confirm evidence still matches at `file:line` before editing. After applying, run tests (at least targeted tests for what changed; broader suite for multi-file edits). Do not commit or push from this step: leave the diff on the optimization branch for the Create PR option.
 Option 4 (continue) re-enters Phase 3 with the current state, state re-read from disk first.
 
 ### 4.4 Cleanup

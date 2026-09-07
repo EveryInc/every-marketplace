@@ -39,7 +39,8 @@ Choose `type: judge` when a numeric metric can be gamed or when human usefulness
 
 `ce-optimize` is usually the wrong tool when:
 
-- The fix is obvious and does not need experimentation
+- The change is already known: make it, or use `ce-work`
+- The job is diagnosing failing or slow behavior: that is `ce-debug`
 - There is no repeatable measurement harness
 - The search space is fake and only has one plausible answer
 - The cost of evaluating variants is too high to justify multiple runs

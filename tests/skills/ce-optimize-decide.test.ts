@@ -1,6 +1,6 @@
 import { describe, expect, setDefaultTimeout, test } from "bun:test"
 import { spawnSync } from "node:child_process"
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs"
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import {
@@ -1497,7 +1497,12 @@ describe("schema and skill pins", () => {
     expect(SKILL_BODY).toContain("**Outcome:**")
     expect(SKILL_BODY).toContain("**Horizon:**")
     expect(SKILL_BODY).toContain('description: "Optimize a working system against a measurable target.')
-    expect(SKILL_BODY).toContain("Not for diagnosing a failure; that is ce-debug.")
+    expect(SKILL_BODY).toContain("named workload's cost should drop")
+    expect(SKILL_BODY).toContain("several variants must be scored and kept")
+    expect(SKILL_BODY).toContain("Not for diagnosing failing or slow behavior (ce-debug)")
+    expect(SKILL_BODY).toContain("not for implementing a change you already know (ce-work)")
+    expect(SKILL_BODY).not.toContain("faster, cheaper, or leaner")
+    expect(SKILL_BODY).not.toContain("clustering, ranking, search, or prompt quality")
     expect(LOOP).toContain("locating measurement")
     expect(LOOP).toContain("attributed shares before implementation")
     expect(LOOP).not.toContain("Missing profile data does not block")
@@ -1511,5 +1516,25 @@ describe("schema and skill pins", () => {
     expect(readFileSync(path.join(SKILL_DIR, "references", "wrap-up.md"), "utf8")).toContain(
       "Not selected: <count>",
     )
+  })
+})
+
+function listSkillFiles(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const next = path.join(dir, entry.name)
+    return entry.isDirectory() ? listSkillFiles(next) : [next]
+  })
+}
+
+describe("ce-optimize skill prose", () => {
+  test("does not use em dashes or the phrase load-bearing", () => {
+    const offenders: string[] = []
+    for (const file of listSkillFiles(SKILL_DIR)) {
+      const text = readFileSync(file, "utf8")
+      const rel = path.relative(process.cwd(), file)
+      if (text.includes("\u2014")) offenders.push(`${rel}: em dash`)
+      if (/load-bearing/i.test(text)) offenders.push(`${rel}: load-bearing`)
+    }
+    expect(offenders).toEqual([])
   })
 })
