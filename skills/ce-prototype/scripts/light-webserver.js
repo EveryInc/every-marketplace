@@ -173,8 +173,8 @@ function sessionHasEnded(options) {
 }
 
 function exitSessionEnded() {
+  process.exitCode = 1
   jsonOut({ status: "session-ended" })
-  process.exit(1)
 }
 
 // Containment has to survive symlinks: path.resolve is lexical, so a link
@@ -682,11 +682,15 @@ function localAddressFor(host) {
 }
 
 async function wait(options) {
+  process.stdout.on("error", (error) => {
+    console.error(error.message)
+    process.exitCode = 2
+  })
   const info = getRunningInfo(options)
   if (!info?.port) {
     // Idle/owner shutdown records session_ended and exits; wait must still
     // report that terminal status rather than "not running".
-    if (sessionHasEnded(options)) exitSessionEnded()
+    if (sessionHasEnded(options)) return exitSessionEnded()
     console.error("Server is not running")
     process.exit(2)
   }
@@ -701,18 +705,15 @@ async function wait(options) {
     try {
       response = await fetch(url)
     } catch {
-      if (sessionHasEnded(options)) exitSessionEnded()
+      if (sessionHasEnded(options)) return exitSessionEnded()
       process.exit(2)
     }
-    if (response.status === 200) {
+    if (response.status === 200 || response.status === 410) {
       const text = await response.text()
+      // Let pending stdout writes drain instead of truncating a piped batch.
+      process.exitCode = response.status === 200 ? 0 : 1
       process.stdout.write(text.endsWith("\n") ? text : `${text}\n`)
-      process.exit(0)
-    }
-    if (response.status === 410) {
-      const text = await response.text()
-      process.stdout.write(text.endsWith("\n") ? text : `${text}\n`)
-      process.exit(1)
+      return
     }
     if (response.status === 204) continue
     process.exit(2)
