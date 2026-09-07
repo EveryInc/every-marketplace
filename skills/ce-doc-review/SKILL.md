@@ -49,7 +49,7 @@ The team is `coherence-reviewer` and `feasibility-reviewer` always, plus each ac
 
 Dispatch generic subagents with **bounded parallelism** through the platform's subagent primitive. Seed each one with the full content of its `references/personas/<reviewer-name>.md`. Never dispatch a standalone agent by type or name.
 
-A capacity rejection is backpressure, not reviewer failure. If capacity cannot recover and selected reviewers remain undispatched, stop as incomplete without synthesis, fixes, or a success handoff. Preserve collected outcomes and report which reviewers completed, failed, or could not run, and why.
+A capacity rejection is backpressure, not reviewer failure. If capacity cannot recover and selected reviewers remain undispatched, finish any started cross-model jobs under `references/cross-model-review.md`'s terminal collection and cleanup contract, then stop as incomplete without synthesis, fixes, or a success handoff. Preserve collected outcomes and report which reviewers completed, failed, or could not run, and why.
 
 ### Cross-Model Judgment Pass
 
