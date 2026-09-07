@@ -95,22 +95,11 @@ function createFixture(root: string) {
 }
 
 describe("commit-push-pr worktree preservation", () => {
-  test("ordinary and stack consumers load one safety condition before switching", () => {
-    const safety = readReference("worktree-safety.md")
-    assert.match(safety, /Every tree-changing branch switch.+ignored paths.+stop before mutation/)
-    assert.match(safety, /topology probes that move `HEAD`/)
-    assert.match(safety, /Before a `gh stack` operation[\s\S]+stop with a residual before invoking it/)
-    assert.match(safety, /Non-colliding changes may follow/)
-    assert.match(safety, /`mode:pipeline` reports the blocker without asking/)
-    assert.match(safety, /does not authorize moving ignored data or `exclude:<paths>` files/)
-    for (const [name, action] of [
-      ["branch-creation.md", "git checkout"],
-      ["stack-submit.md", "Classification moves `HEAD`"],
-    ]) {
-      const content = readReference(name!)
-      const gate = content.indexOf("Read and apply [Worktree preservation](worktree-safety.md)")
-      assert.ok(gate >= 0 && gate < content.indexOf(action!), `${name} must gate its first tree-changing action`)
-      assert.doesNotMatch(content, /stash protection|stash\/pop only|^git stash push -u/m)
+  test("checkout recipes do not stash or load a separate safety reference", () => {
+    for (const name of ["branch-creation.md", "stack-submit.md"]) {
+      const content = readReference(name)
+      assert.doesNotMatch(content, /worktree-safety|stash\/pop only|^git stash push -u/m)
+      assert.match(content, /--no-overwrite-ignore/)
     }
   })
 

@@ -30,8 +30,6 @@ git log origin/<base>..HEAD --oneline
 
 ### 3. Create the feature branch
 
-Read and apply [Worktree preservation](worktree-safety.md) before checkout.
-
 ```bash
 git checkout --no-overwrite-ignore -b <branch-name> "$BASE_REF"
 ```
