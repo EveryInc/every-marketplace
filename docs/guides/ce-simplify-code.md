@@ -10,6 +10,8 @@ A finished change usually carries debt you could not see while writing it: a hel
 - **Quality** flags hacky structure, dead code, context-only names, leftover pre-release compatibility, and comments that only restate the code
 - **Efficiency** looks for extra work, missed concurrency, hot-path bloat, and no-op updates
 
+Collected review agents are released before the next batch or handoff when the harness provides caller-owned cleanup. When it does not, the review reports retained-capacity limitations without claiming that completion freed a slot.
+
 It applies what is worth keeping, notes false positives as skipped without stopping to argue, then runs project-wide typecheck and lint plus tests sized to the change. The summary reports what was already sound, what changed, counts by category, and which checks ran.
 
 This is not `ce-polish` (live UX on a working page), not `ce-code-review` (deeper review you still act on yourself), and not a rewrite of the feature. Use it after implementation has settled and before review, commit, or handoff.
