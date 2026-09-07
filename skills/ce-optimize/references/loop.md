@@ -23,7 +23,9 @@ Generate an initial set of hypotheses. Each hypothesis should have:
 
 Include user-provided hypotheses if any were given as input.
 
-Aim for 10-30 hypotheses in the initial backlog. More can be generated during the loop based on learnings.
+For performance hypotheses, record an `opportunity` using the log schema before implementation. Connect the observed cost in a named workload to the expected change in the target metric, with units, a comparison baseline, and the evidence and assumptions behind the estimate. Prefer a supported range or upper bound over a point estimate. If the benefit cannot be estimated, record it as unknown and name the cheapest measurement that would resolve the uncertainty. A subjective priority score is not a measured benefit.
+
+The backlog contains the credible opportunities supported by current evidence, not a required number of ideas. Rank by expected target benefit, confidence, implementation and measurement cost, and behavioral risk. Qualitative hypotheses use rubric-relevant evidence and may leave numerical benefit unknown; they do not require a performance profile. Present the ranked opportunities and their estimates when recording CP-2, after the disk write and verification.
 
 ### 2.3 Dependency Pre-Approval
 
@@ -58,12 +60,13 @@ Select hypotheses for this batch:
 - Build a runnable backlog by excluding hypotheses with `dep_status: needs_approval`
 - If `execution.mode` is `serial`, force `batch_size = 1`
 - Otherwise, `batch_size = min(runnable_backlog_size, execution.max_concurrent)`
-- Prefer diversity: select from different categories when possible
-- Within a category, select by priority (high first)
+- Select by the evidence-backed priority above; category diversity breaks ties
 
 When no runnable hypothesis is left — the backlog is empty and no new one can be generated, or everything remaining is blocked or awaiting approval — proceed to Phase 4 (wrap-up), where the user can approve deferred dependencies instead of the loop spinning forever.
 
 ### 3.2 Dispatch Experiments
+
+Freeze the selected hypothesis's `opportunity` in the persisted backlog before dispatch and include it with the hypothesis description sent to the worker. Copy that forecast into the experiment entry at its first CP-3 write. Revised estimates for later experiments must not overwrite an earlier experiment's forecast; missing forecasts in resumed legacy runs stay unrecorded.
 
 For each hypothesis in the batch, dispatch according to `execution.mode`. In `serial` mode, run exactly one experiment to completion before selecting the next hypothesis. In `parallel` mode, dispatch the batch concurrently.
 
@@ -102,6 +105,8 @@ The Phase 3 blocks below each set `SKILL_DIR` inline as well (the loaded `ce-opt
 5. Security posture: use the user's selection (ask once per session if not set in spec)
 
 ### 3.3 Collect and Persist Results
+
+Persist a `comparisons` record with each measured snapshot: the actual reference and candidate revisions, workload, reference measurements, candidate measurements, and the decision's uncertainty and correctness evidence. Keep standalone and integrated measurements distinct in this array; a runner-up's contribution is its confirmed change against the branch it was added to, not its standalone gain. These records explain results; `decide.mjs` still owns acceptance, using the existing snapshot fields.
 
 Process experiments as they complete — do NOT wait for the entire batch to finish before writing results.
 
@@ -190,7 +195,7 @@ After all experiments in the batch have been measured:
 4. **Write strategy digest** to `.context/compound-engineering/ce-optimize/<spec-name>/strategy-digest.md`:
    - Categories tried so far (with success/failure counts)
    - Key learnings from this batch and overall
-   - Exploration frontier: what categories and approaches remain untried
+   - Remaining opportunities, their supporting evidence, and whether current measurements still support their estimates; mark stale estimates for reassessment before selecting them
    - Current best metrics and improvement from baseline
 
 5. **Generate new hypotheses** based on learnings:

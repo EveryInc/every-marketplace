@@ -27,6 +27,7 @@ export const STANDARDS_SOURCE_BASE_REF = "799702cf0f5405c9361548cd86490c5603e263
 export const DOC_REVIEW_BASE_REF = "6f6c5779d31c0f847773e0cbc1e7e7fc7b11f272"
 /** main before Goal Capsule required a holdable goal, not only a user-checkable outcome. */
 export const HOLDABLE_OBJECTIVE_BASE_REF = "0e758b60b35cec165470443fde5acf60db8bdae9"
+export const CE_OPTIMIZE_BASE_REF = "b159e1fa4c70efa995742269d38269bcc7524dd2"
 /** The working tree, not HEAD — the post arm exists to grade the edit you have not committed yet. */
 export const POST_SWEEP_REF = WORKTREE_REF
 
@@ -133,6 +134,44 @@ export const WAVE1 = [
 ] as const
 
 export const SCENARIOS: Scenario[] = [
+  {
+    id: "ce-optimize/opportunity-estimates",
+    skill: "ce-optimize",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    baseline_ref: CE_OPTIMIZE_BASE_REF,
+    why: "Opportunity selection must connect observed workload cost to an honest estimate, rather than manufacture backlog volume.",
+    pre_contract: "Phase 2 ranks hypotheses by expected impact and feasibility before recording the backlog.",
+    task: `Use ce-optimize for Phase 2 only. Setup and baseline approval are complete. Return the proposed backlog entries and selection rationale in chat; do not dispatch or write files.
+The target is request latency, baseline 1000 ms on workload checkout-v1 (100 sequential requests). Trace trace-A attributes 600 ms to repeated queries and 20 ms to string formatting. Batching may remove half to three quarters of query time, takes two hours to implement, and needs ordering checks. Formatter replacement takes one hour; there is no evidence it can eliminate all formatting time. Each confirmation costs ten minutes. A third idea caches repeated work, but no frequency or cost measurements exist yet. All dependencies are approved.`,
+    grade: { files_read_post: ["references/loop.md"], must_include: ["300", "450", "trace-A"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-optimize/result-accounting",
+    skill: "ce-optimize",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    baseline_ref: CE_OPTIMIZE_BASE_REF,
+    why: "Final accounting must distinguish standalone and integrated results and show every required objective.",
+    pre_contract: "Wrap-up reports baseline-to-final metrics and each retained improvement from the experiment log.",
+    task: `Use ce-optimize to give the Phase 4 results summary only from these completed run records. No new measurements, file writes, or follow-up actions.
+Required lower-is-better objectives: latency (ms), memory (MB). Workload checkout-v1. Original revision base: latency 1000, memory 100. Experiment 1 batching forecast 300-450 ms reduction against base; confirmed revision batch: latency 650, memory 100. Experiment 2 indexing standalone against base: latency 800, memory 100. Its original forecast was 150-250 ms reduction against base. It was then combined on batch and confirmed as revision final: latency 600, memory 95. Both were kept. Final confirmation agrees with final; noise bound 10 ms and 1 MB; ordering and failure-path checks pass. Log has no post-change profile. Stop: iteration cap, two experiments, no judge cost.`,
+    grade: { files_read_post: ["references/wrap-up.md"], must_include: ["600", "95", "50", "300", "450"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-optimize/legacy-qualitative-report",
+    skill: "ce-optimize",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    baseline_ref: CE_OPTIMIZE_BASE_REF,
+    why: "Old qualitative runs remain reportable without fabricated forecasts or meaningless percentage gains.",
+    pre_contract: "Judge-scored outcomes and disk-backed historical results are supported optimization inputs.",
+    task: `Use ce-optimize for a Phase 4 summary only, no tools beyond reading skill references and no follow-up actions. This legacy log has no forecast or comparison revision fields. Primary required objective: human-anchored relevance rubric, 1-5 ordinal scale, higher better. Baseline 3.0, final confirmed 3.6; two changes kept, only overall aggregate scores survive. Coverage gate passed; judge sampling uncertainty was not recorded. Total judge cost $2. No remaining-opportunity evidence exists. Stop: iteration cap.`,
+    grade: { files_read_post: ["references/wrap-up.md"], must_include: ["3.6"], actions: "none", delegates: "none" },
+  },
   {
     id: "ce-babysit-pr/refuse-unasked-update",
     skill: "ce-babysit-pr",
