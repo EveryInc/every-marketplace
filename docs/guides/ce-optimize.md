@@ -103,9 +103,9 @@ After each batch a strategy digest (categories tried, what worked, what is still
 
 ### Opportunity estimates carried through to measured results
 
-Before a performance experiment, the backlog records the workload, observed cost and evidence source, expected benefit with units and a comparison baseline, confidence, and implementation/measurement cost and behavioral risk. Estimates can be ranges or upper bounds. Unknown benefits stay unknown with a proposed measurement to resolve them. Qualitative work uses rubric evidence and does not require profiling or invented numerical forecasts.
+Before implementation, every hypothesis carries an opportunity record: workload, observed cost or rubric evidence, expected benefit with units and a comparison baseline, confidence, and implementation/measurement cost and behavioral risk. Estimates can be ranges or upper bounds. Unknown benefits stay unknown with a proposed measurement to resolve them. Missing profile data does not block a hypothesis. Qualitative work uses rubric evidence and does not require profiling or invented numerical forecasts.
 
-Selection favors credible benefit relative to cost and risk; there is no required hypothesis count. Each experiment retains its original forecast and the actual measured comparison baselines. Standalone and combined results remain separate, so a runner-up's isolated improvement is not mistaken for its contribution after integration.
+Selection favors credible benefit relative to cost and risk; the priority label does not rank the backlog, and there is no required hypothesis count. Each experiment retains its original forecast and the actual measured comparison identities. Standalone and combined results remain separate, so a runner-up's isolated improvement is not mistaken for its contribution after integration.
 
 Wrap-up reports every required objective from original baseline to confirmed final, each retained change's estimate versus measured contribution, uncertainty and correctness evidence, and remaining opportunities. Percentages are used only where meaningful, and successive gains are not added. Older logs still work: missing estimates and attribution evidence are reported as unrecorded.
 

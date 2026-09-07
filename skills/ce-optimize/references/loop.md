@@ -18,12 +18,13 @@ Optionally read `references/agents/repo-research-analyst.md` and dispatch a gene
 Generate an initial set of hypotheses. Each hypothesis should have:
 - **Description**: what to try
 - **Category**: one of the standard categories (signal-extraction, graph-signals, embedding, algorithm, preprocessing, parameter-tuning, architecture, data-handling) or a domain-specific category
-- **Priority**: high, medium, or low based on expected impact and feasibility
+- **Priority**: high, medium, or low as a summary label
 - **Required dependencies**: any new packages or tools needed
+- **Opportunity**: the log schema's `opportunity` record (estimate or explicit unknown)
 
 Include user-provided hypotheses if any were given as input.
 
-For performance hypotheses, record an `opportunity` using the log schema before implementation. Connect the observed cost in a named workload to the expected change in the target metric, with units, a comparison baseline, and the evidence and assumptions behind the estimate. Prefer a supported range or upper bound over a point estimate. If the benefit cannot be estimated, record it as unknown and name the cheapest measurement that would resolve the uncertainty. A subjective priority score is not a measured benefit.
+Record an `opportunity` on every hypothesis using the log schema before implementation. Connect whatever observed cost or rubric evidence exists to the expected change in the target metric, with units, a comparison baseline, and the assumptions behind the estimate. Prefer a supported range or upper bound over a point estimate. If the benefit or the cost share cannot be estimated, record it as unknown and name the cheapest measurement that would resolve the uncertainty. Missing profile data does not block a hypothesis from the backlog. A subjective priority score is not a measured benefit. The `priority` field does not rank the backlog.
 
 The backlog contains the credible opportunities supported by current evidence, not a required number of ideas. Rank by expected target benefit, confidence, implementation and measurement cost, and behavioral risk. Qualitative hypotheses use rubric-relevant evidence and may leave numerical benefit unknown; they do not require a performance profile. Present the ranked opportunities and their estimates when recording CP-2, after the disk write and verification.
 
@@ -33,7 +34,7 @@ The body owns this gate. Record its outcome on each hypothesis as `dep_status: a
 
 ### 2.4 Record Hypothesis Backlog (CP-2)
 
-**MANDATORY CHECKPOINT.** Write the initial backlog to the experiment log file and verify:
+**MANDATORY CHECKPOINT.** Write the initial backlog to the experiment log file and verify. CP-2 is incomplete until each hypothesis in that write carries its opportunity record.
 ```yaml
 hypothesis_backlog:
   - description: "Remove template boilerplate before embedding"
@@ -41,11 +42,25 @@ hypothesis_backlog:
     priority: high
     dep_status: approved
     required_deps: []
+    opportunity:
+      workload: "notification-clustering fixture"
+      baseline: "CP-1 baseline"
+      evidence: "judge rubric: boilerplate dilutes embeddings; no profile"
+      expected_benefit: "unknown; cheapest resolve: one judged stripped-vs-current sample"
+      confidence: "low — unmeasured"
+      cost_and_risk: "small edit; judge sample; no new deps"
   - description: "Try HDBSCAN clustering algorithm"
     category: "algorithm"
     priority: medium
     dep_status: needs_approval
     required_deps: ["scikit-learn"]
+    opportunity:
+      workload: "notification-clustering fixture"
+      baseline: "CP-1 baseline"
+      evidence: "algorithm family untried on this fixture"
+      expected_benefit: "unknown; cheapest resolve: one exploratory run after dep approval"
+      confidence: "low — unmeasured"
+      cost_and_risk: "new dependency scikit-learn; judge sample"
 ```
 
 ---
@@ -60,13 +75,13 @@ Select hypotheses for this batch:
 - Build a runnable backlog by excluding hypotheses with `dep_status: needs_approval`
 - If `execution.mode` is `serial`, force `batch_size = 1`
 - Otherwise, `batch_size = min(runnable_backlog_size, execution.max_concurrent)`
-- Select by the evidence-backed priority above; category diversity breaks ties
+- Select by the ranked expected benefit, confidence, cost, and risk above; the priority label does not decide order. Category diversity breaks remaining ties.
 
 When no runnable hypothesis is left — the backlog is empty and no new one can be generated, or everything remaining is blocked or awaiting approval — proceed to Phase 4 (wrap-up), where the user can approve deferred dependencies instead of the loop spinning forever.
 
 ### 3.2 Dispatch Experiments
 
-Freeze the selected hypothesis's `opportunity` in the persisted backlog before dispatch and include it with the hypothesis description sent to the worker. Copy that forecast into the experiment entry at its first CP-3 write. Revised estimates for later experiments must not overwrite an earlier experiment's forecast; missing forecasts in resumed legacy runs stay unrecorded.
+The experiment's forecast is the backlog `opportunity` as of dispatch. Do not reconstruct it from later results. Copy that backlog value into the experiment entry at its first CP-3 write, including when that write recovers a `result.yaml` marker that has no forecast. Revised estimates for later experiments must not overwrite an earlier experiment's forecast. Missing forecasts in resumed legacy runs stay unrecorded.
 
 For each hypothesis in the batch, dispatch according to `execution.mode`. In `serial` mode, run exactly one experiment to completion before selecting the next hypothesis. In `parallel` mode, dispatch the batch concurrently.
 
@@ -106,7 +121,7 @@ The Phase 3 blocks below each set `SKILL_DIR` inline as well (the loaded `ce-opt
 
 ### 3.3 Collect and Persist Results
 
-Persist a `comparisons` record with each measured snapshot: the actual reference and candidate revisions, workload, reference measurements, candidate measurements, and the decision's uncertainty and correctness evidence. Keep standalone and integrated measurements distinct in this array; a runner-up's contribution is its confirmed change against the branch it was added to, not its standalone gain. These records explain results; `decide.mjs` still owns acceptance, using the existing snapshot fields.
+Persist a `comparisons` record for each distinct reference, candidate, and workload pairing used in a decision. Each side's identity must uniquely identify the bytes that were measured; a shared HEAD is not enough when the candidate is uncommitted. Record the workload, both snapshots, and the decision's uncertainty and correctness evidence. Standalone and integrated pairings stay distinct in this array; a later in-place update must not replace a previously persisted distinct pairing. A runner-up's contribution is its confirmed change against the branch it was added to, not its standalone gain. These records explain results; `decide.mjs` still owns acceptance, using the existing snapshot fields.
 
 Process experiments as they complete — do NOT wait for the entire batch to finish before writing results.
 
@@ -173,7 +188,7 @@ After all experiments in the batch have been measured:
 4. **Check file-disjoint runners-up** (up to `max_runner_up_merges_per_batch`):
    - For each runner-up that also improved, check file-level disjointness with the kept experiment
    - **File-level disjointness**: two experiments are disjoint if they modified completely different files. Same file = overlapping, even if different lines.
-   - If disjoint: cherry-pick the runner-up onto the new baseline and run the same decide loop as step 3.3 against a fresh sample set for that combined snapshot — do not reuse the standalone experiment's accumulated samples, whose meaning is against the previous baseline. Collect further measurement whenever `next_measurement` is not `none`. Keep the original standalone log entry for audit.
+   - If disjoint: cherry-pick the runner-up onto the new baseline and run the same decide loop as step 3.3 against a fresh sample set for that combined snapshot — do not reuse the standalone experiment's accumulated samples, whose meaning is against the previous baseline. Collect further measurement whenever `next_measurement` is not `none`. Persist the combined pairing as `kind: integrated` on that same log entry without replacing the standalone comparison. Keep the original standalone log entry for audit.
    - Keep the cherry-pick only when that result is eligible and `next_measurement` is `none` (outcome: `runner_up_kept`); then clean up that runner-up's experiment worktree and branch
    - Otherwise: revert the cherry-pick, log as "promising alone but neutral/harmful in combination" (outcome: `runner_up_reverted`), then clean up the runner-up's experiment worktree and branch
    - Stop after first failed combination

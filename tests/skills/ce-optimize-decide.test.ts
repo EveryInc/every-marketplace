@@ -1488,6 +1488,10 @@ describe("schema and skill pins", () => {
     expect(LOOP).toContain("Write a decide terminal only when `next_measurement` is `none`")
     expect(LOOP).toContain("one log entry per experiment")
     expect(LOOP).toContain("success proceeds to the first exploratory sample")
+    expect(LOOP).toContain("CP-2 is incomplete until")
+    expect(LOOP).toContain("uniquely identify the bytes")
+    expect(LOOP).toContain("without replacing the standalone comparison")
+    expect(LOG_SCHEMA).toContain("uniquely identifies the measured")
     expect(LOOP).not.toContain("confirm` or `add_sample")
     expect(MEASUREMENT).toContain("Spend only the measurement the current decision needs")
     expect(readFileSync(path.join(SKILL_DIR, "references", "wrap-up.md"), "utf8")).toContain(

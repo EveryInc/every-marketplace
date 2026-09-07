@@ -200,7 +200,7 @@ experiment_entry:
 
     comparisons:
       type: array
-      description: "Measured comparisons retained separately for standalone and integrated candidates; absent legacy evidence is unknown, not inferred from the current best"
+      description: "One record per distinct reference/candidate/workload pairing used in a decision. Later in-place updates must not replace a previously persisted distinct pairing. Absent legacy evidence is unknown, not inferred from the current best."
       items:
         type: object
         children:
@@ -209,10 +209,10 @@ experiment_entry:
             enum: [standalone, integrated]
           reference_revision:
             type: string
-            description: "Actual measured reference revision or immutable snapshot identity"
+            description: "Identity that uniquely identifies the measured reference bytes. A revision is enough when it names those bytes; a HEAD shared by different uncommitted trees is not."
           candidate_revision:
             type: string
-            description: "Measured candidate revision or immutable snapshot identity, including uncommitted candidate content"
+            description: "Identity that uniquely identifies the measured candidate bytes. A revision is enough when it names those bytes; a HEAD shared by different uncommitted trees is not."
           workload:
             type: string
           reference:

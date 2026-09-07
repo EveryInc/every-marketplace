@@ -158,7 +158,7 @@ The target is request latency, baseline 1000 ms on workload checkout-v1 (100 seq
     pre_contract: "Wrap-up reports baseline-to-final metrics and each retained improvement from the experiment log.",
     task: `Use ce-optimize to give the Phase 4 results summary only from these completed run records. No new measurements, file writes, or follow-up actions.
 Required lower-is-better objectives: latency (ms), memory (MB). Workload checkout-v1. Original revision base: latency 1000, memory 100. Experiment 1 batching forecast 300-450 ms reduction against base; confirmed revision batch: latency 650, memory 100. Experiment 2 indexing standalone against base: latency 800, memory 100. Its original forecast was 150-250 ms reduction against base. It was then combined on batch and confirmed as revision final: latency 600, memory 95. Both were kept. Final confirmation agrees with final; noise bound 10 ms and 1 MB; ordering and failure-path checks pass. Log has no post-change profile. Stop: iteration cap, two experiments, no judge cost.`,
-    grade: { files_read_post: ["references/wrap-up.md"], must_include: ["600", "95", "50", "300", "450"], actions: "none", delegates: "none" },
+    grade: { files_read_post: ["references/wrap-up.md"], must_include: ["600", "95", "50 ms", "300", "450"], actions: "none", delegates: "none" },
   },
   {
     id: "ce-optimize/legacy-qualitative-report",
