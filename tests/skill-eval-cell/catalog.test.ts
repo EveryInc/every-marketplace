@@ -258,7 +258,9 @@ describe("skill-eval-cell catalog", () => {
   test("ce-optimize eval needles are not satisfied by parroting the task or refusing the path", () => {
     const accounting = SCENARIOS.find((s) => s.id === "ce-optimize/result-accounting")
     expect(accounting?.grade.must_include).toContain("50 ms")
-    expect(accounting?.task.includes("50 ms")).toBe(false)
+    expect(accounting?.grade.must_include).toContain("integrated")
+    expect(accounting?.task.toLowerCase().includes("50 ms")).toBe(false)
+    expect(accounting?.task.toLowerCase().includes("integrated")).toBe(false)
 
     const attribution = SCENARIOS.find((s) => s.id === "ce-optimize/cost-attribution-before-search")
     const skipLocating = "No locating measurement is necessary; proceed with batching."
