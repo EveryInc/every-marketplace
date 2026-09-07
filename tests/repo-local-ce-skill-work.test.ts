@@ -80,18 +80,38 @@ describe("repo-local ce-skill-work skill", () => {
     expect(newSkill).not.toContain("Use this skill's own frontmatter")
     expect(newSkill).not.toContain("frontmatter as the shape")
     expect(newSkill).not.toContain("Lead with the job in one clause")
-    expect(newSkill.match(/^Contrast pair \(the only description example\):$/gm) ?? []).toHaveLength(1)
+    expect(newSkill.match(/^Contrast pairs:$/gm) ?? []).toHaveLength(1)
+    expect(newSkill).not.toMatch(/the only description example/)
     expect(newSkill).toContain(`- Good (shape): "${shapeDescription}"`)
     expect(newSkill).toContain(
       `- Bad (failure: identity boilerplate + one branch written as a site/capability catalog): ${catalogFailure}`,
     )
+    expect(newSkill).toContain(
+      '- Good (mechanism): "Poll CI and review threads on a named PR until they settle or block. Use when merge depends on checks or feedback still in flight."',
+    )
+    expect(newSkill).toContain(
+      '- Bad (failure: category without the distinctive mechanism): "Run metric-driven optimization loops. Use when improving a measurable outcome through experiments."',
+    )
+    expect(newSkill).toContain(
+      "- Bad for a model-invoked skill (quoted-utterance catalog; fine after the mechanism on a user-invoked or `disable-model-invocation` skill): \"Use for /ce-commit-push-pr, 'open the PR', 'land this', 'push it up'.\"",
+    )
+    expect(newSkill).not.toContain("Fan out N parallel workers")
+    expect(newSkill).not.toContain("cheapen this")
     expect(reviewSkill).toMatch(/identity-boilerplate opener[\s\S]*catalog[\s\S]*is a Change/)
-    expect(reviewSkill).toContain("Use the single contrast pair in `references/new-skill.md`")
+    expect(reviewSkill).toContain("Use the contrast pairs in `references/new-skill.md`")
+    expect(reviewSkill).toContain("category opener that omits the mechanism")
     expect(evaluate).toMatch(/description-restraint fixture/)
-    expect(evaluate).toContain("single contrast pair in `references/new-skill.md`")
+    expect(evaluate).toContain("contrast pairs in `references/new-skill.md`")
     expect(evaluate).toMatch(/Passing behavior is a context pointer/)
+    expect(evaluate).toContain("quoted-utterance catalog, fails")
     expect(guide).toMatch(/Do not open with identity boilerplate/)
+    expect(guide).toContain("distinctive mechanism")
+    expect(guide).toContain("quoted utterances")
     expect(agents).toMatch(/model-invoked description that opens with identity boilerplate or catalogs one branch/)
+    expect(agents).toContain("category opener that omits the distinctive mechanism")
+    expect(agents).toContain("quoted-utterance catalog on a model-invoked skill")
+    expect(skill).toContain("distinctive mechanism")
+    expect(skill).toContain("quoted-utterance")
   })
 
   test("AGENTS.md routes all four activities to the skill and keeps the reviewer rules bots read", () => {
