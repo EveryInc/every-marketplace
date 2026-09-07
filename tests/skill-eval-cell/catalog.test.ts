@@ -254,4 +254,22 @@ describe("skill-eval-cell catalog", () => {
     }
     expect(bad).toEqual([])
   })
+
+  test("ce-optimize eval needles are not satisfied by parroting the task or refusing the path", () => {
+    const accounting = SCENARIOS.find((s) => s.id === "ce-optimize/result-accounting")
+    expect(accounting?.grade.must_include).toContain("50 ms")
+    expect(accounting?.task.includes("50 ms")).toBe(false)
+
+    const attribution = SCENARIOS.find((s) => s.id === "ce-optimize/cost-attribution-before-search")
+    const skipLocating = "No locating measurement is necessary; proceed with batching."
+    for (const needle of attribution?.grade.must_include ?? []) {
+      expect(skipLocating.toLowerCase().includes(needle.toLowerCase())).toBe(false)
+    }
+
+    const variants = SCENARIOS.find((s) => s.id === "ce-optimize/variant-search-without-profile")
+    const blocked = "Without a profile, HDBSCAN and boilerplate stripping are blocked"
+    expect(
+      variants?.grade.must_include?.some((needle) => !blocked.toLowerCase().includes(needle.toLowerCase())),
+    ).toBe(true)
+  })
 })
