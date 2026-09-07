@@ -1,6 +1,6 @@
 ---
 name: ce-optimize
-description: "Optimize a working system against a measurable target. Use when a named workload's cost should drop and the change is not already known. Use when several variants must be scored and kept. Not for diagnosing failing or slow behavior (ce-debug), and not for implementing a change you already know (ce-work)."
+description: "Optimize a named target with a measured loop: attribute a workload's cost, or score variants and keep winners. Use when a working system's metric should move and the winning change is not already known. Use ce-debug for failing or unexpectedly slow behavior; use ce-work when the change is already known."
 argument-hint: "[path to optimization spec YAML, or describe the optimization goal]"
 ---
 
