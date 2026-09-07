@@ -158,7 +158,7 @@ The target is request latency, baseline 1000 ms on workload checkout-v1 (100 seq
     pre_contract: "Missing profile data does not block a hypothesis from the backlog; Phase 2 ranks by expected impact and feasibility.",
     task: `Use ce-optimize for Phase 2 only. Setup and baseline approval are complete. Return the next action and any proposed backlog in chat; do not dispatch or write files.
 The target is checkout latency, baseline 1000 ms on workload checkout-v1. No cost shares, traces, or profiles exist. Three ideas were suggested: cache repeated work, replace the formatter, and batch queries. All dependencies are approved.`,
-    grade: { files_read_post: ["references/loop.md"], must_include: ["locating measurement"], actions: "none", delegates: "none" },
+    grade: { files_read_post: ["references/loop.md"], must_include: ["attributed shares"], actions: "none", delegates: "none" },
   },
   {
     id: "ce-optimize/variant-search-without-profile",
@@ -171,7 +171,7 @@ The target is checkout latency, baseline 1000 ms on workload checkout-v1. No cos
     pre_contract: "Qualitative hypotheses use rubric-relevant evidence and may leave numerical benefit unknown; they do not require a performance profile.",
     task: `Use ce-optimize for Phase 2 only. Setup and baseline approval are complete. Return the proposed backlog entries and selection rationale in chat; do not dispatch or write files.
 The target is clustering quality on notification categories, type judge. Baseline rubric 3.0. No performance profile exists. Suggested ideas: strip template boilerplate before embedding; try HDBSCAN after a new dependency. All other dependencies are approved.`,
-    grade: { files_read_post: ["references/loop.md"], must_include: ["HDBSCAN", "boilerplate"], actions: "none", delegates: "none" },
+    grade: { files_read_post: ["references/loop.md"], must_include: ["HDBSCAN", "boilerplate", "does not require a performance profile"], actions: "none", delegates: "none" },
   },
   {
     id: "ce-optimize/result-accounting",
@@ -183,8 +183,8 @@ The target is clustering quality on notification categories, type judge. Baselin
     why: "Final accounting must distinguish standalone and integrated results and show every required objective.",
     pre_contract: "Wrap-up reports baseline-to-final metrics and each retained improvement from the experiment log.",
     task: `Use ce-optimize to give the Phase 4 results summary only from these completed run records. No new measurements, file writes, or follow-up actions.
-Required lower-is-better objectives: latency (ms), memory (MB). Workload checkout-v1. Original revision base: latency 1000, memory 100. Experiment 1 batching forecast 300-450 ms reduction against base; confirmed revision batch: latency 650, memory 100. Experiment 2 indexing standalone against base: latency 800, memory 100. Its original forecast was 150-250 ms reduction against base. It was then combined on batch and confirmed as revision final: latency 600, memory 95. Both were kept. Final confirmation agrees with final; noise bound 10 ms and 1 MB; ordering and failure-path checks pass. Log has no post-change profile. Stop: iteration cap, two experiments, no judge cost.`,
-    grade: { files_read_post: ["references/wrap-up.md"], must_include: ["600", "95", "50 ms", "300", "450"], actions: "none", delegates: "none" },
+Required lower-is-better objectives: latency (ms), memory (MB). Workload checkout-v1. Original revision base: latency 1000, memory 100. Experiment 1 batching forecast 300-450 ms reduction against base; confirmed revision batch: latency 650, memory 100. Experiment 2 indexing standalone against base: latency 800, memory 100. Its original forecast was 140-240 ms reduction against base. It was then combined on batch and confirmed as revision final: latency 600, memory 95. Both were kept. Final confirmation agrees with final; noise bound 10 ms and 1 MB; ordering and failure-path checks pass. Log has no post-change profile. Stop: iteration cap, two experiments, no judge cost.`,
+    grade: { files_read_post: ["references/wrap-up.md"], must_include: ["600", "95", "50 ms", "integrated", "300", "450"], actions: "none", delegates: "none" },
   },
   {
     id: "ce-optimize/legacy-qualitative-report",

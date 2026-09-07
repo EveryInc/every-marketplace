@@ -86,7 +86,7 @@ Select hypotheses for this batch:
 
 When a cheaper locating measurement would still change keep or skip, take that measurement and update the backlog before selecting a batch. Do not treat that state as an empty backlog.
 
-When no runnable hypothesis is left (the backlog is empty and no new one can be generated, locating would not change keep or skip, and everything remaining is blocked or awaiting approval), proceed to Phase 4 (wrap-up), where the user can approve deferred dependencies instead of the loop spinning forever.
+When no executable next action remains (no runnable hypothesis, no new one can be generated, and locating would not change keep or skip), proceed to Phase 4 (wrap-up), where the user can approve deferred dependencies instead of the loop spinning forever.
 
 ### 3.2 Dispatch Experiments
 
@@ -226,7 +226,7 @@ After all experiments in the batch have been measured:
    - Re-read the strategy digest from disk (not from memory)
    - Read the rolling window (last 10 experiments from the log on disk)
    - Do NOT read the full experiment log -- use the digest for broad context
-   - After a keep on a cost target, re-attribute the workload before adding implementation hypotheses; the previous cost shares are stale
+   - After a keep on a cost target, re-attribute before adding implementation hypotheses only when the keep leaves the current cost shares unable to decide keep or skip
    - Add new hypotheses to the backlog and write the updated backlog to disk
 
 6. **Write updated hypothesis backlog to disk**: the backlog section of the experiment log must reflect newly added hypotheses and removed (tested) ones.
@@ -245,7 +245,7 @@ Stop the loop as soon as any one of these holds:
 - **Judge budget exhausted**: `metric.judge.max_total_cost_usd` is set and cumulative judge spend has reached it
 - **Plateau**: no improvement for `stopping.plateau_iterations` **consecutive** experiments
 - **Manual stop**: the user interrupts. Save state, then go to Phase 4.
-- **No runnable hypothesis left**: the backlog is empty and no new one can be generated, locating would not change keep or skip, and every hypothesis still in it is blocked or awaiting approval
+- **No runnable hypothesis left**: no runnable hypothesis remains, no new one can be generated, and locating would not change keep or skip
 
 If none is met, proceed to the next batch (3.1).
 
