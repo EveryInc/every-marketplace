@@ -16,7 +16,7 @@ Check whether the input is:
 3. If any rule fails, report the specific failures and ask the user to fix them before proceeding
 
 **If description provided:**
-1. Analyze the project to understand what can be measured
+1. Analyze the project to understand what can be measured. `references/usage-guide.md` has longer kickoff prompt shapes if the interview needs them.
 2. **Detect whether the optimization target is qualitative or quantitative** — this determines `type: hard` vs `type: judge` and is the single most important spec decision:
 
    **Use `type: hard`** when:

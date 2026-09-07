@@ -23,6 +23,7 @@ const EXAMPLE = readFileSync(
 )
 const LOOP = readFileSync(path.join(SKILL_DIR, "references", "loop.md"), "utf8")
 const MEASUREMENT = readFileSync(path.join(SKILL_DIR, "references", "measurement.md"), "utf8")
+const SKILL_BODY = readFileSync(path.join(SKILL_DIR, "SKILL.md"), "utf8")
 
 const BASELINE_WALL = 372.869
 const OBSERVED = {
@@ -1491,6 +1492,19 @@ describe("schema and skill pins", () => {
     expect(LOOP).toContain("CP-2 is incomplete until")
     expect(LOOP).toContain("uniquely identify the bytes")
     expect(LOOP).toContain("without replacing the standalone comparison")
+    expect(SKILL_BODY).toContain("cheapest step that would change what gets implemented")
+    expect(SKILL_BODY).toContain("locating measurement")
+    expect(SKILL_BODY).toContain("**Outcome:**")
+    expect(SKILL_BODY).toContain("**Horizon:**")
+    expect(SKILL_BODY).toContain('description: "Optimize a working system against a measurable target.')
+    expect(SKILL_BODY).toContain("Not for diagnosing a failure; that is ce-debug.")
+    expect(LOOP).toContain("locating measurement")
+    expect(LOOP).toContain("attributed shares before implementation")
+    expect(LOOP).not.toContain("Missing profile data does not block")
+    expect(LOOP).toContain("does not require a performance profile")
+    expect(LOOP).toContain("attribute a cost change to one lever")
+    expect(LOOP).toContain("previous cost shares are stale")
+    expect(MEASUREMENT).toContain("not the cost shares")
     expect(LOG_SCHEMA).toContain("uniquely identifies the measured")
     expect(LOOP).not.toContain("confirm` or `add_sample")
     expect(MEASUREMENT).toContain("Spend only the measurement the current decision needs")

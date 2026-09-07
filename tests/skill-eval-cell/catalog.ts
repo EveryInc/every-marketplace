@@ -148,6 +148,32 @@ The target is request latency, baseline 1000 ms on workload checkout-v1 (100 seq
     grade: { files_read_post: ["references/loop.md"], must_include: ["300", "450", "trace-A"], actions: "none", delegates: "none" },
   },
   {
+    id: "ce-optimize/cost-attribution-before-search",
+    skill: "ce-optimize",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    baseline_ref: CE_OPTIMIZE_BASE_REF,
+    why: "A cost target with only a baseline total must locate shares before dispatching implementation experiments.",
+    pre_contract: "Missing profile data does not block a hypothesis from the backlog; Phase 2 ranks by expected impact and feasibility.",
+    task: `Use ce-optimize for Phase 2 only. Setup and baseline approval are complete. Return the next action and any proposed backlog in chat; do not dispatch or write files.
+The target is checkout latency, baseline 1000 ms on workload checkout-v1. No cost shares, traces, or profiles exist. Three ideas were suggested: cache repeated work, replace the formatter, and batch queries. All dependencies are approved.`,
+    grade: { files_read_post: ["references/loop.md"], must_include: ["locating measurement"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-optimize/variant-search-without-profile",
+    skill: "ce-optimize",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    baseline_ref: CE_OPTIMIZE_BASE_REF,
+    why: "A scored variant space may search without a performance profile.",
+    pre_contract: "Qualitative hypotheses use rubric-relevant evidence and may leave numerical benefit unknown; they do not require a performance profile.",
+    task: `Use ce-optimize for Phase 2 only. Setup and baseline approval are complete. Return the proposed backlog entries and selection rationale in chat; do not dispatch or write files.
+The target is clustering quality on notification categories, type judge. Baseline rubric 3.0. No performance profile exists. Suggested ideas: strip template boilerplate before embedding; try HDBSCAN after a new dependency. All other dependencies are approved.`,
+    grade: { files_read_post: ["references/loop.md"], must_include: ["HDBSCAN", "boilerplate"], actions: "none", delegates: "none" },
+  },
+  {
     id: "ce-optimize/result-accounting",
     skill: "ce-optimize",
     cohort: "untouched",

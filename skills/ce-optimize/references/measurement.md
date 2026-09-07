@@ -83,6 +83,8 @@ Do not start this protocol until the counts that mode uses are coherent. Repeat 
 
 **Spend only the measurement the current decision needs.** After Phase 1, a smoke failure is degenerate; one paired exploratory sample can reject a clearly worse candidate or mark it inconclusive; add samples only while the result is promising or inconclusive; run the full configured protocol only before keeping a candidate and for the run's final confirmation. `scripts/decide.mjs` returns that next step. When mode is `stable` or `repeat`, keep the existing full-protocol behavior.
 
+The Phase 1 baseline total is the scoring reference for later comparisons. It is not the cost shares of a named workload. Attribution, when a cost target needs it, is Phase 2 locating work, not a second Phase 1 baseline.
+
 Record the baseline in the experiment log. Persist every required hard objective under `metrics` (or `judge` when the primary is a judge score) so `decide.mjs` can load the same snapshot shape later experiments use. Gates and diagnostics stay in their own containers.
 ```yaml
 baseline:
