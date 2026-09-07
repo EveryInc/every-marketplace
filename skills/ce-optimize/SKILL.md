@@ -1,6 +1,6 @@
 ---
 name: ce-optimize
-description: "Optimize a named target with a measured loop: attribute a workload's cost, or score variants and keep winners. Use when a working system's metric should move and the winning change is not already known. Use ce-debug for failing or unexpectedly slow behavior; use ce-work when the change is already known."
+description: "Optimize a named target with a measured loop: attribute a workload's cost, or score variants and keep winners. Use when a working system's metric should move and the winning change is not already known. Use ce-debug when the job is diagnosis; use ce-work when the change is already known."
 argument-hint: "[path to optimization spec YAML, or describe the optimization goal]"
 ---
 

@@ -8,7 +8,7 @@ It writes a spec (or loads yours), measures a baseline, then runs the next cheap
 
 It handles multi-file code changes and non-ML work alike: clustering, search, prompts, build time, latency, anything you can score the same way twice.
 
-Skip it when you already know the change, when the system is failing or unexpectedly slow, when you are hunting a root cause, or when nothing can be measured.
+Skip it when you already know the change, when the job is diagnosis, or when nothing can be measured.
 
 ---
 
