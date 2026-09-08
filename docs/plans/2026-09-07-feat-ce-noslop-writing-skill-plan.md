@@ -54,7 +54,7 @@ Absent everywhere: any rule about em dashes, "not X but Y" framing, colon reveal
 
 **Distribution**
 
-- R7. Each sibling in the consolidation set invokes `ce-noslop` in author mode at the point where it composes prose, stated as one line at that point. The same line names the safe failure direction: when the harness cannot reach the skill, the caller writes under the seven kernel tests, named in one sentence. The set: `ce-commit-push-pr`, `ce-code-review`, `ce-plan`, `ce-brainstorm`, `ce-promote`, `ce-resolve-pr-feedback`.
+- R7. Each sibling in the consolidation set invokes `ce-noslop` in author mode at the point where it composes prose, stated as one line at that point. The line is a plain directive with no fallback clause; a self-judged "if the skill is unreachable" escape gives a run an out, and no other skill invocation in the plugin carries one. The set: `ce-commit-push-pr`, `ce-code-review`, `ce-plan`, `ce-brainstorm`, `ce-promote`, `ce-resolve-pr-feedback`.
 - R8. Each sibling that owns a presentation contract gains a one-line pointer and keeps its contract intact: `ce-doc-review`'s rendering floor, `ce-pov`'s output economy, `ce-babysit-pr`'s report rules.
 - R9. The generic blocks named in the Problem Frame are deleted from the consolidation set. Domain rules stay: commit subject form, the PR value-first lead and tracker-ID wording, requirement and unit sentence shape, review severity vocabulary, per-channel register in `ce-promote`, the `needs-human` reply example in `ce-resolve-pr-feedback`, and `ce-explain`'s audience voice block.
 - R10. `ce-setup` offers a standing instruction for chat replies as a new step beside its compounding-directive offer, inserted verbatim from a bundled asset. The offer is skipped only when the instruction file already carries an instruction that covers the full bundled one: the report boundary, the outcome-first register, and the exclusions. A partial or merely related instruction still gets the offer.
@@ -82,7 +82,7 @@ Absent everywhere: any rule about em dashes, "not X but Y" framing, colon reveal
 - The `markdown-rendering.md` and `html-rendering.md` triplets stay as they are. They are rendering contracts, not prose rules.
 - `ce-explain`'s duplicated voice block stays; it is an audience rule.
 - The skill never says whether text was AI-written.
-- Sibling invocation was measured on Claude Code, Codex, and Grok. The other converted targets (Cursor, Gemini, OpenCode, Pi, and the rest under `src/targets/`) are accepted as unverified; the fallback sentence in each R7 invocation line is the guard there.
+- Sibling invocation was measured on Claude Code, Codex, and Grok. The other converted targets (Cursor, Gemini, OpenCode, Pi, and the rest under `src/targets/`) are accepted as unverified, on the same footing as every other skill-to-skill invocation in the plugin.
 
 #### Deferred to Follow-Up Work
 

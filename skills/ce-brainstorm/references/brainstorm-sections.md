@@ -103,7 +103,7 @@ text where contradictions hide and a downstream agent loses the thread. Length
 that earns its place is fine; wordiness around that length is not.
 
 Invoke the `ce-noslop` skill in author mode before writing, and write under
-its tests; if the harness cannot reach that skill, write plainly: one idea per sentence, name the actor, lead with the decision.
+its tests.
 
 Hold every kept section to these:
 

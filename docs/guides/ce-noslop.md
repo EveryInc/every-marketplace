@@ -114,7 +114,7 @@ Sibling skills invoke `ce-noslop` in author mode at the point where they compose
 - `ce-promote` for the announcement draft
 - `ce-resolve-pr-feedback` for replies posted as the PR author
 
-Skills with a presentation contract of their own (`ce-pov`, `ce-doc-review`, `ce-babysit-pr`) keep the rules specific to their output and point at `ce-noslop` for everything generic. If a harness cannot reach the skill, each caller carries a one-line fallback that states the tests directly.
+Skills with a presentation contract of their own (`ce-pov`, `ce-doc-review`, `ce-babysit-pr`) keep the rules specific to their output and point at `ce-noslop` for everything generic.
 
 Nothing runs after it. The skill returns text or findings and the caller continues.
 
