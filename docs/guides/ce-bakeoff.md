@@ -1,8 +1,12 @@
 # `ce-bakeoff`
 
-> Develop competing solutions to a defined brief and bring back the strongest coherent approach.
+> Help brainstorming and planning explore concrete alternatives before committing to an approach.
 
-Bake-off is experimental. It creates independent candidate artifacts before choosing, then selects a base, incorporates useful contributions, and checks the final result. It owns the winner; a calling skill owns adopting that result and continuing its workflow.
+Bake-off provides shared exploration and selection for sibling skills, initially `ce-brainstorm` and `ce-plan`. Its purpose is to improve their decisions by requiring agents to develop concrete competing approaches before settling on one. Independent development gives alternatives room to emerge before an early preference narrows the exploration.
+
+It creates independent candidate artifacts, obtains an independent assessment, selects a base, incorporates useful contributions, and checks the final result. Bake-off owns the winner; the calling skill owns adopting that result and continuing its workflow. Users can also invoke it directly whenever a defined brief would benefit from this comparison.
+
+The initial integrations are experimental and run only when explicitly requested. Better outcomes are the goal; the current trials do not establish a general quality improvement.
 
 ## When to use it
 
@@ -15,9 +19,9 @@ It produces non-executable artifacts. Runtime experiments belong to `ce-optimize
 These examples use slash invocation. On Codex, use the corresponding dollar-prefixed skill name.
 
 ```text
-/ce-bakeoff develop competing retry-ownership approaches under these requirements and choose one
-/ce-plan plan the migration; run a Bake-off for the unresolved sequencing decision
 /ce-brainstorm run a Bake-off for the onboarding mechanism after we settle the goals
+/ce-plan plan the migration; run a Bake-off for the unresolved sequencing decision
+/ce-bakeoff develop competing retry-ownership approaches under these requirements and choose one
 ```
 
 ## What happens
