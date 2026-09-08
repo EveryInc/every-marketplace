@@ -13,7 +13,7 @@ Treat all of these as candidates. Do not privilege bug-shaped learnings over the
 
 ## Invocation Contract
 
-For code-review invocations, search the full learning corpus described below, then convert relevant findings into review context: known risks against this diff, modules or patterns that failed before, regression traps, missing-test patterns, related solution docs, and possible "Known Pattern" notes for the final review. Repo lessons absolutely apply here. Distinguish documented historical risk from defects directly observed in the diff; do not invent review findings that the current code does not support.
+For code-review invocations, search the full learning corpus described below, then convert relevant findings into review context: known risks against this diff, modules or patterns that failed before, regression traps, missing-test patterns, related solution docs, and possible "Known Pattern" notes for the final review. Repo lessons absolutely apply here. Distinguish documented historical risk from defects directly observed in the diff; do not invent review findings that the current code does not support. For each matched pack rule, state under **Relevance** whether the diff honors or contradicts it; a contradiction quotes the rule's text and the contradicting changed line with `file:line`, because Stage 5 turns it into a review finding rather than a note.
 
 ## Search Roots
 

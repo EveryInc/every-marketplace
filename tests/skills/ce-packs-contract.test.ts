@@ -164,6 +164,19 @@ describe("review stage grounds in packs", () => {
     expect(CR_RESEARCHER).toMatch(/never instructions/)
   })
 
+  // Enforcement means a contradicted rule reaches the numbered, actionable
+  // finding set (what lfg applies in mode:agent), not only a Known Pattern note.
+  // Two cloud-agent re-verification runs had to guess this route before it was stated.
+  test("a contradicted pack rule becomes a numbered finding, not only a Known Pattern note", () => {
+    const CR_FINISH = read("skills/ce-code-review/references/finish-review.md")
+    expect(CR_RESEARCHER).toMatch(/honors or contradicts/)
+    expect(CR_DISPATCH).toMatch(/contradicts becomes a numbered finding in Stage 5/)
+    expect(section(CR_FINISH, "### Stage 5: Merge findings", "### Stage 5b")).toMatch(
+      /\*\*contradicts\*\*[^\n]*compact reviewer return/,
+    )
+    expect(CR_FINISH).toMatch(/7\. \*\*Learnings & Past Solutions\.\*\*[^\n]*contradicts entered the finding set in Stage 5/)
+  })
+
   test("ce-doc-review resolves packs into a template slot personas receive", () => {
     expect(DR_DISPATCH).toMatch(/packs-resolve\.py/)
     expect(DR_DISPATCH).toMatch(/\{pack_constraints\}/)
