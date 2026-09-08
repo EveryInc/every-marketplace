@@ -2,7 +2,9 @@
 
 ### Phase 2: Explore Approaches
 
-**Model elevation.** Before generating approaches, load `references/reasoning-elevation.md`, resolve the choice at this boundary, and follow it. Do not generate approaches until activation resolution has completed and any selected dispatch or transparent fallback has settled. When no model is selected it is a no-op; proceed normally. It runs the same on every harness — do not gate it on the host.
+When a Bake-off is explicitly requested for a consequential unresolved product mechanism, read `references/bakeoff.md` before generating approaches. It replaces generation for that question; presentation and scope confirmation below still apply. Otherwise use ordinary generation.
+
+**Model elevation.** Before ordinary approach generation, load `references/reasoning-elevation.md`, resolve the choice at this boundary, and follow it. Do not generate approaches until activation resolution has completed and any selected dispatch or transparent fallback has settled. When no model is selected it is a no-op; proceed normally. It runs the same on every harness — do not gate it on the host.
 
 If multiple plausible directions remain, propose **2-3 concrete approaches** based on research and conversation. Otherwise state the recommended direction directly.
 

@@ -46,7 +46,7 @@ Phases run in order unless an owner routes out or short-circuits. Read a phase's
 
 ### Phases 1-4: Research and Compose
 
-4. Read `references/research.md` before gathering context. It owns local and external research, agent-native triage, consolidation, depth reclassification, and flow analysis.
+4. Read `references/research.md` before gathering context. It owns local and external research, agent-native triage, consolidation, depth reclassification, flow analysis, and requested Bake-offs.
 5. Read `references/structure.md` before resolving questions or structuring the plan. It owns settled-decision handling, stable U-IDs, technical design, depth, and planning boundaries.
 6. Compose from `references/plan-sections.md` plus the format-rendering reference selected by `output-mode.md`.
 
