@@ -69,6 +69,8 @@ For portable Sol/Fable skills, control output length by naming what shortened ou
 
 This is not a ban on targeted steering. A phrase that counters a documented runtime behavior can stay as a model-behavior adapter: name the condition it addresses and verify the effect rather than promoting it to a universal quality slogan.
 
+Verification instructions should elicit an observable check of the final artifact at its requested fidelity, including changes made after review. Test whether the agent chooses and performs that check from the ordinary workflow request; success when a separate prompt names the check establishes capability, not reliable workflow behavior.
+
 This is an admission principle, not a mandate to delete unfamiliar detail. A line that feels redundant may be targeted insurance for a more literal model or a different harness. Test that possibility before removing it.
 
 ## The portability problem

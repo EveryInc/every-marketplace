@@ -57,7 +57,7 @@ A warm invocation with no clear question is this same gate — the conversation 
 
 These two decide **every** invocation, however clear the frame already was.
 
-**Apply the selection escape hatch.** If the input is a *selection* over a field ("what should we use for auth?"), it belongs here only when the realistic field is bounded (roughly five or fewer real candidates) and the criteria are knowable. If the field can't be bounded without inventing options, or the criteria are unclear, **stop**: return a Hold and route to `ce-ideate` (to enumerate) or `ce-brainstorm` (to surface criteria), then offer to re-run.
+**Apply the selection escape hatch.** If the input is a *selection* over a field ("what should we use for auth?"), it belongs here only when the realistic field is bounded (roughly five or fewer real candidates) and the criteria are knowable. If the field can't be bounded without inventing options, or the criteria are unclear, **stop**: return a Hold and route by the missing work: `ce-bakeoff` to develop competing solutions to a defined brief, `ce-ideate` to explore an open opportunity field, or `ce-brainstorm` to surface goals and criteria. Bake-off returns its own selected synthesis; a subsequent POV is an optional second opinion. For discovery routes, offer to judge the resulting developed shortlist.
 
 **Classify the reversibility tier — three levels.** Infer it from project signals:
 

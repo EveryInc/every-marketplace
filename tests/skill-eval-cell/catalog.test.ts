@@ -69,11 +69,12 @@ describe("skill-eval-cell catalog", () => {
     expect(WAVE1.filter((id) => !ids.has(id))).toEqual([])
   })
 
-  test("every scenario skill exists at PRE_SWEEP_REF and POST_SWEEP_REF", () => {
+  test("every scenario skill exists at its runnable arm refs", () => {
     const missing: string[] = []
     for (const scenario of SCENARIOS) {
-      if (!gitShowExists(PRE_SWEEP_REF, scenario.skill)) {
-        missing.push(`${scenario.skill} missing at ${PRE_SWEEP_REF}`)
+      const preRef = scenario.baseline_ref ?? PRE_SWEEP_REF
+      if (!scenario.post_only && !gitShowExists(preRef, scenario.skill)) {
+        missing.push(`${scenario.skill} missing at ${preRef}`)
       }
       if (!gitShowExists(POST_SWEEP_REF, scenario.skill)) {
         missing.push(`${scenario.skill} missing at ${POST_SWEEP_REF}`)
@@ -137,6 +138,8 @@ describe("skill-eval-cell catalog", () => {
         "ce-babysit-pr/pipeline-returns-canonical-human-decision:references/report.md",
         "ce-brainstorm/lightweight-ends-in-chat:references/phase-0.md",
         "ce-brainstorm/lookup-not-ask:references/interaction-rules.md",
+        "ce-brainstorm/requested-bakeoff-confirmation:references/approaches.md",
+        "ce-brainstorm/requested-bakeoff-confirmation:references/bakeoff.md",
         "ce-brainstorm/standard-scope-routes-to-file:references/phase-0.md",
         "ce-brainstorm/verdict-routes-to-pov:references/phase-0.md",
         "ce-brainstorm/write-plan-reads-plan-write:references/plan-write.md",
@@ -158,6 +161,8 @@ describe("skill-eval-cell catalog", () => {
         "ce-optimize/variant-search-without-profile:references/loop.md",
         "ce-plan/chat-brief-small-no-file:references/output-contracts.md",
         "ce-plan/config-model-reaches-authoring-gate:references/reasoning-elevation.md",
+        "ce-plan/requested-bakeoff-boundary:references/research.md",
+        "ce-plan/requested-bakeoff-boundary:references/bakeoff.md",
         "ce-plan/direct-trivial-stays-in-chat:references/output-contracts.md",
         "ce-plan/no-implement:references/output-mode.md",
         "ce-plan/no-implement:references/resume.md",
@@ -202,6 +207,16 @@ describe("skill-eval-cell catalog", () => {
       "ce-babysit-pr/silent-reviewer-of-an-earlier-head-still-waits",
       "ce-babysit-pr/timed-out-review-is-finished-not-approved",
       "ce-babysit-pr/unrelated-terminal-work-is-not-the-review",
+      "ce-bakeoff/default-pov-judge",
+      "ce-bakeoff/final-synthesis-correctness",
+      "ce-bakeoff/nondecisive-unknown-allows-selection",
+      "ce-bakeoff/progress-communication",
+      "ce-bakeoff/settled-decision-restraint",
+      "ce-bakeoff/shared-brief-preserves-unknowns",
+      "ce-bakeoff/timing-evidence",
+      "ce-bakeoff/unavailable-independence",
+      "ce-bakeoff/unverified-guarantee-blocks-selection",
+      "ce-brainstorm/requested-bakeoff-confirmation",
       "ce-commit-push-pr/babysit-off-preserves-human-decision",
       "ce-commit-push-pr/project-publishing-gate",
       "ce-compound-refresh/confirmed-worth-lens-deletes-only-with-quoted-artifact",
@@ -210,6 +225,8 @@ describe("skill-eval-cell catalog", () => {
       "ce-compound-refresh/worth-lens-intent-confirms-before-loading",
       "ce-debug/pipeline-divergent-defer",
       "ce-plan/config-model-reaches-authoring-gate",
+      "ce-plan/requested-bakeoff-boundary",
+      "ce-pov/rough-options-need-development",
       "ce-prototype/batch-conflict-asks",
       "ce-prototype/clear-batch-applies-in-place",
       "ce-prototype/question-stays-in-chat",

@@ -256,3 +256,9 @@ This works on any harness. The host serves the chosen model natively where it ca
 - [`ce-strategy`](./ce-strategy.md): anchor brainstorms to a documented product strategy
 - [`lfg`](./lfg.md): autonomous plan-then-ship from a requirements-only artifact
 - [`ce-proof`](./ce-proof.md): publish a non-software summary (or any markdown file you ask to share)
+
+## Experimental Bake-off
+
+Explicitly request a Bake-off when alternatives need concrete development before choosing. See [ce-bakeoff](./ce-bakeoff.md) for the independent candidate contract and limits. General automatic routing is not enabled. The existing model choice also applies to candidate authors, increasing this step from one generation call to multiple fresh attempts. A candidate-model mix explicitly requested by the user takes precedence.
+
+Brainstorming uses it in Phase 2 for an unresolved product mechanism after goals are clear. It replaces ordinary generation for that question. Options still precede the recommendation, and user scope confirmation remains authoritative.

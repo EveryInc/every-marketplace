@@ -79,7 +79,9 @@ describe("ce-pov subject-shape contract", () => {
     expect(boundaries).toContain('"review this doc"')
     expect(boundaries).toContain('"what do you think of this doc?"')
     expect(boundaries).toContain("`ce-doc-review`")
-    expect(boundaries).toContain("Options supplied")
+    expect(boundaries).toContain("Options developed")
+    expect(boundaries).toContain("rough options needing development")
+    expect(boundaries).toContain("`ce-bakeoff`")
     expect(boundaries).toContain("`ce-ideate`")
   })
 
