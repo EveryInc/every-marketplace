@@ -1,4 +1,4 @@
-# Experimental Bake-off in brainstorming
+# Bake-off in brainstorming
 
 Use `ce-bakeoff` only when explicitly requested and the need and constraints are clear enough to develop competing product mechanisms. If the goal itself is unsettled, finish discovery first. Preserve specific settled decisions; do not invent a fork to satisfy the request.
 

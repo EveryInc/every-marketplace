@@ -257,7 +257,7 @@ This works on any harness. The host serves the chosen model natively where it ca
 - [`lfg`](./lfg.md): autonomous plan-then-ship from a requirements-only artifact
 - [`ce-proof`](./ce-proof.md): publish a non-software summary (or any markdown file you ask to share)
 
-## Experimental Bake-off
+## Bake-off
 
 Explicitly request a Bake-off when alternatives need concrete development before choosing. See [ce-bakeoff](./ce-bakeoff.md) for the independent candidate contract and limits. General automatic routing is not enabled. The existing model choice is passed to Bake-off as a candidate preference; an explicitly requested candidate mix takes precedence. Bake-off owns dispatch: native model-family diversity when no preference is set, then available authorized CLIs, then fresh same-host agents if those routes fail. It does not use the ordinary elevation adapter for bakers.
 
