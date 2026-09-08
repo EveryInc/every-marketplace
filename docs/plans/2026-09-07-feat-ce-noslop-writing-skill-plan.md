@@ -141,7 +141,7 @@ Distribution after the change: six composing skills invoke `ce-noslop`; three pr
 - **Files:** `skills/ce-noslop/SKILL.md`, `skills/ce-noslop/references/patterns.md`.
 - **Approach:**
   1. Model the kernel on the smallest shipped skills with a references dir (`skills/ce-polish/SKILL.md`, `skills/ce-test-xcode/SKILL.md`): frontmatter, one-paragraph outcome, Done, Boundaries, then the modes, registers, tests, and invariants.
-  2. Write the description per `ce-skill-work`: sentence one names the mechanism (a writing floor that removes AI tells and makes prose understandable), then one "Use when" per branch (a skill or user names it; text handed over to fix or check), then a "Use `ce-promote` for" or "Not for" only where the same words fire a sibling. No "always apply" clause.
+  2. Write the description per `ce-skill-work`: sentence one names the mechanism in plain words (rewrite, check, or draft prose so it reads plainly and carries no AI patterns, without changing what it says; no metaphor nouns such as "floor"), then one "Use when" per branch (a skill or user names it; text handed over to fix or check), then a "Use `ce-promote` for" or "Not for" only where the same words fire a sibling. No "always apply" clause.
   3. Write `patterns.md` as numbered rules with the fix in the same line, grouped by content, language, style, chat artifacts, filler, jargon, plain speech. Include the inline-header nuance: a bold lead-in followed by new detail stays; a label that restates its line is the tell. Include the false-positive floor: one device alone is not a finding.
   4. Keep the kernel free of word lists; the tests in R4 do that work.
 - **Patterns to follow:** `skills/ce-compound/SKILL.md` for `mode:` token parsing with inferred-intent fallback.
