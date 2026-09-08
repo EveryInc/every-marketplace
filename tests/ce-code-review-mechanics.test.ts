@@ -120,28 +120,35 @@ describe("ce-code-review deterministic mechanics", () => {
 
   // Review enforcement of Compound Packs rides on the learnings persona, whose
   // gate used to require an existing solutions corpus. A repo that adopts packs
-  // before it has any learnings must still report a reason to select it.
-  test("scope helper reports declared Compound Packs independently of the learnings corpus", () => {
-    const { dir, base } = fixtureRepo()
-    mkdirSync(path.join(dir, ".compound-engineering"), { recursive: true })
-    mkdirSync(path.join(dir, "compound-packs", "house-rules"), { recursive: true })
+  // before it has any learnings must still report a reason to select it. Each
+  // helper run spawns the resolver too, so the cases are split to stay well
+  // under the per-test timeout when the full suite loads the runner.
+  function packsFixture() {
+    const fixture = fixtureRepo()
+    mkdirSync(path.join(fixture.dir, ".compound-engineering"), { recursive: true })
+    mkdirSync(path.join(fixture.dir, "compound-packs", "house-rules"), { recursive: true })
     writeFileSync(
-      path.join(dir, "compound-packs", "house-rules", "validate-input.md"),
+      path.join(fixture.dir, "compound-packs", "house-rules", "validate-input.md"),
       "---\ntitle: Validate input at the boundary\napplies_when:\n  - adding an HTTP handler\n---\nRule body.\n",
     )
+    return fixture
+  }
 
-    // No config at all: nothing declared, no corpus.
+  test("scope helper reports no declared packs without a config or without a packs key", () => {
+    const { dir, base } = packsFixture()
+
     const none = JSON.parse(run("python3", [SCOPE_SCRIPT, "--base", base], dir).stdout)
     expect(none.declared_packs).toBe(false)
     expect(none.pack_roots).toBe(0)
     expect(none.has_learnings_corpus).toBe(false)
 
-    // Config without a packs key still declares nothing.
     writeFileSync(path.join(dir, ".compound-engineering", "config.yaml"), "docs_root: docs\n")
     const noKey = JSON.parse(run("python3", [SCOPE_SCRIPT, "--base", base], dir).stdout)
     expect(noKey.declared_packs).toBe(false)
+  })
 
-    // A declared, resolvable pack with no docs/solutions corpus.
+  test("scope helper reports a declared pack independently of the learnings corpus", () => {
+    const { dir, base } = packsFixture()
     writeFileSync(
       path.join(dir, ".compound-engineering", "config.yaml"),
       "packs:\n  - source: compound-packs/house-rules\n",
@@ -150,8 +157,11 @@ describe("ce-code-review deterministic mechanics", () => {
     expect(declared.declared_packs).toBe(true)
     expect(declared.pack_roots).toBe(1)
     expect(declared.has_learnings_corpus).toBe(false)
+  })
 
-    // A declared but broken entry is still declared: the learnings pass surfaces the error.
+  test("scope helper treats a broken pack entry as declared, and keeps the signal when failing closed", () => {
+    const { dir, base } = packsFixture()
+    // The learnings pass surfaces the resolver error in Coverage, so it must still be selected.
     writeFileSync(
       path.join(dir, ".compound-engineering", "config.yaml"),
       "packs:\n  - source: compound-packs/does-not-exist\n",
@@ -160,7 +170,6 @@ describe("ce-code-review deterministic mechanics", () => {
     expect(broken.declared_packs).toBe(true)
     expect(broken.pack_roots).toBe(0)
 
-    // The signal survives the fail-closed path too.
     const failed = JSON.parse(run("python3", [SCOPE_SCRIPT, "--base", "missing-ref"], dir).stdout)
     expect(failed.status).toBe("unknown")
     expect(failed.declared_packs).toBe(true)
