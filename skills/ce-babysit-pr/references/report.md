@@ -1,5 +1,7 @@
 # Step 4: report / summary
 
+Write every summary through the `ce-noslop` skill. The rules below are what this skill adds on top.
+
 Every stop — and every checkpoint tick — ends with a summary. Below the first line, write it however reads cleanly; the format is yours. What matters is that it hits these goals, because each counters a specific way these summaries fail:
 
 - **Outcome first, unmissable — open with one status line.** Emoji, state, then one clause of evidence composed from the final snapshot (quiet time, CI, remaining backlog, parked residuals — your wording, real values), so the state is scannable instead of buried in prose. Only the state phrases are fixed:

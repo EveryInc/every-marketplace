@@ -11,10 +11,7 @@ The diff is already visible on GitHub. The description exists to explain what th
 
 If the lead describes what was edited rather than what is now different for someone using this, rewrite it — restating the diff is the failure mode this skill exists to prevent. A mechanism written in an outcome's grammar is judged by the same condition: "now anchors its checks to named frameworks" is how the work was done, while a mechanism that *is* what the reader gets stays — the prose rule below owns that line. For user-facing bugs, name the visible before/after first; mention the technical cause only if it helps assess risk.
 
-**Prose (STE-inspired, scoped).** Write framing and connective prose in an ASD-STE100 Simplified Technical English (STE)-inspired style: short, direct sentences; one idea per sentence; one consistent term per concept. Prefer plain wording wherever domain terms are not load-bearing. Keep necessary technical jargon, identifiers, paths, protocols, and error text where they *are* the claim or the review target — do not dilute mechanism language into vague plain English. Shorten sentences, not content.
-
-- Bad (jargon without need): "This advances the modularized invalidation surface for progressive revocation semantics."
-- Good (plain frame / jargon is the claim): "This is the second slice of the session-revocation rewrite." / "`TokenStore.invalidate` is now atomic under concurrent refresh."
+**Prose.** Write the title and body through the `ce-noslop` skill. Identifiers, paths, protocols, and error text stay where they *are* the claim or the review target — do not dilute mechanism language into vague plain English.
 
 ## Project PR-body contract
 
@@ -207,6 +204,5 @@ Before returning the title and body, check against the scope map and material cl
 - Is every material outcome represented by the umbrella framing or body, or intentionally omitted because it is supporting-only?
 - Is every claim the diff can't establish present — and any claim the diff *does* show restated needlessly?
 - Was program altitude actually checked (the map says "none" or names the program)? When program context was present: does the lead place this PR on the arc (program + this contribution, with lead-in and/or lead-out when known)? When program context was absent: does the body invent a multi-PR series? If so, cut it.
-- Does any sentence use domain jargon that is not load-bearing for its claim? If so, rewrite in plain framing (keep jargon where it *is* the claim).
 - Is decision-changing evidence a stated result (not unexplained "tests passed"), with demonstrated results distinct from assumptions and mixed/negative outcomes?
 - Can any sentence or section of the *description* be cut without lowering reviewer confidence? If so, cut it, except for headings, fields, checklists, or boilerplate the project's PR-body contract requires. Retain Step D branding when enabled and the session-settled provenance sentence when Step C included one — both are intentional, not fluff.

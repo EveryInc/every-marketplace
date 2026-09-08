@@ -110,3 +110,18 @@ bun run test:skill-eval-pack -- --id lfg/plan-first --arm ab
 
   So the change buys determinism, not a corrected answer: the snippet now yields the token instead of depending on the model to volunteer its own identity, and the worker fail-closes on that token. That is a mechanical invariant, and `tests/review-skill-contract.test.ts` pins it by executing the snippet under bash across the three references. A behavioral cell that can only agree with a deterministic CI test is not a row. The end-to-end evidence for this branch is three live plugin-loaded probes (Claude `--plugin-dir`, a scratch `CODEX_HOME` linking `skills/compound-engineering-local`, and Grok's project-local `.grok/skills`), each confirming the loaded `SKILL.md` came from the worktree under test.
 - **`ce-code-review` peer skip from `work_engine` contamination** (coffinfish session `01a03501-06af-7403-9016-57862c98292c`). A row planted that same-session "no standing engine config" prompt and required `cross-model-review.md`. Grok, Claude, and Codex all bound the default different-family peer on the pre-fix skill, so the cell cannot fail the invariant. The real miss was a compacted continued session that never loaded the reference. The fix is the always-loaded Stage 3d sentences in `SKILL.md`; `tests/skills/cross-model-review-mode.test.ts` pins them. Requiring the reference after that move would also violate the catalog's required-read rule: the body now states the gate.
+
+## ce-noslop (post-only; the skill has no pre-sweep arm)
+
+```bash
+bun run test:skill-eval-pack -- --skill ce-noslop --arm post
+```
+
+| ID | Pre-contract |
+|---|---|
+| `ce-noslop/two-devices-stay-unchanged` | One em dash plus one triad is not a finding -> draft returns unchanged |
+| `ce-noslop/facts-survive-the-edit` | Puffery goes, all four numbers stay |
+| `ce-noslop/dense-paragraph-keeps-every-claim` | One-sentence paragraph is split; every threshold and qualifier survives |
+| `ce-noslop/protected-spans-stay-byte-identical` | Code block, quoted text, identifier, and link target untouched even when the quote carries a tell |
+| `ce-noslop/non-english-runs-tests-only` | French draft gets the kernel tests and a summary saying the catalog did not apply |
+| `ce-noslop/detect-names-patterns-without-rewrite` | A question about a draft is detect mode: quoted lines and fixes, no rewrite |

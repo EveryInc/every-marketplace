@@ -198,33 +198,24 @@ describe("ce-commit-push-pr contract", () => {
     expect(assemblySection).toMatch(/past two sentences it is carrying a second idea/i)
   })
 
-  test("scopes STE-inspired prose to non-load-bearing wording", async () => {
+  test("delegates prose rules to ce-noslop and keeps the value-first lead", async () => {
     const content = await readRepoFile(
       "skills/ce-commit-push-pr/references/pr-description-writing.md",
     )
 
-    expect(content).toContain("ASD-STE100 Simplified Technical English")
+    // The generic STE paragraph moved to ce-noslop; the file invokes it at the
+    // composition point instead of restating it.
+    expect(content).toContain("`ce-noslop`")
+    // Domain rule that stays: the opening leads with what changed for the user,
+    // not the mechanism that produced it.
     expect(content).toMatch(
-      /Prefer plain wording wherever domain terms are not load-bearing/i,
+      /State the umbrella as what is now different for someone using this, never as the mechanism that produced it/,
     )
-    expect(content).toMatch(
-      /Keep necessary technical jargon.+where they \*are\* the claim/is,
-    )
-    expect(content).toMatch(
-      /do not dilute mechanism language into vague plain English/i,
-    )
-    // Contrast pins both failure directions: decorative jargon vs load-bearing terms
-    expect(content).toContain("jargon without need")
-    expect(content).toContain("jargon is the claim")
-    expect(content).toContain("`TokenStore.invalidate` is now atomic under concurrent refresh.")
 
     const auditSection = content.match(
       /## Step E: Pre-apply coverage audit([\s\S]+)\s*$/,
     )?.[1]
     expect(auditSection).toBeDefined()
-    expect(auditSection).toMatch(
-      /domain jargon that is not load-bearing/i,
-    )
   })
 
   test("repository PR-body contracts set structure without replacing editorial guidance", async () => {
