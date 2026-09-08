@@ -2,7 +2,7 @@
 
 Raw constraints for a live `ce-bakeoff` trial. Copy `BRIEF.md` and `AGENTS.md` into a new throwaway repository; do not run against the source checkout. No generated candidate or winner belongs in this fixture.
 
-Copy the current `skills/ce-bakeoff/` directory to `.agents/skills/ce-bakeoff/` for Codex. For Claude, create an OS-temp plugin with a `.claude-plugin/plugin.json` manifest and current `skills/ce-bakeoff/`; pass that directory with `--plugin-dir`. This registers discovery without editing installed caches. Include current neighboring skills when checking activation boundaries.
+Copy the current `skills/ce-bakeoff/` and `skills/ce-pov/` directories to `.agents/skills/ce-bakeoff/` and `.agents/skills/ce-pov/` for Codex. For Claude, create an OS-temp plugin with a `.claude-plugin/plugin.json` manifest and both current skill directories under `skills/`; pass that directory with `--plugin-dir`. Bake-off requires `ce-pov` for its independent judge. This registers discovery without editing installed caches. Include other current neighboring skills when checking activation boundaries.
 
 Use this user request:
 

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
+import { scenarioById } from "./catalog"
 import { gradeHost, parseTrailers } from "./grade"
 
 describe("skill-eval-cell trailer parse", () => {
@@ -50,6 +51,21 @@ describe("skill-eval-cell host grade", () => {
     }
     return dir
   }
+
+  test.each([
+    ["fresh-subagent", "ce-pov", "single-judgment", true],
+    ["same-context", "ce-pov", "oracle-panel", false],
+    ["same-context", "ce-pov", "single-judgment", false],
+    ["fresh-subagent", "none", "single-judgment", false],
+    ["fresh-subagent", "ce-pov", "oracle-panel", false],
+  ])("default POV judge grades context=%s skill=%s assessment=%s", (context, skill, assessment, expected) => {
+    const scenario = scenarioById("ce-bakeoff/default-pov-judge")!
+    const dir = hostDir({
+      "stdout.txt": `ROUTE: context=${context}; skill=${skill}; assessment=${assessment}\nFILES_READ: SKILL.md\nACTIONS: none\nDELEGATES_DISPATCHED: none\n`,
+    })
+    const g = gradeHost({ host: "claude", hostDir: dir, arm: "post", grade: scenario.grade })
+    expect(g.ok).toBe(expected)
+  })
 
   test("must_exclude looks at ACTIONS, not an explanation in the essay", () => {
     const dir = hostDir({

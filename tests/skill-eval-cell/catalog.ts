@@ -179,8 +179,8 @@ export const SCENARIOS: Scenario[] = [
     post_only: true,
     why: "Independent assessment must use POV in a fresh context without turning every assessment into an oracle panel.",
     pre_contract: "The coordinator previously selected by itself unless independent assessment was requested.",
-    task: "Use ce-bakeoff at the judgment handoff. Three complete candidate artifacts are ready and all agree on the same approach. The host supports fresh subagents on the session model only; no external model access is available. There is no unresolved disagreement and the user has not requested peers. Resolve the judge route and required skill, then stop before dispatch or writing. Emit ROUTE: <context, skill, and panel choice>.",
-    grade: { must_include_field: "ROUTE", must_include: ["ce-pov"], actions: "none", delegates: "none" },
+    task: "Use ce-bakeoff at the judgment handoff. Three complete candidate artifacts are ready and all agree on the same approach. The host supports fresh subagents on the session model only; no external model access is available. There is no unresolved disagreement and the user has not requested peers. Resolve the judge route and required skill, then stop before dispatch or writing. Emit ROUTE: context=<same-context|fresh-subagent>; skill=<none|ce-pov>; assessment=<oracle-panel|single-judgment>, choosing exactly one value per field.",
+    grade: { must_include_field: "ROUTE", must_include: ["context=fresh-subagent", "skill=ce-pov", "assessment=single-judgment"], actions: "none", delegates: "none" },
   },
   {
     id: "ce-bakeoff/progress-communication",
