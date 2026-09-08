@@ -1,4 +1,4 @@
-# Experimental Bake-off in planning
+# Bake-off in planning
 
 Use `ce-bakeoff` only when explicitly requested, on a Standard/Deep Durable plan with a consequential unresolved HOW whose alternatives need development. Preserve the existing output/depth reclassification rules. A settled product direction does not settle unspecified technical choices, but a specifically settled HOW cannot be reopened merely to run a competition. If no eligible decision remains, state why and continue normal planning.
 

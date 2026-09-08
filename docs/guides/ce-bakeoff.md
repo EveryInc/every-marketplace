@@ -6,7 +6,7 @@ Bake-off provides shared exploration and selection for sibling skills, initially
 
 It creates independent candidate artifacts, obtains an independent assessment, selects a base, incorporates useful contributions, and checks the final result. Bake-off owns the winner; the calling skill owns adopting that result and continuing its workflow. Users can also invoke it directly whenever a defined brief would benefit from this comparison.
 
-The initial integrations are experimental and run only when explicitly requested. Better outcomes are the goal; the current trials do not establish a general quality improvement.
+The `ce-brainstorm` and `ce-plan` integrations run only when explicitly requested.
 
 ## When to use it
 
@@ -44,8 +44,8 @@ A fresh subagent running `ce-pov` as a guest is required before selection. A dif
 
 ## Position in the workflow
 
-- **Planning trial:** explicitly requested, after research and before fixing a consequential unresolved HOW on Standard/Deep Durable plans. The selected approach informs the normal plan; final authoring, confidence, review, and handoff remain in planning.
-- **Brainstorming trial:** explicitly requested, after goals are clear, replacing Phase 2 generation for the selected product mechanism. Options precede the recommendation and user confirmation remains authoritative.
+- **In planning:** explicitly requested, after research and before fixing a consequential unresolved HOW on Standard/Deep Durable plans. The selected approach informs the normal plan; final authoring, confidence, review, and handoff remain in planning.
+- **In brainstorming:** explicitly requested, after goals are clear, replacing Phase 2 generation for the selected product mechanism. Options precede the recommendation and user confirmation remains authoritative.
 - **Direct use:** a standalone solution and decision record without implementation.
 
-Ordinary caller behavior remains unchanged without a request. Automatic integration depends on trials comparing current behavior, a cheaper same-agent two-sketch comparison, and independent Bake-off. Implementation availability alone does not establish that automatic integration improves results.
+Ordinary caller behavior remains unchanged without a request.
