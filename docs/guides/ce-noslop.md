@@ -1,6 +1,6 @@
 # `ce-noslop`
 
-> Prose with no AI tells that a reader understands on the first read, with every claim the source made still there.
+> Prose with no AI tells that a reader understands on the first read, with every fact the source stated still there.
 
 `ce-noslop` is the plugin's writing skill. It holds two goals at equal weight: the text carries no AI writing patterns, and a person understands it on the first read. Technical writing is included; a PR body, a plan section, a review finding, and a chat reply all get the same tests. Text that is free of tells but still dense has failed. Text that is plain but dropped a qualifier has failed too.
 

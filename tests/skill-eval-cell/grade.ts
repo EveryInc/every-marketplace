@@ -49,6 +49,14 @@ function lastTrailer(text: string, name: string): string {
 }
 
 /** Read a standalone labeled field while ignoring Markdown heading/bold decoration. */
+function resultBlock(text: string): string | null {
+  const start = text.lastIndexOf("RESULT-START")
+  if (start < 0) return null
+  const end = text.indexOf("RESULT-END", start)
+  if (end < 0) return null
+  return text.slice(start + "RESULT-START".length, end)
+}
+
 function lastField(text: string, name: string): string {
   const prefix = `${name}:`
   for (const line of text.split("\n").reverse()) {
@@ -187,6 +195,15 @@ export function gradeHost(opts: {
   const textScope = scopeField ? scopedText : team || decision
   for (const needle of scopeField && !scopedText ? [] : opts.grade.must_include ?? []) {
     if (!textScope.includes(needle.toLowerCase())) reasons.push(`missing required text: ${needle}`)
+  }
+  if (opts.grade.result_must_not_include?.length) {
+    const block = resultBlock(stdout)
+    if (block === null) reasons.push("missing RESULT-START/RESULT-END block")
+    for (const needle of block === null ? [] : opts.grade.result_must_not_include) {
+      if (block.toLowerCase().includes(needle.toLowerCase())) {
+        reasons.push(`source phrase survived in RESULT block: ${needle}`)
+      }
+    }
   }
   if (opts.grade.must_not_include?.length && !team) reasons.push("missing TEAM trailer")
   for (const needle of team ? opts.grade.must_not_include ?? [] : []) {

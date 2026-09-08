@@ -6,9 +6,9 @@ argument-hint: "[mode:author|edit|detect] [text, file path, or nothing]"
 
 # Write without slop
 
-Prose that carries no AI tells and that a reader understands on the first read, with every claim the source made still there. Both goals hold at once: text that is free of tells but still dense has failed, and text that is plain but drops a qualifier has failed.
+Prose that carries no AI tells and that a reader understands on the first read, with every fact the source stated still there. Both goals hold at once: text that is free of tells but still dense has failed, and text that is plain but drops a qualifier has failed.
 
-**Done:** the mode's output is returned, every claim, number, name, quote, and citation in the input survives, and nothing was added that the source or the caller did not supply.
+**Done:** the mode's output is returned, every fact, number, name, quote, and citation in the input survives, and nothing was added that the source or the caller did not supply.
 
 **Boundaries:** never touch code blocks, quoted text, frontmatter, link targets, identifiers, or a token the caller's own contract requires, unless the user names that content as the thing to fix. Never say whether text was written by a model. Write a named file in place only when the request asks for that; otherwise return the text.
 

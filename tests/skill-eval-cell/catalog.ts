@@ -158,7 +158,7 @@ export const SCENARIOS: Scenario[] = [
     why: "Fact preservation is the invariant across modes. The puffery around four numbers must go while all four numbers stay.",
     pre_contract: "Never add a fact, number, name, quote, or citation the source did not supply, and never drop a claim.",
     task: "Use the ce-noslop skill to edit facts.md for a repo document. Return the full result text in chat between the markers RESULT-START and RESULT-END, then the one-line summary. Do not write files.",
-    grade: { workspace_read: ["facts.md"], must_include: ["92", "14", "45", "12", "3.8", "4 milliseconds"], actions: "none" },
+    grade: { workspace_read: ["facts.md"], must_include: ["92", "14", "45", "12", "3.8", "4 milliseconds"], result_must_not_include: ["it is important to note", "boasting"], actions: "none" },
   },
   {
     id: "ce-noslop/dense-paragraph-keeps-every-claim",
@@ -171,7 +171,7 @@ export const SCENARIOS: Scenario[] = [
     why: "Understandability is an equal goal. A one-sentence paragraph must be split into shorter sentences while every condition and qualifier survives.",
     pre_contract: "One idea per sentence; shorten sentences, not content; keep exact thresholds and domain terms.",
     task: "Use the ce-noslop skill to edit dense.md for a repo document. Return the full result text in chat between the markers RESULT-START and RESULT-END, then the one-line summary. Do not write files.",
-    grade: { workspace_read: ["dense.md"], must_include: ["0.5 percent", "finance role", "batch id", "threshold"], actions: "none" },
+    grade: { workspace_read: ["dense.md"], must_include: ["0.5 percent", "finance role", "batch id", "threshold"], result_must_not_include: ["Given that the reconciliation job", "it follows that"], actions: "none" },
   },
   {
     id: "ce-noslop/protected-spans-stay-byte-identical",

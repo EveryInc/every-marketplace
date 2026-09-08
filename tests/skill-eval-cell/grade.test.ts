@@ -383,6 +383,63 @@ describe("skill-eval-cell host grade", () => {
     expect(g.reasons).toEqual(["missing OPENING field"])
   })
 
+  test("result_must_not_include fails when the result block echoes the fixture", () => {
+    const dir = hostDir({
+      "stdout.txt": [
+        "RESULT-START",
+        "It is important to note that the median lookup now takes 4 milliseconds.",
+        "RESULT-END",
+        "No change needed.",
+        "FILES_READ: facts.md",
+        "ACTIONS: none",
+        "",
+      ].join("\n"),
+    })
+    const g = gradeHost({
+      host: "claude",
+      hostDir: dir,
+      arm: "post",
+      grade: { must_include: ["4 milliseconds"], result_must_not_include: ["it is important to note"], actions: "none" },
+    })
+    expect(g.ok).toBe(false)
+    expect(g.reasons).toEqual(["source phrase survived in RESULT block: it is important to note"])
+  })
+
+  test("result_must_not_include ignores a removed phrase quoted in the summary line", () => {
+    const dir = hostDir({
+      "stdout.txt": [
+        "RESULT-START",
+        "The median lookup now takes 4 milliseconds.",
+        "RESULT-END",
+        "Cut the \"it is important to note\" filler.",
+        "FILES_READ: facts.md",
+        "ACTIONS: none",
+        "",
+      ].join("\n"),
+    })
+    const g = gradeHost({
+      host: "claude",
+      hostDir: dir,
+      arm: "post",
+      grade: { must_include: ["4 milliseconds"], result_must_not_include: ["it is important to note"], actions: "none" },
+    })
+    expect(g.ok).toBe(true)
+  })
+
+  test("result_must_not_include fails when the run emitted no result block", () => {
+    const dir = hostDir({
+      "stdout.txt": "The median lookup now takes 4 milliseconds.\nFILES_READ: facts.md\nACTIONS: none\n",
+    })
+    const g = gradeHost({
+      host: "claude",
+      hostDir: dir,
+      arm: "post",
+      grade: { must_include: ["4 milliseconds"], result_must_not_include: ["boasting"], actions: "none" },
+    })
+    expect(g.ok).toBe(false)
+    expect(g.reasons).toEqual(["missing RESULT-START/RESULT-END block"])
+  })
+
   test("must_include without a field still reads the whole answer", () => {
     const dir = hostDir({
       "stdout.txt": "The stamp lands first.\nFILES_READ: SKILL.md\nACTIONS: none\n",
