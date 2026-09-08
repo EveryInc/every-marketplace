@@ -280,4 +280,5 @@ Distribution after the change: six composing skills invoke `ce-noslop`; three pr
 - Size bounds and their provenance: `tests/codex-skill-prompt-budget.test.ts:1-45`, `docs/solutions/skill-design/size-driven-skill-restructure.md`.
 - Shared-contract precedent: `docs/solutions/skill-design/multi-surface-output-needs-a-shared-rendering-floor.md`.
 - Standing-instruction authoring: `docs/solutions/skill-design/authoring-auto-invoke-standing-instructions.md`; the `ce-setup` offer step in `skills/ce-setup/references/repo-fixes.md`.
+- Learning captured from the invocation-flag measurement: `docs/solutions/skill-design/invocation-opt-out-flags-block-sibling-skill-invocation.md`.
 - Invocation-flag measurement, 2026-09-07: six headless runs, one caller and one target skill per arm, on `claude -p`, `codex exec`, and `grok --prompt-file`; open target reached on all three, locked target refused or absent from the catalog on all three.
