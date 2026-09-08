@@ -49,12 +49,22 @@ function lastTrailer(text: string, name: string): string {
 }
 
 /** Read a standalone labeled field while ignoring Markdown heading/bold decoration. */
+// A marker opens the block only at the end of a line and closes it only at the start
+// of one: the summary after the block may mention RESULT-START and RESULT-END by name
+// mid-sentence, and a substring search would select that mention instead of the
+// result. Grok narrates on the same line as the opening marker, so the line need not
+// be the marker alone. The first complete pair wins.
 function resultBlock(text: string): string | null {
-  const start = text.lastIndexOf("RESULT-START")
-  if (start < 0) return null
-  const end = text.indexOf("RESULT-END", start)
-  if (end < 0) return null
-  return text.slice(start + "RESULT-START".length, end)
+  const lines = text.split("\n")
+  const opens = (line: string) => line.trim().endsWith("RESULT-START")
+  const closes = (line: string) => line.trim().startsWith("RESULT-END")
+  for (let i = 0; i < lines.length; i++) {
+    if (!opens(lines[i])) continue
+    const end = lines.findIndex((line, j) => j > i && closes(line))
+    if (end < 0) return null
+    return lines.slice(i + 1, end).join("\n")
+  }
+  return null
 }
 
 function lastField(text: string, name: string): string {

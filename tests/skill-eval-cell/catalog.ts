@@ -214,7 +214,7 @@ export const SCENARIOS: Scenario[] = [
     why: "A question about a draft is detect mode: name each pattern with the quoted line and a short fix, and do not rewrite.",
     pre_contract: "Detect: name each pattern found, quote the line, give the fix in a few words. Do not rewrite.",
     task: "Use the ce-noslop skill: does detect.md read as AI-written? Answer in chat. Do not write files.",
-    grade: { workspace_read: ["detect.md"], must_include: ["just a linter", "Let's dive in"], actions: "none" },
+    grade: { workspace_read: ["detect.md"], must_include: ["just a linter", "Let's dive in", "Not X but Y", "Announcing the next point"], actions: "none" },
   },
   {
     id: "ce-optimize/opportunity-estimates",

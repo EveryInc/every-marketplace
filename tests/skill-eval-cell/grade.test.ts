@@ -426,6 +426,28 @@ describe("skill-eval-cell host grade", () => {
     expect(g.ok).toBe(true)
   })
 
+  test("result_must_not_include reads the marker lines, not a later mention of the markers", () => {
+    const dir = hostDir({
+      "stdout.txt": [
+        "RESULT-START",
+        "It is important to note that the median lookup now takes 4 milliseconds.",
+        "RESULT-END",
+        "Returned it unchanged between RESULT-START and RESULT-END.",
+        "FILES_READ: facts.md",
+        "ACTIONS: none",
+        "",
+      ].join("\n"),
+    })
+    const g = gradeHost({
+      host: "claude",
+      hostDir: dir,
+      arm: "post",
+      grade: { must_include: ["4 milliseconds"], result_must_not_include: ["it is important to note"], actions: "none" },
+    })
+    expect(g.ok).toBe(false)
+    expect(g.reasons).toEqual(["source phrase survived in RESULT block: it is important to note"])
+  })
+
   test("result_must_not_include fails when the run emitted no result block", () => {
     const dir = hostDir({
       "stdout.txt": "The median lookup now takes 4 milliseconds.\nFILES_READ: facts.md\nACTIONS: none\n",
