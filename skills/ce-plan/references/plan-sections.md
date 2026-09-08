@@ -327,11 +327,7 @@ earns length through coverage (more units, more traced requirements, real
 risks), never through wordiness around that coverage.
 
 Invoke the `ce-noslop` skill in author mode before writing, and write under
-its tests; if the harness cannot reach that skill, write under those tests
-directly: say what a thing does not how it feels, cut anything that could move
-to another project unchanged, name the actor of every verb, one idea per
-sentence, lead with the decision, and gloss any identifier a reader without
-the document open could not act on.
+its tests; if the harness cannot reach that skill, write plainly: one idea per sentence, name the actor, lead with the decision.
 
 Hold every kept section to these:
 
