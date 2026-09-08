@@ -96,7 +96,7 @@ For `declined`:
 Declined: [specific harm cited, e.g., "this would add a defensive null check the type system already guarantees" or "violates the no-premature-abstraction rule in the project's conventions"]
 ```
 
-For `needs-human`, the **reply_text** posted to the thread sounds natural -- it's posted as the user, so avoid AI boilerplate like "Flagging for human review." Write it as the PR author would:
+For `needs-human`, the **reply_text** is posted as the user, so write it under `ce-noslop` in the agent-reporting register, as the PR author would:
 ```markdown
 > [quote the relevant part of the reviewer's comment]
 

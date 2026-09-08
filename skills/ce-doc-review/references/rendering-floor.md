@@ -26,6 +26,9 @@ and use one consistent term for each concept. Preserve exact document identifier
 when they help the decision. Shorten sentences, not content: preserve coverage, evidence, technical
 depth, and every distinct consequence, qualification, or required action.
 
+The rules in this file are `ce-doc-review`'s own presentation contract; generic prose rules live in
+`ce-noslop`.
+
 ## Decision-first field order
 
 **Scope: this applies to a finding the reader is being asked about — a decision, or a member of a

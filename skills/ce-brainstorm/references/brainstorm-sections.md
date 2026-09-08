@@ -102,6 +102,13 @@ written loosely — the failure mode is a material section padded into a wall of
 text where contradictions hide and a downstream agent loses the thread. Length
 that earns its place is fine; wordiness around that length is not.
 
+Invoke the `ce-noslop` skill in author mode before writing, and write under
+its tests; if the harness cannot reach that skill, write under those tests
+directly: say what a thing does not how it feels, cut anything that could move
+to another project unchanged, name the actor of every verb, one idea per
+sentence, lead with the decision, and gloss any identifier a reader without
+the document open could not act on.
+
 Hold every kept section to these:
 
 - **Lead with the decision or outcome.** Put the conclusion first, then the
@@ -109,17 +116,13 @@ Hold every kept section to these:
   bury the chosen scope, an open blocker, or a Key Decision beneath its
   rationale. This does not override section roles — Summary stays proposal-only,
   Problem Frame stays motivation-only and never restates the remedy.
-- **One idea per sentence.** A Summary is a handful of sentences, not one
-  sentence with five semicolons and four parentheticals. If a sentence needs a
-  second parenthetical to stay true, split it.
+- **A Summary is a handful of sentences**, not one sentence with five
+  semicolons and four parentheticals. If a sentence needs a second
+  parenthetical to stay true, split it.
 - **A requirement is one sentence of intent plus at most one qualifier.** When
   a requirement would specify two outcomes ("either A or B, planning decides"),
   state the intent and send the fork to Outstanding Questions — don't write both
   arms in full inside the requirement.
-- **Cut hedges and intensifiers.** "Critically", "deliberately", "explicitly",
-  "genuinely", "actually", "simply" carry nothing a downstream agent acts on.
-- **Prefer the verb to the nominalization.** "Demote the grid", not "the
-  demotion of the grid is the deliberate change in this brief".
 
 Precision is not padding: keep IDs, dates, actor names, domain terms,
 conditionals, and exact thresholds verbatim; when a concrete anchor is knowable

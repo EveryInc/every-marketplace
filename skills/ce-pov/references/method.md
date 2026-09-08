@@ -69,6 +69,8 @@ Choose an approach and recommend it when verified project facts and the material
 
 ## Output economy
 
+The rules in this section are `ce-pov`'s own presentation contract; generic prose rules live in `ce-noslop`.
+
 `ce-pov` writes no document, so the chat block *is* the whole deliverable — make it a tight POV, not a transcript of the investigation.
 
 Lead with the grade for an external-adoption question and with the bottom line or position for the other shapes. Keep each schema field to one line or a few bullets. The `Verified facts` field **cites** from the dossiers (`file:line`, issue/PR number, url) rather than reproducing them, and the dossiers themselves are never printed to chat.
