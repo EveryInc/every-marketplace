@@ -11,7 +11,7 @@ import { describe, expect, test } from "bun:test"
 
 const SKILL_DIR = path.join(process.cwd(), "skills/ce-noslop")
 const KERNEL_BYTE_LIMIT = 4096
-const INVOCATION_TOKEN = "Invoke the `ce-noslop` skill in author mode"
+const INVOCATION_TOKEN = "through the `ce-noslop` skill"
 
 function readRepoFile(rel: string): string {
   return readFileSync(path.join(process.cwd(), rel), "utf8")
@@ -23,7 +23,7 @@ function crlfByteSize(contents: string): number {
   return Buffer.byteLength(lf, "utf8") + (lf.match(/\n/g)?.length ?? 0)
 }
 
-// Siblings that compose prose and invoke ce-noslop in author mode at that point.
+// Siblings that compose prose and write it through ce-noslop at that point.
 const CONSOLIDATION_SET = [
   "skills/ce-commit-push-pr/references/pr-description-writing.md",
   "skills/ce-code-review/references/finish-review.md",

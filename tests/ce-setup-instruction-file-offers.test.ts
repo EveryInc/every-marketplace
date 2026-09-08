@@ -81,7 +81,7 @@ describe("ce-setup instruction-file offers", () => {
     const quotes = guideBlockquotes(await readRepoFile("docs/guides/ce-noslop.md"), "## Make it automatic")
     expect(quotes).toEqual([directive])
     expect(directive.length).toBeLessThan(900)
-    expect(directive).toContain("invoke the `ce-noslop` skill")
+    expect(directive).toContain("through the `ce-noslop` skill")
     expect(directive).not.toMatch(/\/ce-noslop/)
   })
 

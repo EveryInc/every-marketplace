@@ -23,8 +23,8 @@ without reconstructing the finding from expert narrative. A finding whose only p
 Preserve exact document identifiers and domain terms when they help the decision, and preserve
 coverage, evidence, technical depth, and every distinct consequence, qualification, or required action.
 
-Invoke the `ce-noslop` skill in author mode before rendering any finding, and write under it. The
-rules in this file are what this skill adds on top for its own output.
+Write every finding through the `ce-noslop` skill. The rules in this file are what this skill adds
+on top.
 
 ## Decision-first field order
 

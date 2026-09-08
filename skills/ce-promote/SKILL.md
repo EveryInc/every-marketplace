@@ -58,7 +58,7 @@ Always pass `--instant` and `--json`; parse `drafts[]` (each carries its own `ch
 
 ### Path B — Direct drafting
 
-No Spiral needed. Invoke the `ce-noslop` skill in author mode first, then draft every channel under its tests. (The Spiral path goes further: brand-voice matching, humanization, saved styles, and cross-channel campaign orchestration.)
+No Spiral needed. Draft every channel through the `ce-noslop` skill. (The Spiral path goes further: brand-voice matching, humanization, saved styles, and cross-channel campaign orchestration.)
 
 **Every channel:**
 

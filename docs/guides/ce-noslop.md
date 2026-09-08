@@ -106,9 +106,9 @@ Skip it when:
 
 ## Chain position
 
-Sibling skills invoke `ce-noslop` in author mode at the point where they compose prose, and their own presentation contracts sit on top of it:
+Sibling skills write their prose through `ce-noslop` at the point where they compose it, and their own presentation contracts sit on top of it:
 
-- `ce-commit-push-pr` for the PR description's framing and connective prose
+- `ce-commit-push-pr` for the PR title and body
 - `ce-code-review` for human-readable findings
 - `ce-plan` and `ce-brainstorm` for the plan document's prose sections
 - `ce-promote` for the announcement draft
@@ -126,7 +126,7 @@ The skill is not in context when an agent writes an ordinary chat reply, so the 
 
 The instruction:
 
-> Before you write a report, summary, or handoff to the user, invoke the `ce-noslop` skill and write under it. This applies when you are the top-level agent writing to the user, not when you are a subagent reporting to its caller. Do not apply it to code, config, verbatim quotes, or text the user asked to post as written.
+> Write every report, summary, or handoff to the user through the `ce-noslop` skill. This applies when you are the top-level agent writing to the user, not when you are a subagent reporting to its caller. Do not apply it to code, config, verbatim quotes, or text the user asked to post as written.
 
 The instruction and the skill are two layers. The instruction carries the boundary (a report, summary, or handoff to the user, from the top-level agent only) and the exclusions (code, config, verbatim quotes, text to post as written), because it has to work on its own when the skill cannot be loaded. The skill carries the tests and the pattern catalog. Copy the text as written: `ce-setup` inserts it byte-for-byte, and a test pins the wording, so a paraphrase forks the bar.
 

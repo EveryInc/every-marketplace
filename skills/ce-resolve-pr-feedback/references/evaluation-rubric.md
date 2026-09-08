@@ -73,7 +73,7 @@ Do the investigation work before escalating. Don't punt with "this is complex." 
 
 ## Reply text for reply-list and human-list items
 
-Compose these now -- you have the evidence. Every reply is posted as the PR author. Invoke the `ce-noslop` skill in author mode and write each one in the user's-own-writing register. Quote the specific sentence being addressed, not the whole comment if it's long.
+Compose these now -- you have the evidence. Every reply is posted as the PR author. Write each one through the `ce-noslop` skill in its user's-own-writing register. Quote the specific sentence being addressed, not the whole comment if it's long.
 
 For `replied` (a question, discussion, or a correct-but-immaterial point you're not changing):
 ```markdown

@@ -326,8 +326,7 @@ contradictions hide and the implementing agent loses the thread. A deep plan
 earns length through coverage (more units, more traced requirements, real
 risks), never through wordiness around that coverage.
 
-Invoke the `ce-noslop` skill in author mode before writing, and write under
-its tests.
+Write every kept section through the `ce-noslop` skill.
 
 Hold every kept section to these:
 

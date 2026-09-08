@@ -11,7 +11,7 @@ The diff is already visible on GitHub. The description exists to explain what th
 
 If the lead describes what was edited rather than what is now different for someone using this, rewrite it — restating the diff is the failure mode this skill exists to prevent. A mechanism written in an outcome's grammar is judged by the same condition: "now anchors its checks to named frameworks" is how the work was done, while a mechanism that *is* what the reader gets stays — the prose rule below owns that line. For user-facing bugs, name the visible before/after first; mention the technical cause only if it helps assess risk.
 
-**Prose.** Invoke the `ce-noslop` skill in author mode before composing, and write framing and connective prose under its tests. Identifiers, paths, protocols, and error text stay where they *are* the claim or the review target — do not dilute mechanism language into vague plain English.
+**Prose.** Write the title and body through the `ce-noslop` skill. Identifiers, paths, protocols, and error text stay where they *are* the claim or the review target — do not dilute mechanism language into vague plain English.
 
 ## Project PR-body contract
 
