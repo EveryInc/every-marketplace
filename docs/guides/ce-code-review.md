@@ -83,7 +83,7 @@ A small low-risk change runs correctness (and project-standards if applicable fi
 
 - **Always-on:** `correctness-reviewer`
 - **Standards:** `project-standards-reviewer` only when at least one criteria file governs a changed file (see [Repo-owned review criteria](#repo-owned-review-criteria))
-- **Generic conditional:** testing for changed tests/harnesses or meaningful runtime behavior with no corresponding test work; maintainability for large or structural work; agent-native for agent-facing files; learnings only when an existing `docs/solutions/` corpus has plausible matches
+- **Generic conditional:** testing for changed tests/harnesses or meaningful runtime behavior with no corresponding test work; maintainability for large or structural work; agent-native for agent-facing files; learnings when an existing `docs/solutions/` corpus has plausible matches or the repo declares Compound Packs (local scope)
 - **Cross-cutting conditional:** security, performance, API contract, data migrations, reliability, adversarial, previous-comments. Each selected only when the diff touches its concern
 - **Stack-specific:** Julik frontend races, Swift/iOS. Only when the matching runtime domain is touched
 - **CE conditional:** `deployment-verification-agent` for risky migration diffs. Schema drift and migration safety live on the `data-migration` persona

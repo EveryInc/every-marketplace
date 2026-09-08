@@ -8,6 +8,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -115,7 +116,52 @@ def has_learnings_corpus(docs_root: str | None) -> bool:
     return candidate.is_dir()
 
 
-def fail_closed(reason: str, learnings_corpus: bool = False) -> dict[str, object]:
+PACKS_RESOLVER = Path(__file__).resolve().parent / "packs-resolve.py"
+# The resolver bounds each git call with its own GIT_TIMEOUT (60s default); this
+# caps the whole run so a helper that is meant to be cheap can never hang scope.
+PACKS_RESOLVER_TIMEOUT = 180.0
+
+
+def declared_packs() -> tuple[bool | None, int]:
+    """Whether the repo under review declares Compound Packs, and how many resolved.
+
+    Runs the sibling resolver, which reads the `packs:` list from the CE config
+    layers. The resolver is silent (empty roots, warnings, and errors) exactly
+    when no config names a pack, so any root, warning, or error means at least
+    one entry is declared -- including a broken one, which the learnings pass
+    surfaces in Coverage. ``None`` means the helper could not tell (resolver
+    missing, crashed, or timed out); the caller then falls closed to reading the
+    config's `packs:` key itself.
+    """
+    if not PACKS_RESOLVER.is_file():
+        return None, 0
+    try:
+        proc = subprocess.run(
+            [sys.executable, str(PACKS_RESOLVER)],
+            capture_output=True,
+            text=True,
+            check=False,
+            cwd=repo_root(),
+            timeout=PACKS_RESOLVER_TIMEOUT,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None, 0
+    if proc.returncode != 0:
+        return None, 0
+    try:
+        data = json.loads(proc.stdout)
+    except ValueError:
+        return None, 0
+    roots = data.get("roots") or []
+    declared = bool(roots or data.get("errors") or data.get("warnings"))
+    return declared, len(roots)
+
+
+def fail_closed(
+    reason: str,
+    learnings_corpus: bool = False,
+    packs: tuple[bool | None, int] = (None, 0),
+) -> dict[str, object]:
     return {
         "status": "unknown",
         "reason": reason,
@@ -126,6 +172,8 @@ def fail_closed(reason: str, learnings_corpus: bool = False) -> dict[str, object
         "test_files_changed": False,
         "agent_surface": False,
         "has_learnings_corpus": learnings_corpus,
+        "declared_packs": packs[0],
+        "pack_roots": packs[1],
         "lite_eligible": False,
     }
 
@@ -138,26 +186,27 @@ def main() -> int:
     args = parser.parse_args()
 
     learnings_corpus = has_learnings_corpus(args.docs_root)
+    packs = declared_packs()
 
     if not valid_commit(args.base):
-        print(json.dumps(fail_closed("invalid base endpoint", learnings_corpus), sort_keys=True))
+        print(json.dumps(fail_closed("invalid base endpoint", learnings_corpus, packs), sort_keys=True))
         return 0
     if args.head is not None and not valid_commit(args.head):
-        print(json.dumps(fail_closed("invalid head endpoint", learnings_corpus), sort_keys=True))
+        print(json.dumps(fail_closed("invalid head endpoint", learnings_corpus, packs), sort_keys=True))
         return 0
 
     diff_args = [args.base]
     if args.head:
         merge_base = unique_merge_base(args.base, args.head)
         if merge_base is None:
-            print(json.dumps(fail_closed("merge base unavailable or ambiguous", learnings_corpus), sort_keys=True))
+            print(json.dumps(fail_closed("merge base unavailable or ambiguous", learnings_corpus, packs), sort_keys=True))
             return 0
         diff_args = [merge_base, args.head]
 
     names = git("diff", "--name-only", *diff_args)
     numstat = git("diff", "--numstat", *diff_args)
     if names.returncode != 0 or numstat.returncode != 0:
-        print(json.dumps(fail_closed("git diff failed", learnings_corpus), sort_keys=True))
+        print(json.dumps(fail_closed("git diff failed", learnings_corpus, packs), sort_keys=True))
         return 0
 
     files = sorted(line for line in names.stdout.splitlines() if line)
@@ -192,6 +241,8 @@ def main() -> int:
         "test_files_changed": any(TEST_PATTERN.search(file) for file in files),
         "agent_surface": any(AGENT_SURFACE_PATTERN.search(file) for file in files),
         "has_learnings_corpus": learnings_corpus,
+        "declared_packs": packs[0],
+        "pack_roots": packs[1],
         "lite_eligible": lite,
     }
     print(json.dumps(result, sort_keys=True))
