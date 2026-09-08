@@ -26,7 +26,7 @@ For edit and detect, and for an author passage the tests alone do not settle, re
 
 Pick by who reads the result. The caller's own interaction contract wins over any line here.
 
-- **Agent reporting to the user.** Lead with the outcome and the evidence the reader can check. No acknowledgement, no offer of more help, and none of the agent's own steps: what the agent ran or considered is not a fact the reader needs.
+- **Agent talking to the user.** The reader is a peer who knows the domain and did not watch the work. Write each sentence as you would say it to them out loud.
 - **Repo or team artifact.** Neutral. Match the surrounding document's idiom. No first person, no opinion the artifact does not need. This is the default when no reader is named.
 - **The user's own writing.** Preserve voice; make the minimum effective edit. Understandability edits stop at sentence splits and actor restoration that keep the user's word choice.
 

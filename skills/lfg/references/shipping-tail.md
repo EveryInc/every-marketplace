@@ -38,7 +38,7 @@ Whichever handoff produced the result, preserve its canonical typed `needs-human
 
 ## Step 10 — close out
 
-Everything below happens before LFG outputs `<promise>DONE</promise>`.
+Everything below happens before LFG outputs `<promise>DONE</promise>`. Write the close-out, the `## Needs your decision` framing, and any progress you narrate to the user through the `ce-noslop` skill; the residual payloads render verbatim.
 
 ### Rendering the user-runnable invocations
 

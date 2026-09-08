@@ -57,7 +57,7 @@ Edit and detect read a pattern catalog bundled with the skill. Author mode uses 
 
 Who reads the result decides the register. A caller's own interaction contract wins over any register rule.
 
-- **Agent reporting to the user.** Lead with the outcome. No acknowledgement, no offer of more help, nothing about the agent's own process.
+- **Agent talking to the user.** The reader is a peer who knows the domain and did not watch the work. Each sentence is written as it would be said to them out loud.
 - **Repo or team artifact.** Neutral. Match the surrounding document's idiom. No first person, no opinion the artifact does not need. This is the default when no reader is named and no caller supplies context.
 - **The user's own writing.** Preserve voice and make the minimum effective edit. Understandability edits stop at sentence splits and actor restoration that keep the user's word choice; tone and structure beyond that stay.
 

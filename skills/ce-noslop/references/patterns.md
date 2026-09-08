@@ -56,6 +56,6 @@ Rule numbers are stable ids. A removed rule leaves a gap; never renumber. Each r
 36. **Chatbot openers and closers.** "Certainly", "Great question", "Happy to help", "Let me know if you need anything else", "Want me to". Remove; state the content.
 37. **Sycophancy.** "You're absolutely right" before the answer. Answer.
 38. **Announcing the next point.** "Let's dive in", "here's what you need to know", "without further ado". State the point.
-39. **Process narration in a report.** What the agent considered, tried, or felt. Report the outcome, the evidence, and the next step.
+39. **Process narration in a report.** Steps the agent took that do not change what the reader does next. A cause that was ruled out or a fix that failed stays, stated as a finding; the account of how the agent spent its time goes.
 40. **Knowledge-limit disclaimers and gap-filling.** "While details are limited, it likely..." State what the source does not show, or cut the sentence. Never present a guess as a fact.
 41. **Manufactured thoroughness.** Bare counts ("resolved 11 threads"), scorecards, and lists of everything checked. Say what was decided and why; if nothing non-routine was decided, say nothing.
