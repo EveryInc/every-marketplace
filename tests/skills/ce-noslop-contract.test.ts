@@ -11,7 +11,7 @@ import { describe, expect, test } from "bun:test"
 
 const SKILL_DIR = path.join(process.cwd(), "skills/ce-noslop")
 const KERNEL_BYTE_LIMIT = 4096
-const INVOCATION_TOKEN = "`ce-noslop`"
+const INVOCATION_TOKEN = "Invoke the `ce-noslop` skill in author mode"
 
 function readRepoFile(rel: string): string {
   return readFileSync(path.join(process.cwd(), rel), "utf8")
@@ -51,6 +51,7 @@ const REMOVED_SUBSTRINGS: Array<[string, string[]]> = [
       "skills/ce-code-review/references/finish-review.md",
       "skills/ce-plan/references/plan-sections.md",
       "skills/ce-brainstorm/references/brainstorm-sections.md",
+      "skills/ce-doc-review/references/rendering-floor.md",
     ],
   ],
   ["thrilled/excited to announce", ["skills/ce-promote/SKILL.md"]],

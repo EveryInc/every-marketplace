@@ -158,7 +158,7 @@ export const SCENARIOS: Scenario[] = [
     why: "Fact preservation is the invariant across modes. The puffery around four numbers must go while all four numbers stay.",
     pre_contract: "Never add a fact, number, name, quote, or citation the source did not supply, and never drop a claim.",
     task: "Use the ce-noslop skill to edit facts.md for a repo document. Return the full result text in chat between the markers RESULT-START and RESULT-END, then the one-line summary. Do not write files.",
-    grade: { workspace_read: ["facts.md"], must_include: ["92", "14", "45", "12", "3.8", "4"], actions: "none" },
+    grade: { workspace_read: ["facts.md"], must_include: ["92", "14", "45", "12", "3.8", "4 milliseconds"], actions: "none" },
   },
   {
     id: "ce-noslop/dense-paragraph-keeps-every-claim",

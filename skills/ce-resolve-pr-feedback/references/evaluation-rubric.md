@@ -96,11 +96,11 @@ For `declined`:
 Declined: [specific harm cited, e.g., "this would add a defensive null check the type system already guarantees" or "violates the no-premature-abstraction rule in the project's conventions"]
 ```
 
-For `needs-human`, the **reply_text** is posted as the user, so write it under `ce-noslop` in the agent-reporting register, as the PR author would:
+For `needs-human`, the **reply_text** is posted as the user. Invoke the `ce-noslop` skill in author mode and write it in the user's-own-writing register, as the PR author would:
 ```markdown
 > [quote the relevant part of the reviewer's comment]
 
-[Natural acknowledgment, e.g., "Good question -- this is a tradeoff between X and Y. Going to think through this before making a call." or "Need to align with the team on this one -- [brief why]."]
+[Reply as the PR author, e.g., "This is a tradeoff between X and Y -- going to think it through before making a call." or "Need to align with the team on this one -- [brief why]."]
 ```
 
 The durable result is a typed residual. Compose it once at this boundary; callers may render it, but must not summarize away or rewrite its decision payload:
