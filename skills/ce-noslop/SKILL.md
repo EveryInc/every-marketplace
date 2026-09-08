@@ -35,8 +35,8 @@ Pick by who reads the result. The caller's own interaction contract wins over an
 Apply these to every sentence, in author mode as constraints and in edit or detect mode as checks.
 
 1. **Mechanism.** Does the sentence say what the thing does, or how it feels? Replace the feeling with the fact it displaced, or cut the sentence.
-2. **Portability.** Could the sentence move to another project unchanged? Then it says nothing about this one.
-3. **Actor.** Who does the verb? Name them. Passive stays only when the actor is unknown or does not matter.
+2. **Portability.** Could the sentence move to another project unchanged? Then it carries no fact about this one.
+3. **Actor.** Who does the verb? Name them. Keep the passive only when naming the actor adds nothing.
 4. **One idea.** Would the reader backtrack? Split the sentence.
 5. **Density.** One device proves nothing. Three or more distinct patterns in a passage, or one repeated across passages, is a finding.
 6. **Decision first.** Does the first sentence carry the outcome the reader needs?
