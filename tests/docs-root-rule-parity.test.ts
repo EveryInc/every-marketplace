@@ -21,6 +21,7 @@ const FIXTURE = path.join(REPO_ROOT, "tests", "fixtures", "docs-root-rule.md")
 // the exception and the step that guarantees the read; the parity requirement is
 // unchanged, only the file it is asserted against.
 const CONSUMER_FILES: Record<string, string> = {
+  "ce-bakeoff": "references/output.md",
   // ce-plan reads its output owner before phase interpretation and resolves the
   // root lazily when a later route first composes a rooted path.
   "ce-plan": "references/output-mode.md",
@@ -33,6 +34,7 @@ const CONSUMER_FILES: Record<string, string> = {
   lfg: "references/plan-brief.md",
 }
 const CONSUMER_SKILLS = [
+  "ce-bakeoff",
   "ce-setup",
   "ce-compound",
   "ce-compound-refresh",
