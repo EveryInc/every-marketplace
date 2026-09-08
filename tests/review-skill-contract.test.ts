@@ -1022,7 +1022,7 @@ describe("ce-code-review contract", () => {
     // cold-caller fallback only (it must not start a second review in the ce-work Tier 2 path).
     expect(followup).toMatch(/consume the completed review/i)
     expect(followup).toMatch(/invoke[^\n]*review[^\n]*cold caller/i)
-    expect(followup).toContain("The caller owns judgment as well as apply authority")
+    expect(followup).toContain("The calling agent decides which findings are valid and which fixes it has permission to apply")
     expect(followup).toMatch(/Group by `file`/i)
     expect(followup).toMatch(/batch/i)
     expect(followup).toContain("mode:agent")
@@ -1046,9 +1046,9 @@ describe("ce-code-review contract", () => {
       )
 
       expect(workflow).toContain("**Residual Work Gate**")
-      expect(workflow).toContain("Rejected claims are closed, not residual work")
+      expect(workflow).toContain("Close rejected claims; they are not unfinished work")
       expect(workflow).toContain("Autonomous runs return the blocker")
-      expect(workflow).toContain("Nonblocking residuals do not require an interactive routing menu")
+      expect(workflow).toContain("Remaining concerns that do not prevent completion do not need a menu asking what to do next")
       expect(workflow).toContain("## Unapplied review findings")
       expect(workflow).toContain("recorded nowhere else")
       expect(workflow).not.toContain("residual-review-findings")

@@ -38,24 +38,24 @@ For human-facing shipping, invoke `ce-code-review` without `mode:agent` if markd
 - Full finding detail when needed: `review.json` / artifact `findings`, or `{reviewer}.json` for `why_it_matters` and `evidence`
 - Stable finding `#` — reuse in commits, residual sinks, and subagent prompts
 
-## Adjudicate before applying
+## Check findings before applying fixes
 
-The caller owns judgment as well as apply authority. Review output is a set of claims, not a work queue. Verify the relevant evidence and decide whether the remedy materially improves the authorized outcome. Reject disproven claims, unsupported hypotheticals, and preferences whose benefit does not justify the disruption. Record why; rejected claims are not residual work.
+The calling agent decides which findings are valid and which fixes it has permission to apply. Verify each finding against the evidence and the requested outcome. Reject incorrect claims, problems with no supporting evidence, and preferences whose benefit does not justify the change. Record why they were rejected; do not carry them forward as unfinished work.
 
-Apply warranted, reversible fixes within the existing scope. Resolve bounded engineering choices from the project's evidence and conventions; a design choice does not inherently need a human decision. Neither `confidence`, `autofix_class`, nor a concrete `suggested_fix` grants permission or proves benefit. A missing suggestion is a reason to investigate a material problem, not automatically defer it.
+Apply justified fixes within the agreed scope when they can be reversed. Use project evidence and conventions to choose technical fixes; a design choice does not automatically need a user decision. Neither `confidence`, `autofix_class`, nor a concrete `suggested_fix` proves benefit or grants permission. If a significant problem has no suggested fix, investigate it before deciding to defer it.
 
-Defer when essential evidence is unavailable or the right remedy depends on an unsettled product preference, expanded scope, or authority the caller lacks. Passing tests do not resolve unverified safety or authorize a changed contract. Surface the remaining decision and its consequence together at the Residual Work Gate.
+Defer a fix when essential evidence is unavailable, the user must choose a product preference, the work would expand the agreed scope, or the calling agent lacks permission. Passing tests do not prove an unverified safety property or authorize changing an agreed requirement. At the Residual Work Gate, explain what decision is needed and what depends on it.
 
-Use targeted source reads or a bounded investigation subagent to resolve uncertainty. Invoke `ce-pov` only when a consequential, bounded choice warrants an independently grounded position beyond ordinary inspection; reviewer disagreement alone does not warrant it. Pass the subject, known constraints, and evidence pointers. Consume its position or missing framing as input to the caller's decision, not as edit authority or a reason to start a panel automatically.
+Read the relevant source or assign a subagent to investigate a specific question. Use `ce-pov` only when an important, specific choice needs an independent assessment beyond ordinary inspection. Reviewer disagreement alone is not enough. Give it the subject, known constraints, and locations of supporting evidence. Use its answer or explanation of missing context to inform your decision. Neither gives permission to edit or automatically start a panel of models.
 
-## Execution — orchestrator adjudicates and batches, subagents apply
+## Execution — orchestrator reviews and groups findings, subagents apply
 
-The orchestrator owns final disposition, batch scope, diff review, tests, and the Residual Work Gate. It may investigate directly when the evidence is bounded; delegate broader investigation rather than loading every cited file. Fix subagents confirm current evidence and apply within that same scope, returning unresolved decisions with their evidence.
+The lead agent decides which findings to act on, groups the work, reviews the diffs, runs tests, and checks what remains at the Residual Work Gate. It may investigate a small question directly; delegate broader research rather than loading every cited file. Subagents confirm that the evidence still matches the code before applying fixes within the agreed scope. They return any unresolved decisions with supporting evidence.
 
 
 ### Default: batched fix subagents
 
-After adjudication, **dispatch subagents for all remaining applicable findings** unless the optional inline shortcut below applies. Do not classify findings by complexity in the parent thread.
+After review, **dispatch subagents for all remaining applicable findings** unless the optional inline shortcut below applies. Do not classify findings by complexity in the parent thread.
 
 **Batching (primary rule — group by file):**
 
@@ -67,7 +67,7 @@ After adjudication, **dispatch subagents for all remaining applicable findings**
 
 **Subagent prompt (per batch):** the assigned findings only (`#`, severity, file, line, title, `suggested_fix`, `requires_verification`; add `why_it_matters` from `{reviewer}.json` in the run artifact when useful), plus:
 - Work through assigned `#` in severity order; at each `file:line`, skip with a one-line reason if evidence no longer matches
-- Apply the adjudication and authority boundary above; resolve grounded engineering choices and return essential missing decisions to the caller
+- Follow the review and permission rules above; choose technical fixes from project evidence and return decisions that still need the user
 - Do not re-run `ce-code-review`
 - Shared-directory fallback: do not stage or commit — return which `#` were applied or skipped and which files changed
 
@@ -77,7 +77,7 @@ After adjudication, **dispatch subagents for all remaining applicable findings**
 
 Use **only** when **all** of the following hold:
 
-- Exactly **one** applicable finding after adjudication, **and**
+- Exactly **one** applicable finding after review, **and**
 - The orchestrator **already** has that file's relevant region in context from Phase 2 work this session (no new Read/Grep expedition)
 
 Otherwise dispatch a subagent — even for a single finding. When unsure, dispatch.
@@ -88,4 +88,4 @@ Report: batches dispatched, `#` applied vs skipped (with reasons from subagents)
 
 ## Handoff to Residual Work Gate
 
-Any warranted finding still unresolved after this pass is **residual work** — proceed to the Residual Work Gate with an updated count. Do not re-invoke `ce-code-review` solely to re-apply the same findings unless the diff changed materially after fixes.
+Any justified finding still unresolved after this pass is **residual work** — proceed to the Residual Work Gate with an updated count. Do not re-invoke `ce-code-review` solely to re-apply the same findings unless the diff changed materially after fixes.

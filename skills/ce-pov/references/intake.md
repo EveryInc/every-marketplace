@@ -40,7 +40,9 @@ The subject is usually recoverable; the **intent** is the ambiguous part. Classi
 
 ## Step 3 — Resolve the frame
 
-Resolve shorthand from the active conversation when one referent fits. A clear subject and intent need no confirmation. When competing readings would materially change the judgment, investigate what can be established and ask only for the remaining user-owned decision under the skill body's interaction rule. A calling workflow receives missing framing back rather than a clarification interview.
+Resolve shorthand from the active conversation when one referent fits. A clear subject and intent need no confirmation. When competing readings would materially change the judgment, investigate what can be established and return **Blocked — missing context** with the remaining information needed, under the skill body's interaction rule. Do not start research or a panel on an invented question.
+
+Uncertainty that does not affect the decision need not stop a recommendation supported by evidence. You may state a supported assumption if it does not invent a product commitment or choose an unresolved user preference. Still obtain any required approval before sending information to an unexpected external recipient or acting outside existing permission.
 
 An understanding request belongs to `ce-explain`; no reversibility tier, selection workup, or verdict is required on that route.
 

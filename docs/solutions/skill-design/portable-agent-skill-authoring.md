@@ -67,6 +67,8 @@ For Compound Engineering's multi-model skills, portable means Sol-first and Fabl
 
 For portable Sol/Fable skills, control output length by naming what shortened output must preserve. Do not paste a Fable-only brevity block or ship a blanket "be concise" / "keep it short" slogan into a cross-model skill; GPT-5.6 Sol can undershoot when broad brevity instructions stack on top of its default concision.
 
+Write instructions in the language the agent should use with the reader. Name who acts, what they do, and why it matters when that information is needed. Replace invented labels and internal workflow jargon with the action or consequence they mean. Keep necessary technical terms and exact identifiers, explaining unfamiliar terms where the reader needs them. Clarity must preserve evidence, qualifications, and required detail; shorter text is not the goal.
+
 This is not a ban on targeted steering. A phrase that counters a documented runtime behavior can stay as a model-behavior adapter: name the condition it addresses and verify the effect rather than promoting it to a universal quality slogan.
 
 Verification instructions should elicit an observable check of the final artifact at its requested fidelity, including changes made after review. Test whether the agent chooses and performs that check from the ordinary workflow request; success when a separate prompt names the check establishes capability, not reliable workflow behavior.
@@ -313,7 +315,7 @@ Stable cross-skill fields, enums, and return statuses are protocols. Version or 
 
 A review agent is biased toward producing changes. Counter that bias directly.
 
-Review findings are claims for the owning caller to adjudicate against the intended outcome. Confidence and independent agreement can strengthen evidence; neither establishes importance or edit authority. Apply the same relevance boundary to advisory and residual output so rejected claims cannot return through another field. Grounded engineering choices belong to the agent within its authority; essential missing user preferences remain with the caller. A judgment utility returns the missing framing and its consequence rather than starting its own interview.
+The agent using a review must check each finding against the requested outcome. Confidence and reviewer agreement can strengthen evidence; they do not prove that a change is worthwhile or grant permission to edit. Apply the same standard to every output field so rejected suggestions do not return as risks or open questions. The agent should choose technical fixes from project evidence within the permission already granted. Several workable approaches do not by themselves require a user decision. Keep choosing a fix separate from permission to apply it. When an assessment skill lacks essential context, it returns what is missing and why it matters to the calling agent instead of starting its own interview.
 
 ### Suspected defects
 

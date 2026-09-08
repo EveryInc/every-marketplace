@@ -11,7 +11,7 @@
 
 ### Resume a completed review
 
-Reuse complete prior reviewer returns, evidence, classifications, and decision state when they cover the same document and scope, and the relevant source has not materially changed. Confirm that identity and freshness from the current document and available review state. A summary envelope alone is insufficient. A new interaction mode or a request to handle existing findings is not a new review.
+Reuse complete previous reviewer responses, evidence, classifications, and decision state when they cover the same document and scope, and the relevant source has not materially changed. Check the current document and saved review state to confirm that they match and the evidence is still current. A summary alone is insufficient. A new interaction mode or a request to handle existing findings is not a new review.
 
 On a valid resume, go directly to synthesis and presentation with the retained state; do not redispatch personas or repeat the cross-model pass. Reconcile new user decisions there. Missing complete evidence, material source changes, or an explicit request for a fresh review takes the normal dispatch path. Preserve prior applied and rejected decisions on either path.
 

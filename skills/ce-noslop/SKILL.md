@@ -42,4 +42,4 @@ Apply these to every sentence, in author mode as constraints and in edit or dete
 6. **Decision first.** Does the first sentence carry the outcome the reader needs?
 7. **Reader.** Can someone without the document or the code open act on this? Gloss the identifier or name the consequence.
 
-Shorten sentences, not content. Keep exact identifiers, paths, commands, thresholds, and domain terms.
+Keep exact identifiers, paths, commands, and thresholds. For wording choices, read `references/terminology.md`.

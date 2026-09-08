@@ -60,7 +60,7 @@ describe("ce-doc-review shared rendering floor", () => {
   })
 
   test("floor pins the anchor budget and the identifier-free-consequence invariant", () => {
-    expect(floor).toContain("at most two opaque anchors")
+    expect(floor).toContain("at most two identifiers or references that need explanation")
     // The load-bearing invariant: the first sentence the reader sees carries no
     // token they'd have to open the doc or code to understand.
     expect(floor).toMatch(/no opaque identifier/i)

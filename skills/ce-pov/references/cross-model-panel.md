@@ -10,7 +10,7 @@ note, or the ordinary POV contract's explicit grounding blocker.
 
 Resolve conversational shorthand before spending: "the approach," "these
 options," and "the three options presented" mean the single unambiguous
-referent in the active conversation. Return missing framing to the caller when multiple plausible referents would
+subject identified by the active conversation. Return missing context to the caller when several possible subjects would
 materially change the POV and context cannot distinguish them.
 
 Keep four identities separate for the host and every peer:

@@ -4,6 +4,8 @@
 
 `ce-noslop` is the plugin's writing skill. It holds two goals at equal weight: the text carries no AI writing patterns, and a person understands it on the first read. Technical writing is included; a PR body, a plan section, a review finding, and a chat reply all get the same tests. Text that is free of tells but still dense has failed. Text that is plain but dropped a qualifier has failed too.
 
+It preserves technical terms needed for precision and explains unfamiliar ones when the reader needs them. Internal workflow jargon is rewritten as the action or consequence it means. Exact identifiers and required status tokens stay intact.
+
 Other skills invoke it where they compose prose. You invoke it directly when you want a draft checked, rewritten, or written from content you supply. Either way the rules are the same; mode and register change the shape of the output, never which rules apply.
 
 It is not `ce-promote` (channel-specific announcement copy; that skill writes its own direct drafts through this one and presents Spiral-returned drafts as returned) and not `ce-doc-review` (findings on a plan's substance, not its sentences).

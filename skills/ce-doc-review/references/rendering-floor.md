@@ -51,12 +51,11 @@ the four field labels verbatim.
 2. **Consequence if unchanged** — one short sentence per distinct consequence: what goes wrong, for
    whom, if the finding is not acted on. Use multiple sentences only when required to preserve
    independent consequences. **Contains no opaque identifier at all** (see the token policy). A reader
-   who skimmed the document once must be able to judge it without looking anything up. This is the
-   load-bearing field.
+   who skimmed the document once must be able to judge it without looking anything up. This tells the reader why the finding matters.
 3. **Change** — one sentence of intent: what the fix achieves and where it lives. Prefer intent
    language over quoted text or raw markup.
 4. **Basis** — at most **two** sentences of mechanism explaining how the problem arises. Every opaque
-   token is glossed per the token policy, and the block carries **at most two opaque anchors total**.
+   token is glossed per the token policy, and the block carries **at most two identifiers or references that need explanation**.
 5. **Trace on request** — anything beyond that (file-level tracing, multi-hop call paths, competing
    call sites) is not printed. Offer it in one closing line (e.g. `Ask for the call-path detail.`).
    Moving this cost onto the reader, who has less context than the review did, is the failure this
@@ -64,20 +63,16 @@ the four field labels verbatim.
 
 ## Reporting versus asking
 
-Three surfaces exist and they are different speech acts. A reader must be able to tell them apart at a
-glance, without tracking which header they scrolled past. Give each its own grammar:
+Make it clear whether the agent is reporting a completed change, requesting approval, or asking the user to choose. The wording must make this clear even when the section header is off screen:
 
-- **A report** — a change already applied. Settled tense, no recommendation field, no offered actions.
+- **A report** — a change already applied. Say what changed, with no recommendation field or offered actions.
   The reader's job is to notice, and to revert if they disagree. Never phrase a report as a question.
 - **A grouped confirmation** — a batch that applies on one answer. Render every member in full *before*
   the question; a confirmation with nothing visible above it is a rubber stamp, not a decision. Shape it
   per "Presenting a batch" below.
-- **A question** — a genuine fork. Carries its options and names what differs between them. **A question
-  offering one option is a report wearing a question mark**; if there is only one thing to do, report it.
+- **A question** — a choice requiring the user’s judgment. Carries its options and names what differs between them. When the fix is already determined, report it if applied or present it for approval if approval is still required.
 
-The summary line follows the same split: count changes made and choices requested separately, and never
-describe an item as awaiting the reader when none is. "N proposed fixes remain" beside "no decisions
-requiring judgment" is the contradiction this rule exists to prevent.
+The summary line follows the same split: count changes made, proposed fixes awaiting approval, and questions requiring judgment separately. If no judgment is needed but approval is still pending, say both. Never imply a proposed fix has already been applied.
 
 ## Presenting a batch
 
@@ -88,7 +83,7 @@ to read — the volume moved, the comprehension did not.
 So lead with what the batch does, then put the members under it:
 
 - **Open with the shape of the batch, not a count.** One or two sentences naming what is about to change
-  in the document. "Six fixes, all replacing the old tier names with the routes that replaced them" tells
+  in the document. "Six fixes update the setup instructions to match the renamed commands" tells
   the reader what they are approving. "6 proposed fixes" tells them only how much scrolling is left.
 - **Group members by what they share, and head each group with the consequence they share.** The axis
   that helps is almost always *the change*: one root cause, one kind of edit, one section. Severity and
@@ -140,7 +135,7 @@ never by a product-specific vocabulary list:
   a bare ticket or PR number in the default block is noise the reader cannot resolve.
 - **Mechanism symbols** — code the document happens to name: functions, files, variables, line
   references (`clearMuxStatus`, `codebookTranscriptMode.ts:46`). **Translate to the role the symbol
-  plays in the decision** — "the terminal-failure predicate", "the retry-clearing path". Keep the
+  plays in the decision** — "the check for a permanent failure", "the code that clears retry state". Keep the
   exact symbol only when precise scope is what the decision turns on. Do not fill the default block
   with raw symbols the reader cannot evaluate.
 

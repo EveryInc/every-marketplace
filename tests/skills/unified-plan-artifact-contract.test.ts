@@ -726,7 +726,7 @@ describe("session-settled decision contract", () => {
 
   test("ce-work envelope reports settled conflicts; shipping tail treats invalidation as a blocker", () => {
     expect(ceWorkReturn).toContain("`settled_decision_conflicts`")
-    expect(ceWorkShipping).toContain("never auto-accepted as a residual")
+    expect(ceWorkShipping).toContain("do not accept it as a leftover risk")
   })
 
   test("ce-code-review routes settlement conflicts advisory+human, never demotes defects, and keeps stamps report-only in 5c", () => {

@@ -16,9 +16,9 @@ Check each agent's returned JSON against the findings schema:
 
 ### 3.1b Admit Findings by Consequence
 
-Treat reviewer returns as claims. Check them against the document's purpose and next consumer before applying confidence gates. Retain a finding only when the evidence establishes a concrete correctness or execution consequence, or a worthwhile improvement whose benefit exceeds the disruption. Research discoverable uncertainty within the review scope; do not turn it into a question for the author.
+Check reviewer claims against the document's purpose and the work it is meant to guide before assigning confidence. Keep a finding only if the evidence shows a specific problem with correctness or execution, or an improvement worth the disruption. Look up facts available within the review scope instead of asking the author for them.
 
-Discard preferences, unsupported hypotheticals, and completeness demands that do not change the intended outcome. Do not move rejected claims into FYI or residual questions. Zero findings is a valid result. Neither a high anchor nor reviewer agreement substitutes for this judgment. Maintainability and clarity can matter without a runtime failure, but the finding must explain the actual benefit.
+Drop preferences, possible problems without evidence, and demands for more detail that offer no worthwhile benefit. If an existing rule already covers the case, asking for more explicit wording does not establish a defect. Every retained item, including FYI, needs a current reason to matter. An earlier label, recommendation, high confidence score, or reviewer agreement is not enough. Rejected findings must not return as open questions. Zero findings is valid. Improvements to maintenance or clarity can qualify without a runtime bug, but explain their actual benefit.
 
 ### 3.2 Confidence Gate (Anchor-Based)
 
@@ -55,7 +55,7 @@ When findings merge:
 - **Retain each constituent finding as a record**, with its own `section`, `title`, and `evidence` intact. Round-to-round memory — R29, R30, the decision primer, and the open-questions dedup key — matches on a single finding's section, title, and evidence overlap. A merged group has none of those, so collapsing the constituents away would make every finding the user settled re-raise on the next round.
 - **Coverage attribution:** attribute the merged finding to the persona with the highest confidence anchor; on a tie, to the persona appearing first in document order. Decrement the losing persona's Findings count and its route bucket so totals stay exact.
 
-**Merging never drops.** A merge regroups findings; it never removes one from the review. Every finding that survives lead adjudication reaches the user — as its own entry or inside the merged finding that carries its concern. Rejected claims are recorded internally, not lost through merging.
+**Merging never drops.** A merge regroups findings; it never removes one from the review. Every finding that survives the lead agent’s review reaches the user — as its own entry or inside the merged finding that carries its concern. Rejected claims are recorded internally, not lost through merging.
 
 **Cross-model returns.** A `<reviewer-name>-<provider>` return merges with its in-process twin under the same one-fix test. Whether that merge counts as *independent corroboration* is decided in 3.4 by the return's `independence_verified` flag — not here.
 
@@ -63,45 +63,39 @@ When findings merge:
 
 ### 3.4 Cross-Persona Agreement Promotion
 
-Agreement is corroboration, not evidence of importance. Promote by at most **one anchor step** only when the combined evidence itself meets the higher anchor's definition. Multiple reviewers noticing the same nit does not make it actionable. A material defect needs no second vote to survive.
+Agreement can strengthen the evidence but does not make an issue important. Raise confidence by at most **one anchor step** only when the combined evidence meets the next level's definition. Several reviewers noticing a nit does not make it worth fixing. A significant defect needs no second vote to be retained.
 
 For local personas, independence requires separate dispatched contexts; an inline fallback cannot trigger anchor promotion. Cross-model corroboration requires `independence_verified: true`, at least one in-process contributor, and an independence-verified peer. A missing or false flag cannot trigger anchor promotion. Cursor default/Auto is not verified independence without a receipt. Peer-only agreement never promotes, and additional peers never stack the promotion.
 
-Record any justified promotion in the Reviewer column as `(+1 anchor)`, naming the cross-model reviewer and its verified model or route legibly. Keep the stored reviewer identities. Findings dropped at anchors 0/25 do not return through agreement. Corroboration never grants apply authority: the peer caps in 3.6 and 3.7 still apply.
+Record any justified promotion in the Reviewer column as `(+1 anchor)`, naming the cross-model reviewer and its verified model or route legibly. Keep the stored reviewer identities. Findings dropped at anchors 0/25 do not return through agreement. Corroboration never grants permission to apply fixes: the peer caps in 3.6 and 3.7 still apply.
 
 ### 3.5 Resolve Contradictions
 
-Adjudicate opposing claims against the document, project evidence, and intended outcome before treating them as a user decision. Discard a disproven claim or a preference with no material benefit; reviewer disagreement alone is not a document defect. Record the reason internally so a discarded claim cannot re-enter through merging or action selection.
+Check conflicting claims against the document, project evidence, and requested outcome before asking the user to decide. Drop a disproven claim or a preference with no significant benefit. Disagreement alone does not prove a defect. Record the reason internally so the rejected claim does not return when findings are combined or actions are chosen.
 
-When competing resolutions remain viable and the choice depends on an unsettled user preference, scope, or authority, retain one combined `manual` finding with both perspectives and the missing decision. Classify `finding_type` from the actual document defect, not the existence of disagreement. Preserve the opposing remedies even across sections; never schedule both as independent fixes.
+If several fixes remain possible and choosing one needs an unresolved user preference, a scope decision, or permission, keep one combined `manual` finding. Include both views and the decision needed. Set `finding_type` from the document's actual defect, not the disagreement. Keep opposing fixes together even when they affect different sections; never schedule both as separate edits.
 
 ### 3.5b Lead Recommended Action
 
-Every surviving merged finding carries one `recommended_action`: Apply, Defer, or Skip. The lead chooses it from the verified consequence, benefit of the proposed remedy, intended scope, and existing decisions. Reviewer classifications and votes are inputs, not the decision rule.
+Give every retained finding one `recommended_action`: Apply, Defer, or Skip. The lead agent chooses it using the verified problem, benefit of the fix, agreed scope, and existing decisions. Reviewer votes and classifications inform this choice but do not decide it.
 
-Recommend Apply when a concrete remedy is warranted. Recommend Defer when essential evidence or a genuine user decision remains missing, including when no executable fix is available. Skip a claim that does not survive adjudication; it does not become an FYI or an open question merely because a reviewer raised it. A recommendation never changes the edit authority in 3.7: semantic corrections still require the grouped confirmation, and real forks remain manual.
+Recommend Apply for a justified, concrete fix. Recommend Defer when essential evidence or a user decision is missing, or no specific edit can yet be made. Skip a claim that fails review; do not keep it as an FYI or open question just because a reviewer raised it. Recommendations do not change the permission rules in 3.7: changes to meaning still need approval as a group, and unresolved choices for the user remain `manual`.
 
-When contributing recommendations differed, retain one line of conflict context explaining the lead's resolution and evidence. Downstream walk-through and bulk-preview read `recommended_action`; they never recompute it. Recheck that an Apply still has an executable `suggested_fix` after 3.6 and 3.7; otherwise use Defer.
+When reviewers recommended different actions, keep one line explaining the lead agent's choice and its evidence. The walk-through and bulk preview use that `recommended_action` without recalculating it. After 3.6 and 3.7, check that each Apply still has a specific edit in `suggested_fix`; otherwise recommend Defer.
 
-### 3.6 Promote Auto-Eligible Findings
+### 3.6 Resolve Who Can Choose the Fix
 
-Scan `manual` findings for promotion to `safe_auto` or `gated_auto`. Promote when the finding meets one of the consolidated auto-promotion patterns:
+Check each retained finding against the document, project evidence, and permission already granted. Choose technical fixes within that permission, even when several approaches would work. Recommend the smallest fix that solves the problem and state the supporting evidence. A reviewer's `manual` label, uncertainty, or missing suggested fix does not replace this investigation.
 
-- **Codebase-pattern-resolved.** `why_it_matters` cites a specific existing codebase pattern (concrete file/function/usage reference, not just "best practice" or "convention"), and `suggested_fix` follows that pattern. Promote to `gated_auto` — the codebase evidence resolves the ambiguity that held the finding in `manual`.
-- **Factually incorrect behavior.** The document describes behavior that is factually wrong, and the correct behavior is derivable from context or the codebase. Promote to `gated_auto`.
-- **Missing standard security/reliability controls.** The omission is clearly a gap (not a legitimate design choice for the system described), and the fix follows established practice (HTTPS enforcement, checksum verification, input sanitization, fallback-with-deprecation-warning on renames). Promote to `gated_auto`.
-- **Framework-native-API substitutions.** A hand-rolled implementation duplicates first-class framework behavior, and the framework API is cited. Promote to `gated_auto`.
-- **Mechanically-implied completeness additions.** The missing content follows mechanically from the document's own explicit, concrete decisions (not high-level goals). Promote to `safe_auto` when there is genuinely one correct addition; `gated_auto` when the addition is substantive.
+Use project evidence to decide how to implement or verify the agreed outcome. Adding detail or changing a method does not by itself create a new commitment for the user. Keep `manual` only when a fix needs the user to decide the outcome or its constraints, permission beyond the existing request, or essential information you cannot obtain. State what is missing and how different answers would change the result. Calling something a product decision or tradeoff is not enough. Preserve agreed decisions. If evidence shows a chosen method cannot work, choose a replacement within scope unless the user reserved that choice.
 
-Do not promote if the finding involves scope or priority changes where the author may have weighed tradeoffs invisible to the reviewer.
+Use `gated_auto` for a chosen fix that changes the document's meaning. Only a mechanical correction with one right answer qualifies for `safe_auto`. If another workable correction exists, do not apply it silently. Choosing a fix does not give permission to apply it.
 
-**Cross-model peer cap.** A finding whose reviewers are *only* cross-model peers (a `<lens>-<provider>` name such as `adversarial-codex`, with no bare in-process `<lens>` reviewer) — i.e. one no in-process reviewer independently raised — is **never** promoted to `safe_auto` here; cap it at `gated_auto` at most, and do not promote a peer-only `manual` finding at all — capping the class still hands it to 3.7 as `gated_auto`, which batches it, and `Apply all` would sweep a genuine choice. A peer is a corroboration signal, not an apply authority (R18): silent apply requires in-process corroboration, so only a peer finding that *merged* with its in-process twin in 3.3 (its Reviewer shows both `<lens>` and `<lens>-<provider>`) may reach `safe_auto` under the normal rules. This is independent of the peer's returned `autofix_class` — the promotion scan, not just the peer's own classification, is capped.
-
-**Strawman-downgrade safeguard.** If a `safe_auto` finding names dismissed alternatives in `why_it_matters` (per the subagent template's strawman rule), verify the alternatives are genuinely strawmen. If any alternative is a plausible design choice that the persona dismissed too aggressively, downgrade to `manual` — a real alternative makes the finding a decision, per the misclassification guard in 3.7.
+**Fixes found only by another model.** These never qualify for `safe_auto`. The lead agent may change a `manual` finding to `gated_auto` after verifying the evidence and choosing a fix within existing permission. Keep the original reviewer attribution: the lead agent's investigation is not another independent review. Silent application still requires an in-process reviewer to have independently raised the same issue (R18), along with the normal confidence and mechanical-correction requirements.
 
 ### 3.7 Route by Autofix Class
 
-**Severity and autofix_class are independent.** A P1 finding can be `safe_auto` if the correct fix is obvious. The test is not "how important?" but "is there one clear correct fix, or does this require judgment?"
+**Severity and autofix_class are independent.** A P1 finding can be `safe_auto` if the correct fix is obvious. Importance does not establish who can choose the fix or permission to edit.
 
 **Anchor and autofix_class are also independent.** Anchor gates the finding into a surface (FYI vs actionable); `autofix_class` decides what the actionable surface does with it. Both are consulted in this step.
 
@@ -109,7 +103,9 @@ Findings reaching 3.7 have already been gated to anchors `50`, `75`, or `100` by
 
 **Check obligations before autofix routing.** A finding is an **obligation** when the question that resolves it is already answered elsewhere in the document under review. The document made the decision; the finding reports only that some part of the document has not caught up. Entailed contradictions, a missing owner for behavior the document already requires, and a callsite implied by the document's own decision are obligations.
 
-A finding is **not** an obligation when its fix would introduce a new user-visible state, limit, failure policy, retention rule, or operational commitment — however concrete that fix is. Concreteness is not authority. A fix the document does not already entail is a decision and stays in the decision surface. An obligation does not require judgment about *whether* to act — the document already resolved that. So a `manual` finding carrying a `suggested_fix` becomes `gated_auto` and routes as an obligation. Two cases do not: **`safe_auto` is never demoted**, and a finding with **no `suggested_fix` stays `manual` on the decision surface** — the batch applies edits on one answer and there is no edit to apply, so the reader supplies the missing text.
+A finding is **not** an obligation if its fix adds a commitment the document has not made. A technical fix independently justified by project evidence may still enter **Proposed fixes** after 3.6; do not describe it as already required by the document. If the user must decide a new commitment, keep it `manual`.
+
+An obligation that changes meaning uses `gated_auto` and must include a specific `suggested_fix`. A mechanical `safe_auto` correction keeps its class, subject to the restriction on findings raised only by another model. If investigation still leaves no specific edit to apply, exclude it from the group and return the missing information to the calling agent.
 
 This is a per-finding test against one document. It needs no comparison to other findings and is independent of the merging in 3.3.
 
@@ -117,13 +113,9 @@ Route the obligations carrying a fix to the part of the document they affect ins
 
 Obligation grouping governs what the user is asked about, never what applies silently. An obligation at anchor `100` with `autofix_class: safe_auto` still applies silently under the table below.
 
-**Every finding carries two claims, and they have independent entropy.** The *problem-claim* — this is wrong — is scored by the confidence anchor. The *remedy-claim* — fix it this way — is scored by `autofix_class`, because the rubric in `references/subagent-template.md` classifies `manual` precisely when genuinely different approaches exist and `gated_auto` when the only alternatives are strawmen. So `gated_auto` already asserts that no real alternative exists.
+**Evidence, choosing a fix, and permission to edit are separate checks.** Confidence describes support for the finding. Step 3.6 decides whether the agent can choose the fix. This step decides whether and how the reader must approve the edit.
 
-Route on the pair. **Do not spend a separate question on a finding whose own classification says there is nothing to choose between.** Eleven questions with foregone answers teach the reader to accept without reading, and that habit is what destroys the confirmations that matter.
-
-Batching is the remedy, not silence. One question over the whole settled set keeps the changes in front of the reader without pretending each is a decision. What earns a question of its own is a genuine fork.
-
-**When the call between `gated_auto` and `manual` is genuinely close, choose `manual`.** With nothing but mechanical corrections applying unattended, the remaining risk is not a bad edit — it is a real fork buried inside a batch the reader skims. A fork wrongly asked costs one question; a fork wrongly batched costs the decision itself.
+Show the concrete fixes the agent has chosen together for one approval. Ask separate questions only for essential missing information or choices the user still needs to make. If permission remains unclear after investigation, keep `manual` and explain what is missing. Another reasonable implementation is not, by itself, missing permission.
 
 | Anchor | Autofix Class | Route |
 |--------|---------------|-------|
@@ -135,23 +127,19 @@ Batching is the remedy, not silence. One question over the whole settled set kee
 | `75`   | `manual`      | A decision. Same treatment. |
 | `50`   | any           | Surface in the FYI subsection regardless of `autofix_class`. Do not enter the decision surface or any batch action. These are observations. |
 
-**Nothing that touches document meaning applies unattended.** Only `safe_auto` at anchor `100` applies without the reader seeing it first. Everything else with a concrete fix goes to the grouped confirmation: one question covering the whole batch, rendered in full before it fires.
+**Nothing that touches document meaning applies unattended.** Only `safe_auto` at anchor `100` applies without the reader seeing it first. Other actionable findings with a concrete, resolved remedy go to the grouped confirmation: one question covering the whole batch, rendered in full before it fires.
 
 This is a deliberate retreat from a stricter rule, and the reason is measured. Routing `gated_auto` straight to Apply was evaluated across four rounds on a real review. It reported far more corrections — 7 to 9 of 9, against 2 to 4 when Apply was gated harder — but it also applied a genuine product fork in most runs, because the model cannot reliably tell which findings carry a real choice. Asking it to route its own uncertainty to a safer bucket did not help: it never used that route, since it does not experience the uncertainty as uncertainty. It simply decides, and is sometimes wrong.
 
 So the volume problem and the authority problem get separated. **The grouped confirmation solves volume** — one question for a batch is not eleven prompts, which is the complaint this work started from. **Attended review solves authority** — a wrong classification costs the reader a glance rather than an unrequested change to their document. What `autofix_class` still decides is *how* the reader meets a finding: batched with everything else settled, or as a fork with its own question.
 
-That yields three surfaces, each a different speech act: **applied** (reported, revertable — mechanical corrections only), **grouped confirmation** (everything with a concrete fix, plus obligations and the peer-only findings diverted out of Apply — one question covering a batch shown in full first), and **decisions** (genuine forks the reader settles). Render them per the shared floor's grammar so a reader can tell which is which without tracking headers.
+Present three groups: **applied** mechanical corrections, **proposed fixes** shown together for approval, and **decisions** that the user must still make. Proposed fixes include requirements already decided elsewhere in the document and eligible findings raised only by another model. Follow the shared rendering rules so the reader can distinguish these groups.
 
 **Where competing remedies come from — and where they do not.** The reviewer contract commits `suggested_fix` to a single recommendation and forbids alternative menus (`references/subagent-template.md`), so an ordinary `manual` finding reaches the decision surface with one fix or none. It has no menu to offer, and the walk-through gives it the regular four-option question. The case that genuinely carries two is 3.5's contradiction resolution: two personas disagreeing on the same section become one combined finding holding both perspectives, framed as a tradeoff. Ask which-remedy there. Do not invent a second option elsewhere to make the fork appear — the finding is still a decision when it carries one remedy; the reader is choosing whether that remedy is what they want, which is not the same as being asked to rubber-stamp something settled.
 
-**Cross-model peer safeguard.** A finding whose only reviewers are cross-model peers (a `<lens>-<provider>` name with no in-process co-reviewer) **never routes to Apply**, at any anchor — a peer cannot authorize an unattended edit on its own (R18). Divert it to the grouped confirmation only where the table would have applied it; **a peer-only `manual` finding stays a decision**, since `Apply all` would sweep a genuine choice and a `manual` finding may carry no `suggested_fix` to apply. Withhold apply authority; do not move a finding down a surface it never qualified for.
+**No silent fixes from another model alone.** Findings raised only by another model never go directly to Apply, regardless of confidence or class (R18). Show a verified, chosen fix for approval with the others. Keep `manual` when a user decision or essential information is still missing. The source of a finding limits silent application, not the lead agent's ability to investigate and recommend.
 
-**Misclassification guard.** A concrete `suggested_fix` never outranks a real alternative. If a finding classed `gated_auto` would let a competent author reasonably prefer a different remedy, it is `manual` and belongs in the decision surface — reclassify it here rather than applying it. This is the failure that puts scope and behaviour changes into an unattended path, so when the two readings are close, prefer `manual`.
-
-**Auto-eligible patterns for safe_auto:** summary/detail mismatch (body authoritative over overview), wrong counts, missing list entries derivable from elsewhere in the document, stale internal cross-references, terminology drift, prose-vs-diagram inconsistency where the diagram can be mechanically updated to match the prose (deletion is never the fix — diagrams are intentional communication choices that aid spatial comprehension, not redundancy with prose), missing steps mechanically implied by other content, unstated thresholds implied by surrounding context.
-
-**Auto-eligible patterns for gated_auto:** codebase-pattern-resolved fixes, factually incorrect behavior, missing standard security/reliability controls, framework-native-API substitutions, substantive completeness additions mechanically implied by explicit decisions.
+**Check the proposed edit before applying it.** A concrete `suggested_fix` does not grant permission. Confirm that each fix preserves agreed commitments and does not decide something reserved for the user. Keep an unresolved user choice as `manual`. A `safe_auto` fix that changes meaning or has more than one correct answer can become `gated_auto` only after the agent has resolved the choice. Mechanical corrections must follow directly from the document's authoritative content. A visual aid may be updated to fix an inconsistency, but not deleted merely because it repeats prose.
 
 ### 3.8 Sort
 
@@ -159,9 +147,9 @@ Sort findings for presentation: P0 → P1 → P2 → P3, then by finding type (e
 
 ### 3.9 Suppress Restatements in Residual Concerns and Deferred Questions
 
-Apply the consequence and relevance boundary in 3.1b to every persona's `residual_risks` and `deferred_questions`, not only its findings. Retain uncertainty only when project evidence establishes why it matters to the document's outcome. Rejected preferences and unsupported hypotheticals do not return through another output field.
+Apply 3.1b to each reviewer's `residual_risks` and `deferred_questions`, not just its findings. Keep an uncertain concern only when project evidence shows why it matters to the requested outcome. Rejected preferences and unsupported possibilities do not return through another output field.
 
-Compare surviving residuals and questions with the finalized findings, including FYI. Suppress a residual or question when it adds no distinct concern beyond an existing finding or its recommended resolution. Preserve genuinely distinct, relevant uncertainty; shared wording alone does not prove duplication.
+Compare the remaining risks and questions with the final findings, including FYI. Omit any that repeat a concern already covered by a finding or its recommended fix. Keep distinct, relevant uncertainty; similar wording alone does not prove duplication.
 
 Run this pass on the merged set across all personas. Record the count suppressed as duplicates as a Coverage footnote line when non-zero: `Restated: N (residual/deferred items suppressed as duplicates of actionable findings)`. Ordering: footnotes appear in the sequence `Dropped:`, `Restated:` below the Coverage table, each on its own line. Omit any footnote whose count is zero.
 
@@ -187,7 +175,7 @@ Apply each edit in the document's native format and preserve its existing struct
 - Track what was changed for the "Applied changes" section in the rendered output
 - Do not ask for approval — 3.7 already established there is no choice to offer
 - Do **not** apply anything 3.7 routed elsewhere. Obligations and peer-only findings diverted out of Apply join the grouped confirmation; anchor `50` routes to FYI; `manual` at any anchor is a decision. If a finding reaches this step from any of those routes, 3.7 was not applied correctly — re-run it for that finding before continuing.
-- Do **not** apply a finding whose only reviewers are cross-model peers, at any anchor or class. 3.7 diverts those to the grouped confirmation when the table would have applied them, and leaves a peer-only `manual` finding on the decision surface where it belongs.
+- Do **not** apply a finding whose only reviewers are cross-model peers, at any anchor or class. 3.7 diverts those to the grouped confirmation when the table would have applied them, and keeps choices that only the user can make in the separate Decisions section after the ownership check in 3.6.
 - An applied fix must never remove or reword a `session-settled:` annotation. If a `suggested_fix`'s text would touch one, do not apply it — send the finding to the grouped confirmation so the user answers before the annotation changes.
 
 List every applied fix in the output summary so the user can see what changed. Use enough detail to convey the substance of each fix (section, what was changed, reviewer attribution). This is especially important for fixes that add content — the user should not have to diff the document to understand what the review did.
@@ -199,7 +187,7 @@ After the applied changes land, the rest split by the route 3.7 assigned — not
 - **Grouped confirmation** — every finding 3.7 sent there, obligations and Apply-diverted peer-only findings among them. One confirmation covering the batch, rendered in full first. In interactive mode this fires as its own step before the routing question (see `references/walkthrough.md`); it is never folded into the routing question, and a run that reaches routing without asking it leaves the batch unapplied. In non-interactive mode the batch is returned unapplied for the caller to confirm.
 - **Decisions** — `manual` findings at anchor `75` or `100`. These enter the routing question and the walk-through (see `references/walkthrough.md`), and carry a which-remedy sub-question only when the finding holds competing remedies — in practice a 3.5 contradiction, per the note under the routing table.
 - **FYI** — anchor `50`, presentation only, no routing.
-- **Nothing in the decision surface** → skip the routing question. **Interactive mode only:** after the grouped confirmation has been answered, emit the completion report, then return through Phase 5 — applied changes and an answered confirmation do not warrant a routing question, but they are what the run did and still warrant a report. **Non-interactive mode emits no completion report at all**; the envelope above is the whole output, and an empty decision surface is its ordinary case, so printing an interactive report beside or instead of the envelope would corrupt what the caller parses. In either mode, when the decision surface is empty but the grouped confirmation is not, the confirmation is still the reader's to answer — it is a separate step, not a branch of routing, and nothing reports "complete" before it is settled.
+- **No remaining user decisions** → skip the routing question. In Interactive mode, still get approval for any proposed fixes, then emit the completion report and return through Phase 5. Applied fixes and answered approvals belong in that report. In Non-interactive mode, return only the structured result above; an extra interactive report would break the caller's expected format. No remaining decisions does not waive approval for proposed edits or mean those edits are complete.
 
 **Self-contained rendered lines (both modes, including the Applied-fixes list).** Every rendered line —
 an applied fix, proposed fix, decision, FYI observation, residual concern, or deferred question —

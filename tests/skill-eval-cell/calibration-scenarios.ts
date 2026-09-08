@@ -7,6 +7,28 @@ const base = { cohort: "resized", key_behavior: "judgment", read_only: true, fix
 export const CALIBRATION_SCENARIOS: Scenario[] = [
   {
     ...base,
+    id: "ce-doc-review/ownership-transcript",
+    skill: "ce-doc-review",
+    fixture: "tests/skill-eval-cell/fixtures/doc-review-ownership",
+    baseline_ref: "1caa4d73",
+    why: "Replay a real rendered review with excessive human decisions against its pre-review plan.",
+    pre_contract: "Reasonable alternative remedies and peer-only manual findings require individual user decisions.",
+    task: `Continue ce-doc-review at synthesis for PLAN.md using the completed review in REVIEW.md. Reassess every proposed fix, numbered decision, and FYI against the plan. Return each disposition, its evidence, and whether it belongs in applied changes, grouped confirmation, user decisions, or is dropped. The review is a rendered transcript, not raw persona JSON; preserve known provenance and do not invent missing confidence or corroboration. Stop before interaction, edits, or dispatch.`,
+    grade: { workspace_read: ["PLAN.md", "REVIEW.md"], actions: "none", delegates: "none" },
+  },
+  {
+    ...base,
+    id: "ce-doc-review/ownership-boundary",
+    skill: "ce-doc-review",
+    fixture: "tests/skill-eval-cell/fixtures/doc-review-ownership-boundary",
+    baseline_ref: "1caa4d73",
+    why: "Distinguish an in-scope engineering remedy from an unapproved user commitment, including peer-only provenance.",
+    pre_contract: "Peer-only manual findings stay on the decision surface even when local inspection settles their remedy.",
+    task: `Continue ce-doc-review at synthesis for PLAN.md. A cross-model peer returned two manual findings at confidence 100: E1 proposes replacing the duplicated ownership condition in src/endpoint.js with assertOwner, citing src/export.js; retaining the equivalent inline guard is also viable. E2 proposes adding automatic deletion after 7 days; 30 days is also viable. An in-process reviewer independently confirmed E2's omission but did not review E1. Inspect the evidence and decide whether each finding survives, what remedy you recommend, and how it routes. Stop before interaction, edits, or dispatch.`,
+    grade: { workspace_read: ["PLAN.md", "src/endpoint.js", "src/export.js"], actions: "none", delegates: "none", must_include: ["retention"] },
+  },
+  {
+    ...base,
     id: "ce-doc-review/calibration-adjudication",
     skill: "ce-doc-review",
     why: "Exercise synthesis after independent reviewers returned: correlated low-impact observations, a fact-resolved disagreement, a real omission, and a product fork.",

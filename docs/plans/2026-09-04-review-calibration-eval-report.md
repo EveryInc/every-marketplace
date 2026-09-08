@@ -1,27 +1,27 @@
 # Review Calibration - Implementation and Evaluation
 
-CE reviewers now have to establish a practical consequence or worthwhile maintenance benefit before surfacing a claim. The lead adjudicates disagreements from evidence; confidence, reviewer votes, and suggested fixes do not establish importance or edit authority. The same admission bar covers residual risks and deferred questions.
+Reviewers must now show a practical problem or worthwhile maintenance benefit before reporting a finding. The lead agent resolves disagreements from evidence. Confidence, agreement, and suggested fixes do not establish importance or grant permission to edit. Risks and open questions must meet the same standard.
 
 ## Changed contracts
 
-| Owning surface | New decision rule | Preserved boundary |
+| Skill or section | What changed | What stays required |
 |---|---|---|
-| `ce-doc-review` synthesis and reviewer template | Reject low-value claims; corroboration promotes only when combined evidence meets the higher anchor; lead chooses the recommendation | Only confidence-100 mechanical `safe_auto` edits apply silently. Semantic corrections retain grouped confirmation; real forks stay manual |
-| `ce-doc-review` intake and interaction | Reuse complete, current review evidence for unchanged findings; honor an already requested interaction route; return without a terminal menu | Summary-only state cannot resume; material changes require review; bulk previews and genuine decisions remain |
-| `ce-code-review` synthesis and reviewer template | Adjudicate claims and residual fields before reporting; do not launder rejected claims into advisory output | Existing report-only default, validator requirements, scoped standards, and settled-decision handling |
-| `ce-work` followup and residual gate | Resolve grounded engineering choices; continue independent authorized work; block only when missing evidence or decisions prevent the required outcome | No invented product preference or authority; warranted residuals remain disclosed |
-| `ce-pov` intake, grounding, followup | Investigate discoverable context; return essential missing framing to the invoking caller; no framing or continuation interview | Read-only judgment, grounding floors, panel recipient authority, four-part downstream handoff gate |
-| `ce-plan` and `ce-brainstorm` seams | Retain complete review state for reuse; reserve questions for unresolved user-owned decisions | Planning and product-scope boundaries |
+| `ce-doc-review` review | Reject low-value findings; raise confidence only when combined evidence meets the next level; lead agent chooses the recommendation | Only confidence-100 mechanical `safe_auto` edits apply silently. Changes to meaning need approval; choices reserved for the user stay manual |
+| `ce-doc-review` resume | Reuse complete, current evidence for an unchanged document; follow the interaction choice already made; return without asking what to do next | A summary alone cannot support resume; significant changes require a fresh review; required previews and user decisions remain |
+| `ce-code-review` | Check findings, remaining risks, and open questions before reporting; do not reintroduce rejected claims | Report-only default, validation, project standards, and earlier decisions |
+| `ce-work` | Choose technical fixes from evidence; continue authorized work; stop only when missing evidence or decisions prevent completion | No invented product preferences or permission; explain justified unfinished work |
+| `ce-pov` | Research available facts; return missing information to the calling agent without starting an interview | Read-only assessment, required evidence, permission to contact other models, and the four checks before starting another workflow |
+| `ce-plan` and `ce-brainstorm` | Keep complete review results for reuse; ask only for decisions that still need the user | Existing planning and product-scope limits |
 
-`ce-pov` is selective: the work caller uses it for consequential bounded judgments beyond ordinary inspection, not every finding or disagreement. A delegated agent can own the POV; no new mode or universal orchestration protocol was added.
+`ce-work` calls `ce-pov` for important, specific choices that ordinary inspection cannot resolve. It does not call it for every finding or disagreement. A delegated agent can perform the assessment. No new mode or general coordination protocol was added.
 
 ## Provenance and review decisions
 
-- The old automatic confidence bump, contradiction-to-user rule, and conservative action vote were policy choices pinned by contract tests. They now yield to consequence-based lead adjudication; independent-provider receipt checks and peer apply caps remain.
-- The prior semantic-edit experiment in `2026-08-12-003-fix-doc-review-decision-clustering-plan.md` (U14, shipped narrowed, target not met) showed false applications of actual product forks. This implementation deliberately preserves that confirmation boundary rather than treating confidence as authority.
-- The removed POV question requirement protected framing. Its replacement returns essential missing framing, while source verification still owns discoverable uncertainty. Terminal menus are replaced by returning the deliverable and preserving downstream authority.
-- The code-followup ban on investigation and mechanical-only fixer instruction conflicted with caller-owned judgment. The caller now owns evidence-based disposition; batching and shared-file isolation remain.
-- Fresh-reader feedback found a real residual-field bypass; synthesis now applies the same admission bar to all returned concerns. A proposed stale-decision exception was rejected because R29 already rechecks materially changed evidence. Preserving the decision record does not unconditionally suppress a new concern.
+- The old automatic confidence bump, contradiction-to-user rule, and conservative action vote were policy choices pinned by contract tests. They now yield to the lead agent’s assessment of practical consequences; independent-provider receipt checks and peer apply caps remain.
+- The prior experiment with edits that change meaning in `2026-08-12-003-fix-doc-review-decision-clustering-plan.md` (U14, shipped narrowed, target not met) showed false applications of actual product choices. This implementation deliberately preserves that confirmation boundary rather than treating confidence as authority.
+- The earlier POV question requirement helped establish what to assess. The replacement returns any missing information needed to identify the question and still researches facts it can find. It returns the result without asking what to do next, and does not start further work without permission.
+- The code-followup ban on investigation and mechanical-only fixer instruction conflicted with the calling agent’s judgment. The caller now owns decisions based on evidence; batching and shared-file isolation remain.
+- Fresh-reader feedback found a real way for rejected findings to return as remaining risks; synthesis now applies the same standard for keeping a finding to all reported concerns. A proposed stale-decision exception was rejected because R29 already rechecks materially changed evidence. Preserving the decision record does not unconditionally suppress a new concern.
 - The shared authoring standard records the calibration rule. No separate learning capture is needed: the reasoning and evidence are retained here and in that standard.
 
 ## Evaluation method
@@ -32,11 +32,11 @@ Seven decision scenarios are registered in `tests/skill-eval-cell/calibration-sc
 bun run test:skill-eval-pack -- --id <scenario-id> --arm ab --hosts claude,codex --out <output-directory>
 ```
 
-Grades check fixture reads and action/delegation trailers. All 14 final post cells passed those checks and independent semantic review. Semantic outcomes were read from transcripts; keyword grades alone are insufficient.
+Grades check fixture reads and action/delegation trailers. All 14 final tests after the change passed those checks and independent review of the actual decisions. Semantic outcomes were read from transcripts; keyword grades alone are insufficient.
 
-| Scenario | Observed baseline | Final post outcome |
+| Scenario | Observed baseline | Result after the change |
 |---|---|---|
-| `ce-doc-review/calibration-adjudication` | Initial Claude promoted the duplicate wording nit into grouped confirmation; Codex retained it as FYI. Both refuted the false ownership objection | Both rejected F1/F2/F4 and residual noise; F3 stayed behind grouped confirmation; neither chose retention |
+| `ce-doc-review/calibration-adjudication` | Initial Claude promoted the duplicate wording nit into grouped confirmation; Codex retained it as FYI. Both refuted the false ownership objection | Both rejected F1/F2/F4 and unnecessary remaining concerns; F3 stayed behind grouped confirmation; neither chose retention |
 | `ce-doc-review/calibration-resume` | Not rerun on baseline | Both hosts reused complete unchanged evidence without another reviewer pass |
 | `ce-pov/calibration-missing-framing` | Claude invented a provisional seven-day default; Codex returned Hold | Both returned essential missing product criteria without choosing retention or interviewing |
 | `ce-pov/calibration-grounded-position` | Not rerun on baseline | Both chose the existing ownership helper from verified requirements and source |
@@ -54,6 +54,6 @@ An intermediate Codex work run passed the keyword grade but incorrectly treated 
 - After final residual-gate and schema-description edits: 237 targeted tests passed, zero failed.
 - `bun run release:validate`, `bun run plugin:validate`, and `git diff --check` passed.
 - `ce-simplify-code`: three independent code reviewers completed. Shared fixture-read checks and parallel test-file reads were adopted; no unnecessary evaluation selector was added. New rows use the existing catalog and completed cohort. No separate lint or typecheck command is configured in package scripts.
-- These are decision and routing cells, not live reviewer fanout, interactive UI, mutation, or shipping tests. They do not prove end-to-end interruption counts, false-apply rates, or equivalence with Pstack. No activation behavior changed. Existing LFG-specific apply policy and unrelated legacy reviewer protocols remain outside this change.
+- These tests check decisions and routing. They do not test dispatching real reviewers, interactive UI, edits, or shipping. They do not prove end-to-end interruption counts, false-apply rates, or equivalence with other autonomous workflows. No activation behavior changed. Existing LFG-specific apply policy and unrelated legacy reviewer protocols remain outside this change.
 
 Raw local evidence is under `/var/folders/yr/rc1_m71d72zcl3zxwsdd75400000gn/T/ce-calibration-eval-yELaGj/`: `final-doc`, `final-code`, `final-work-residual`, `final-work-blocker`, and the original post POV/resume directories. Intermediate results are retained for audit; final runs supersede them where noted.

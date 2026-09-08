@@ -2,7 +2,7 @@
 
 > Review a requirements or plan document with parallel persona agents, apply mechanical fixes, and route the rest.
 
-`ce-doc-review` is the findings skill for documents. Point it at a requirements-only unified plan, an implementation-ready plan, or a legacy requirements/plan doc. It picks reviewer personas from what the doc contains, dispatches them in parallel, applies only full-confidence mechanical fixes in the document's native format, then adjudicates which remaining concerns warrant your attention.
+`ce-doc-review` finds problems in requirements and plans. It chooses reviewers based on the document, runs them in parallel, and checks their findings. It automatically fixes only mechanical errors whose correction is certain, preserving the document's format. It then decides which remaining issues need your attention.
 
 It is the sibling of `/ce-code-review` for the docs side, and it is not a verdict. Use `/ce-pov` when you want a holistic take (strengths, risks, bottom line) instead of an issue list. Use `/ce-code-review` for findings on a diff, and `/ce-debug` when something is actually broken.
 
@@ -20,6 +20,8 @@ It is the sibling of `/ce-code-review` for the docs side, and it is not a verdic
 | Modes | Interactive (direct invoke, or a caller's follow-up option). Non-interactive (default when `ce-plan` chains it) |
 
 ---
+
+The agent uses your plan and project context to choose technical fixes, even when more than one approach would work. It shows you changes to the plan's meaning together for approval. It asks you to make a separate decision only when a fix depends on a choice you haven't made or information it cannot find. A fix found only by another AI model also needs your approval before it changes the document.
 
 ## Example invocations
 
@@ -65,7 +67,7 @@ Document review is harder than code review in specific ways:
 - Two personas on every review: coherence and feasibility
 - Conditional personas selected from doc content: product-lens, design-lens, security-lens, scope-guardian, adversarial
 - Parallel persona dispatch with bounded concurrency
-- Synthesis that verifies practical consequences, rejects unsupported or low-value claims, resolves disagreements from evidence, and routes surviving findings on confidence and fix class together. Agreement can strengthen evidence but does not make a nit important. Only a mechanical correction at full confidence applies unattended. Everything else that touches meaning goes into one batched confirmation. Only a real fork becomes a question
+- A lead agent checks the evidence, drops low-value or unsupported findings, and resolves disagreements. Reviewer agreement can strengthen evidence but does not make a nit important. Certain mechanical corrections apply automatically. Changes to meaning need approval, and choices reserved for the user are asked separately
 - A decision primer that suppresses findings you rejected in earlier rounds and verifies the ones you applied
 - Four options for the remaining decisions: per-finding walk-through, auto-resolve with best judgment, append to Open Questions, report-only
 
@@ -91,7 +93,7 @@ Classification happens once, from readiness metadata, content-shape signals, fro
 
 ### Three surfaces, not a flat list
 
-After personas return, the lead checks each claim against the intended outcome, rejects findings without a concrete consequence or worthwhile benefit, deduplicates, and routes:
+After the reviewers finish, the lead agent checks which findings matter, combines duplicates, and presents the results in three groups:
 
 - **Applied** (reported): only `safe_auto` at confidence 100. Mechanical corrections with one right answer
 - **Proposed fixes** (grouped confirmation): everything with a concrete fix that touches meaning, plus obligations the document already entailed. One question over the batch, shown in full first
@@ -111,7 +113,7 @@ Without the evidence snippet, suppression falls back to title-only and either re
 
 ### Four-option interaction
 
-After mechanical fixes land and the grouped confirmation is answered, the skill follows your requested interaction route. When that intent is unclear, one routing question covers the remaining set:
+After applying mechanical fixes and getting approval for the proposed changes, the skill handles the remaining decisions as you requested. If you have not chosen how to handle them, it asks once:
 
 | Option | Effect |
 |--------|--------|
@@ -133,7 +135,7 @@ Each per-finding step prints a terminal block and duplicates What's wrong / Prop
 
 Non-interactive requires a path. Without one it errors rather than guessing.
 
-Handling existing findings reuses complete review evidence when the document and scope are unchanged. A summary alone is insufficient, and material changes require a new pass. Completed reviews return control without an extra next-step question. These rules apply to direct invocations and nested reviews alike.
+You can return to existing findings without running another review when the document, scope, and relevant source files are unchanged. The agent needs the full earlier review and its evidence, not just a summary. It starts a fresh review if those inputs changed significantly or the evidence is incomplete. Once finished, it returns the result without asking what to do next. This works both when you invoke the skill directly and when another skill calls it.
 
 ### Coverage, settled decisions, and the rendering floor
 
@@ -145,7 +147,7 @@ Findings lead with a recommendation and a one-sentence consequence that names no
 
 ### Cross-model judgment pass
 
-When the **conditional judgment trio** (adversarial, product-lens, security-lens) activates, those lenses also run through one different model provider than the host, in a separate read-only process. Verified independent agreement can support one confidence step only when the combined evidence meets the higher anchor. It never establishes importance or edit authority. Coherence, scope-guardian, and feasibility stay single-model so the pass does not spawn a peer on every review.
+When adversarial, product, or security review is needed, another model also reviews those concerns in a separate read-only process. Agreement can raise confidence by one level only if the reviewers are confirmed to be independent and their combined evidence meets that level's requirements. Agreement does not make a finding important or give permission to edit. Coherence, scope, and feasibility reviews use one model.
 
 A single **whole-document sweep** has one different-provider peer review the entire document as a general reviewer, folding in as `whole-doc-<provider>`. On unified plans the focused trio peers are sliced to match their in-process twins. The sweep reads the whole document.
 
