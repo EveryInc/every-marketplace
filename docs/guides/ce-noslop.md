@@ -6,7 +6,7 @@
 
 Other skills invoke it where they compose prose. You invoke it directly when you want a draft checked, rewritten, or written from content you supply. Either way the rules are the same; mode and register change the shape of the output, never which rules apply.
 
-It is not `ce-promote` (channel-specific announcement copy; that skill invokes this one for the writing) and not `ce-doc-review` (findings on a plan's substance, not its sentences).
+It is not `ce-promote` (channel-specific announcement copy; that skill writes its own direct drafts through this one and presents Spiral-returned drafts as returned) and not `ce-doc-review` (findings on a plan's substance, not its sentences).
 
 ---
 
@@ -98,7 +98,7 @@ Use it when:
 
 Skip it when:
 
-- You want announcement copy shaped for a channel (X, changelog, LinkedIn, email, blog). That is `/ce-promote`, which invokes this skill for the writing
+- You want announcement copy shaped for a channel (X, changelog, LinkedIn, email, blog). That is `/ce-promote`, which writes its direct drafts through this skill
 - You want findings on what a document says rather than how it reads. That is `/ce-doc-review`
 - The text is code, config, or something the user asked to post as written
 
@@ -111,7 +111,7 @@ Sibling skills write their prose through `ce-noslop` at the point where they com
 - `ce-commit-push-pr` for the PR title and body
 - `ce-code-review` for human-readable findings
 - `ce-plan` and `ce-brainstorm` for the plan document's prose sections
-- `ce-promote` for the announcement draft
+- `ce-promote` for the announcement drafts it writes itself (Spiral-returned drafts are presented as returned)
 - `ce-resolve-pr-feedback` for replies posted as the PR author
 
 Skills with a presentation contract of their own (`ce-pov`, `ce-doc-review`, `ce-babysit-pr`) invoke `ce-noslop` before composing and keep only the rules specific to their output on top.
@@ -136,7 +136,7 @@ Put it in the repo's `AGENTS.md`/`CLAUDE.md`, or in your harness's global instru
 
 ## See also
 
-- [`ce-promote`](./ce-promote.md): channel-specific announcement copy, written under this skill's tests
+- [`ce-promote`](./ce-promote.md): channel-specific announcement copy; its direct drafts are written through this skill
 - [`ce-commit-push-pr`](./ce-commit-push-pr.md): PR descriptions composed under this skill
 - [`ce-code-review`](./ce-code-review.md): findings written under this skill
 - [`ce-plan`](./ce-plan.md) and [`ce-brainstorm`](./ce-brainstorm.md): plan prose written under this skill

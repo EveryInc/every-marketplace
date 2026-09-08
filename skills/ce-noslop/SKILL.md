@@ -36,7 +36,7 @@ Apply these to every sentence, in author mode as constraints and in edit or dete
 
 1. **Mechanism.** Does the sentence say what the thing does, or how it feels? Replace the feeling with the fact it displaced, or cut the sentence.
 2. **Portability.** Could the sentence move to another project unchanged? Then it carries no fact about this one.
-3. **Actor.** Who does the verb? Name them. Keep the passive only when naming the actor adds nothing.
+3. **Actor.** Who does the verb? Name them when the source says who. Keep the passive when the actor is unknown or naming it adds nothing.
 4. **One idea.** Would the reader backtrack? Split the sentence.
 5. **Density.** One device proves nothing. Three or more distinct patterns in a passage, or one repeated across passages, is a finding.
 6. **Decision first.** Does the first sentence carry the outcome the reader needs?
