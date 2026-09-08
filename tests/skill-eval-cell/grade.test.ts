@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test"
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
+import { scenarioById } from "./catalog"
 import { gradeHost, parseTrailers } from "./grade"
 
 describe("skill-eval-cell trailer parse", () => {
@@ -50,6 +51,37 @@ describe("skill-eval-cell host grade", () => {
     }
     return dir
   }
+
+  test.each([
+    ["fresh-subagent", "ce-pov", "single-judgment", true],
+    ["same-context", "ce-pov", "oracle-panel", false],
+    ["same-context", "ce-pov", "single-judgment", false],
+    ["fresh-subagent", "none", "single-judgment", false],
+    ["fresh-subagent", "ce-pov", "oracle-panel", false],
+  ])("default POV judge grades context=%s skill=%s assessment=%s", (context, skill, assessment, expected) => {
+    const scenario = scenarioById("ce-bakeoff/default-pov-judge")!
+    const dir = hostDir({
+      "stdout.txt": `ROUTE: context=${context}; skill=${skill}; assessment=${assessment}\nFILES_READ: SKILL.md\nACTIONS: none\nDELEGATES_DISPATCHED: none\n`,
+    })
+    const g = gradeHost({ host: "claude", hostDir: dir, arm: "post", grade: scenario.grade })
+    expect(g.ok).toBe(expected)
+  })
+
+  test.each([
+    ["ce-bakeoff/timing-evidence", "TIMING: seconds=592; draft=unsupported", "TIMING: seconds=592; draft=supported"],
+    ["ce-brainstorm/requested-bakeoff-confirmation", "HANDOFF: next=ce-bakeoff; presentation=options-first; confirmer=user", "HANDOFF: next=ce-bakeoff; presentation=options-first; confirmer=agent"],
+    ["ce-bakeoff/settled-decision-restraint", "DECISION: settled-choice=preserve", "DECISION: settled-choice=reopen"],
+    ["ce-bakeoff/shared-brief-preserves-unknowns", "STORAGE_STATUS: guarantees=unknown", "STORAGE_STATUS: guarantees=established; unrelated details remain unknown"],
+    ["ce-plan/requested-bakeoff-boundary", "HANDOFF: next=ce-bakeoff; final-author=ce-plan", "HANDOFF: next=ce-bakeoff; final-author=ce-bakeoff"],
+  ])("%s grades the decision rather than a mentioned topic", (id, accepted, rejected) => {
+    const scenario = scenarioById(id)!
+    const reads = [...scenario.grade.files_read_post ?? [], ...scenario.grade.workspace_read ?? []].join(", ")
+    for (const answer of [accepted, rejected]) {
+      const dir = hostDir({ "stdout.txt": `${answer}\nFILES_READ: ${reads}\nACTIONS: none\nDELEGATES_DISPATCHED: none\n` })
+      const result = gradeHost({ host: "claude", hostDir: dir, arm: "post", grade: scenario.grade })
+      expect(result.ok).toBe(answer === accepted)
+    }
+  })
 
   test("must_exclude looks at ACTIONS, not an explanation in the essay", () => {
     const dir = hostDir({

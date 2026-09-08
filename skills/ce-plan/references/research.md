@@ -165,3 +165,7 @@ Use the output to:
 - Identify missing edge cases, state transitions, or handoff gaps
 - Tighten requirements trace or verification strategy
 - Add only the flow details that materially improve the plan
+
+#### 1.6 Requested Bake-off (Experimental)
+
+When the user explicitly requests a Bake-off, read `references/bakeoff.md` after research and before fixing technical decisions or dependent units. Otherwise continue ordinary planning.

@@ -52,7 +52,7 @@ After a position lands, it proposes one next step (edit, plan, scope, or spike).
 /ce-pov
 ```
 
-Use `ce-ideate` when the options still need inventing. Use `ce-doc-review` when you want findings, not a take.
+Use `ce-bakeoff` when a defined brief needs concrete competing solutions developed before selection. Use `ce-ideate` to discover an open field of opportunities. Use `ce-doc-review` when you want findings, not a take.
 
 ---
 

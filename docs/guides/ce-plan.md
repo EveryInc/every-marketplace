@@ -247,7 +247,7 @@ Plenty of work never goes through a brainstorm. Direct invocations that work wel
 | `<task in another repo>` | Cross-repo announcement; plan lands in the target |
 | `output:html` | Write the plan as a single self-contained HTML file instead of markdown. Exclusive: the plan is `.md` or `.html`, never both. Default is markdown. Set `plan_output: html` in CE config (`config.local.yaml` then `config.yaml`) to make HTML the default. Pipeline mode (LFG, `disable-model-invocation`) always forces markdown. See the [configuration reference](./configuration.md). |
 | `confirm:auto` | Skip the pre-plan scoping-confirmation pause for this run. The skill writes the scope summary for itself, records inferred scope under `Assumptions`, announces it is proceeding, and keeps going. Genuine blockers and the post-plan menu still appear. Use `confirm:ask` to force the gate on for one run. Set `plan_skip_scoping_confirm: true` in CE config to make skipping the default. |
-| `use fable` / `have opus plan this` | Elevate only the interpret-findings-then-author step to that model. Also settable as `plan_model: <model>` in CE config. A prompt request overrides the config key. |
+| `use fable` / `have opus plan this` | Elevate the interpret-findings-then-author step to that model and pass it as the candidate preference for requested Bake-offs. Also settable as `plan_model: <model>` in CE config. A prompt request overrides the config key. |
 
 ---
 
@@ -275,7 +275,7 @@ No. Proof is on the non-software wrap-up menu (save, publish, or both). Software
 
 ## Model elevation
 
-When you want a specific model for the heavy reasoning step, `ce-plan` can author the plan on that model instead of your session model. Only the interpret-findings-then-author step is dispatched, with read access so it can verify its brief. Dialogue and research stay on your session model. Name a model in the prompt (`use fable`, `have opus plan this`) or set `plan_model: <model>` in CE config; a prompt request overrides the config key.
+When you want a specific model for the heavy reasoning step, `ce-plan` can author the plan on that model instead of your session model. The interpret-findings-then-author step is dispatched with read access so it can verify its brief. Requested Bake-offs receive the model preference and own their candidate dispatch. Dialogue and research stay on your session model. Name a model in the prompt (`use fable`, `have opus plan this`) or set `plan_model: <model>` in CE config; a prompt request overrides the config key.
 
 This works on any harness. The host serves the chosen model natively where it can, otherwise it invokes the Claude CLI (which must be installed and authenticated), otherwise it runs the step on your session model and says which precondition was unmet.
 
@@ -289,3 +289,9 @@ This works on any harness. The host serves the chosen model natively where it ca
 - [`ce-debug`](./ce-debug.md): bug-shaped prompts route here
 - [`ce-strategy`](./ce-strategy.md): anchor plans to documented product strategy
 - [`ce-proof`](./ce-proof.md): publish a non-software plan, or any markdown plan you ask to share
+
+## Experimental Bake-off
+
+Explicitly request a Bake-off when alternatives need concrete development before choosing. See [ce-bakeoff](./ce-bakeoff.md) for the independent candidate contract and limits. General automatic routing is not enabled. The existing model choice is passed to Bake-off as a candidate preference; an explicitly requested candidate mix takes precedence. Bake-off owns dispatch: native model-family diversity when no preference is set, then available authorized CLIs, then fresh same-host agents if those routes fail. It does not use the ordinary elevation adapter for bakers.
+
+Planning runs it after research for an unresolved consequential HOW on Standard/Deep Durable plans, before decisions and dependent units are fixed. The normal final authoring call receives its complete result, and review and handoff still run.
