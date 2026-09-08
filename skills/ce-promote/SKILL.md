@@ -58,14 +58,12 @@ Always pass `--instant` and `--json`; parse `drafts[]` (each carries its own `ch
 
 ### Path B — Direct drafting
 
-No Spiral needed; draft directly. (The Spiral path goes further: brand-voice matching, humanization, saved styles, and cross-channel campaign orchestration.)
+No Spiral needed. Invoke the `ce-noslop` skill in author mode first, then draft every channel under its tests. (The Spiral path goes further: brand-voice matching, humanization, saved styles, and cross-channel campaign orchestration.)
 
 **Every channel:**
 
 - Lead with the user-facing outcome — what someone can now do, not how it was built.
-- One idea per piece. Cut windup, hedges, and throat-clearing.
-- Invoke the `ce-noslop` skill in author mode before drafting, and write under its tests.
-- Read it back as if saying it to one user. If a person wouldn't say it, rewrite it.
+- One idea per piece.
 
 **Distributed channels:** the first line is the hook and has to earn the next line (feeds truncate) — no preamble. Match each channel's native shape and length; never reuse one draft verbatim across channels. One clear CTA where the channel supports it. Hashtags 0-2, and only where the channel expects them.
 

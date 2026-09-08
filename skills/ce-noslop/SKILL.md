@@ -1,6 +1,6 @@
 ---
 name: ce-noslop
-description: "Rewrite, check, or draft prose so it reads plainly on the first read and carries no AI writing patterns, without changing what it says. Use when text is handed over to fix or to check for AI patterns, when a draft is wanted from supplied content, and when a skill about to compose a PR body, plan, finding, or reply names this skill. Use ce-promote for channel-specific marketing copy."
+description: "Rewrite, check, or draft prose so it reads plainly on the first read and carries no AI writing patterns, without changing what it says. Use when the user asks to make text plainer, humanize it, remove AI-sounding writing, or check whether it reads as machine-written; when a draft is wanted from supplied content; and when a skill about to compose a PR body, plan, finding, or reply names this skill. Use ce-promote for channel-specific marketing copy."
 argument-hint: "[mode:author|edit|detect] [text, file path, or nothing]"
 ---
 
@@ -20,7 +20,7 @@ Take a `mode:` token when one is given. Otherwise: no draft means **author**; an
 - **edit.** Rewrite and return the text plus one line saying what changed. A second pass on the returned text changes nothing.
 - **detect.** Name each pattern found, quote the line, give the fix in a few words. Do not rewrite.
 
-For edit and detect, and for an author passage the tests alone do not settle, read `references/patterns.md`. On text that is not English, apply the tests only and say the catalog did not apply.
+For edit and detect, and for an author passage the tests alone do not settle, read `references/patterns.md`. On text that is not English, apply the tests only, and open the summary line by saying the pattern catalog did not apply.
 
 ## Register
 

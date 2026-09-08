@@ -1,6 +1,6 @@
 # Step 4: report / summary
 
-The rules in this file are `ce-babysit-pr`'s own presentation contract; generic prose rules live in `ce-noslop`.
+Invoke the `ce-noslop` skill in author mode before composing any summary, and write under it. The rules below are what this skill adds on top for its own output.
 
 Every stop — and every checkpoint tick — ends with a summary. Below the first line, write it however reads cleanly; the format is yours. What matters is that it hits these goals, because each counters a specific way these summaries fail:
 

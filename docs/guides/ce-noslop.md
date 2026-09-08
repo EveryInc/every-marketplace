@@ -114,7 +114,7 @@ Sibling skills invoke `ce-noslop` in author mode at the point where they compose
 - `ce-promote` for the announcement draft
 - `ce-resolve-pr-feedback` for replies posted as the PR author
 
-Skills with a presentation contract of their own (`ce-pov`, `ce-doc-review`, `ce-babysit-pr`) keep the rules specific to their output and point at `ce-noslop` for everything generic.
+Skills with a presentation contract of their own (`ce-pov`, `ce-doc-review`, `ce-babysit-pr`) invoke `ce-noslop` before composing and keep only the rules specific to their output on top.
 
 Nothing runs after it. The skill returns text or findings and the caller continues.
 
@@ -122,7 +122,7 @@ Nothing runs after it. The skill returns text or findings and the caller continu
 
 ## Make it automatic
 
-The skill is not in context when an agent writes an ordinary chat reply, so the invocation above covers artifacts, not the agent's own reports and summaries. A standing instruction in the project's agent-instructions file closes that gap. `ce-setup` offers to add it, verbatim, beside its compounding-directive offer; it skips the offer only when the file already carries an instruction covering the report boundary, the outcome-first register, and the exclusions. A partial or merely related instruction still gets the offer.
+The skill is not in context when an agent writes an ordinary chat reply, so the invocation above covers artifacts, not the agent's own reports and summaries. A standing instruction in the project's agent-instructions file closes that gap. `ce-setup` offers to add it, verbatim, beside its compounding-directive offer; it skips the offer only when the file already carries an instruction covering the report boundary, the invocation of the skill, and the exclusions. A partial or merely related instruction still gets the offer.
 
 The instruction:
 

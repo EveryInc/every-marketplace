@@ -55,9 +55,9 @@ Absent everywhere: any rule about em dashes, "not X but Y" framing, colon reveal
 **Distribution**
 
 - R7. Each sibling in the consolidation set invokes `ce-noslop` in author mode at the point where it composes prose, stated as one line at that point. The line is a plain directive with no fallback clause; a self-judged "if the skill is unreachable" escape gives a run an out, and no other skill invocation in the plugin carries one. The set: `ce-commit-push-pr`, `ce-code-review`, `ce-plan`, `ce-brainstorm`, `ce-promote`, `ce-resolve-pr-feedback`.
-- R8. Each sibling that owns a presentation contract gains a one-line pointer and keeps its contract intact: `ce-doc-review`'s rendering floor, `ce-pov`'s output economy, `ce-babysit-pr`'s report rules.
+- R8. Each sibling that owns a presentation contract invokes `ce-noslop` in author mode before composing and keeps its own contract as the rules on top: `ce-doc-review`'s rendering floor, `ce-pov`'s output economy, `ce-babysit-pr`'s report rules.
 - R9. The generic blocks named in the Problem Frame are deleted from the consolidation set. Domain rules stay: commit subject form, the PR value-first lead and tracker-ID wording, requirement and unit sentence shape, review severity vocabulary, per-channel register in `ce-promote`, the `needs-human` reply example in `ce-resolve-pr-feedback`, and `ce-explain`'s audience voice block.
-- R10. `ce-setup` offers a standing instruction for chat replies as a new step beside its compounding-directive offer, inserted verbatim from a bundled asset. The offer is skipped only when the instruction file already carries an instruction that covers the full bundled one: the report boundary, the outcome-first register, and the exclusions. A partial or merely related instruction still gets the offer.
+- R10. `ce-setup` offers a standing instruction for chat replies as a new step beside its compounding-directive offer, inserted verbatim from a bundled asset. The offer is skipped only when the instruction file already carries an instruction that covers the full bundled one: the report boundary, the invocation of the skill, and the exclusions. A partial or merely related instruction still gets the offer.
 
 **Safety**
 
@@ -180,7 +180,7 @@ Distribution after the change: six composing skills invoke `ce-noslop`; three pr
   1. In each R7 file, replace the generic block with one line at the composition point: invoke `ce-noslop` in author mode, then write under the file's own remaining rules. Keep the domain lines R9 names.
   2. In `plan-sections.md` and `brainstorm-sections.md`, keep the `## Prose economy` heading and the plan-specific rules (requirement and unit shape, resolve in place, one owner per rule); remove the STE and hedge-list paragraphs.
   3. In `ce-promote`, keep per-channel register and hook rules; drop the strip list.
-  4. In the R8 files, add the pointer and change nothing else.
+  4. In the R8 files, add the invocation line and remove any generic style sentence it makes redundant; keep the presentation contract.
   5. Invoke `ce-skill-work` in edit mode for every file; provenance-check each removed line against tests and `docs/solutions/` before deleting.
 - **Patterns to follow:** the way `lfg` names `ce-simplify-code` at its step (`skills/lfg/SKILL.md`).
 - **Test scenarios:**
@@ -200,7 +200,7 @@ Distribution after the change: six composing skills invoke `ce-noslop`; three pr
 - **Patterns to follow:** the compounding-directive step and `assets/compounding-directive.md`.
 - **Test scenarios:**
   - The asset text is pinned byte-for-byte by the offers test, as the compounding directive is.
-  - An instruction file whose existing line covers the boundary, register, and exclusions in different wording is skipped.
+  - An instruction file whose existing line covers the boundary, the invocation, and the exclusions in different wording is skipped.
   - An instruction file with a partial line (boundary only, or a generic "write plainly") gets the offer.
   - An instruction file with an unrelated line, or none, gets the offer.
 - **Verification:** `bun run test` green; `docs/guides/ce-setup.md` lists the new offer in its fix table.

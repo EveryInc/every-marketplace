@@ -252,7 +252,7 @@ Each guard is an explicit conditional in `references/intake.md`, not implicit. R
 
 **Summary discipline (required):** describe **what scope the plan will target**, forward-looking (what *will* be planned), not retrospective. The summary's job is to help the user pattern-match against intent before reading call-outs — solo invocation has minimal pre-write dialogue, so the summary is especially load-bearing here. Form (prose, bullets, mix) and length follow the tier budget in "Stage 2: chat-time scoping synthesis" above; detail test applies per bullet.
 
-**Anti-fluff guidance:** lead with the actual thing being planned in plain words. No qualifiers ("comprehensive," "thoughtful," "substantive"). No re-stating the user's prompt. If the scope cannot be said within the tier budget without filler, the synthesis isn't ready yet.
+**Write it through the `ce-noslop` skill:** lead with the actual thing being planned. No re-stating the user's prompt. If the scope cannot be said within the tier budget without filler, the synthesis isn't ready yet.
 
 **Confirmation template (fires for Standard/Deep regardless of call-out count, or for any tier with one or more call-outs surviving):**
 
@@ -309,7 +309,7 @@ Most of these will not survive the keep test as separate call-outs. Surface only
 
 **Summary discipline (required):** describe **how the implementation approaches the work** at a high level — files/modules touched, patterns extended vs. introduced, scope boundaries the plan honors. Forward-looking (what *will* be in the plan), not retrospective. Brainstorm-validated WHAT is assumed; the summary covers HOW. Form (prose, bullets, mix) and length follow the tier budget in "Stage 2: chat-time scoping synthesis" above; detail test applies per bullet.
 
-**Anti-fluff guidance:** lead with the actual implementation shape in plain words. No qualifiers, no re-stating the brainstorm's WHAT. If the summary just restates the brainstorm's Problem Frame, rewrite it to focus on plan-time decisions.
+**Write it through the `ce-noslop` skill:** lead with the actual implementation shape. No re-stating the brainstorm's WHAT. If the summary just restates the brainstorm's Problem Frame, rewrite it to focus on plan-time decisions.
 
 **Confirmation template (fires for Standard/Deep regardless of call-out count, or for any tier with one or more call-outs surviving):**
 

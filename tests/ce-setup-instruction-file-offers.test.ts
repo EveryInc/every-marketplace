@@ -100,7 +100,7 @@ describe("ce-setup instruction-file offers", () => {
     const step = fixes.split("### Step 9:")[1] ?? ""
     // covers all three parts -> skip
     expect(step).toMatch(
-      /Skip the offer only when the file already carries an instruction that covers all three parts of the bundled one: the report boundary \(.*\), the outcome-first register \(.*\), and the exclusions \(.*\)\./,
+      /Skip the offer only when the file already carries an instruction that covers all three parts of the bundled one: the report boundary \(.*\), the invocation \(.*\), and the exclusions \(.*\)\./,
     )
     // partial (boundary only, or a generic "write plainly") -> offer
     expect(step).toMatch(/A partial instruction, such as one naming only the boundary or a generic "write plainly"/)

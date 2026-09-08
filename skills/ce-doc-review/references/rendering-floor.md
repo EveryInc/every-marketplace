@@ -20,14 +20,11 @@ or the reviewed product's codebase. The output exists so they can decide **Apply
 without reconstructing the finding from expert narrative. A finding whose only path to a decision is
 "go read the code" has failed this floor regardless of how correct it is.
 
-Write human-facing finding prose in an ASD-STE100 Simplified Technical English (STE)-inspired style.
-Use short, direct sentences. Keep one consequence, recommendation, or supporting idea per sentence,
-and use one consistent term for each concept. Preserve exact document identifiers and domain terms
-when they help the decision. Shorten sentences, not content: preserve coverage, evidence, technical
-depth, and every distinct consequence, qualification, or required action.
+Preserve exact document identifiers and domain terms when they help the decision, and preserve
+coverage, evidence, technical depth, and every distinct consequence, qualification, or required action.
 
-The rules in this file are `ce-doc-review`'s own presentation contract; generic prose rules live in
-`ce-noslop`.
+Invoke the `ce-noslop` skill in author mode before rendering any finding, and write under it. The
+rules in this file are what this skill adds on top for its own output.
 
 ## Decision-first field order
 

@@ -69,7 +69,7 @@ Choose an approach and recommend it when verified project facts and the material
 
 ## Output economy
 
-The rules in this section are `ce-pov`'s own presentation contract; generic prose rules live in `ce-noslop`.
+Invoke the `ce-noslop` skill in author mode before composing the chat block, and write under it. The rules in this section are what this skill adds on top for its own output.
 
 `ce-pov` writes no document, so the chat block *is* the whole deliverable — make it a tight POV, not a transcript of the investigation.
 
