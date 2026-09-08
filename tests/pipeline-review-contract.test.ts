@@ -90,6 +90,14 @@ describe("ce-work review contract", () => {
   test("standalone shipping has an always-loaded code-review completion gate", async () => {
     const content = await readRepoFile("skills/ce-work/SKILL.md")
     const shipping = await readRepoFile("skills/ce-work/references/shipping-workflow.md")
+    const unavailableBranch = sliceSection(
+      shipping,
+      "**If the top-level `ce-code-review` attempt cannot produce a completed receipt:**",
+      "4. **Residual Work Gate**",
+    )
+    const reviewSummaryStart = shipping.indexOf("## Code Review")
+    expect(reviewSummaryStart, "Code Review summary anchor not found").toBeGreaterThanOrEqual(0)
+    const reviewSummary = shipping.slice(reviewSummaryStart)
 
     // Always-loaded body owns the gate (not only the lazy reference)
     expect(content).toContain("Code-review completion gate")
@@ -112,6 +120,13 @@ describe("ce-work review contract", () => {
     expect(shipping).toContain("Code review: harness-native fallback")
     expect(shipping).toContain("multi-file mechanical-only")
     expect(shipping).toContain("Never substitute")
+    // The caller decides only from the owning boundary: definition load or the
+    // terminal top-level receipt. Internal review events cannot authorize fallback.
+    for (const section of [unavailableBranch, reviewSummary]) {
+      expect(section).toContain("intermediate internal events never establish caller-owned unavailability")
+      expect(section).toContain("A missing dedicated runner, executable, or binary is not evidence")
+    }
+    expect(unavailableBranch).toContain("proceed through 3a and let `ce-code-review` own its recovery")
   })
 
   test("delegates commit and PR to dedicated skills", async () => {
@@ -593,6 +608,35 @@ describe("ce-debug regression test selection", () => {
     expect(content).toMatch(/never establishes a new home for the bug/i)
     // Linking an existing ticket stays allowed; only creating one is forbidden.
     expect(handoff).toMatch(/never open a new record/i)
+  })
+
+  // ce-compound's durable-learning gate must be applied by ce-debug before it
+  // offers the handoff. The old sentence-length and location-count heuristics
+  // admitted routine fixes that the callee then had to reject.
+  test("applies ce-compound eligibility before offering learning capture", async () => {
+    const compound = await readRepoFile("skills/ce-compound/SKILL.md")
+    const debug = await readRepoFile("skills/ce-debug/SKILL.md")
+    const handoff = await readRepoFile("skills/ce-debug/references/post-fix-handoff.md")
+    const guide = await readRepoFile("docs/guides/ce-debug.md")
+
+    for (const condition of [
+      "durable project reasoning",
+      "not readily recoverable from the final code, tests, types, comments, or existing documentation",
+      "recurrence, material risk, or substantial rediscovery",
+      "if the learning document disappeared",
+      "Completion, effort, and diff size do not establish eligibility",
+    ]) {
+      expect(compound).toContain(condition)
+      expect(handoff).toContain(condition)
+    }
+
+    expect(debug).toMatch(/Only when that gate qualifies the fix, offer capture/i)
+    expect(debug).toMatch(/commit and push only the artifacts it actually wrote or updated/i)
+    expect(debug).toMatch(/If it writes nothing, end without a documentation commit/i)
+
+    const debugContract = [debug, handoff, guide].join("\n")
+    expect(debugContract).not.toMatch(/one-sentence insight|fits in one sentence/i)
+    expect(debugContract).not.toMatch(/pattern (?:appears )?in 3\+ locations/i)
   })
 })
 

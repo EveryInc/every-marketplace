@@ -7,7 +7,7 @@
  */
 import path from "node:path"
 
-export const HOSTS = ["claude", "codex", "grok"] as const
+export const HOSTS = ["claude", "codex", "grok", "opencode"] as const
 export type Host = (typeof HOSTS)[number]
 export type CurrentHost = Host | "unknown"
 
@@ -32,6 +32,7 @@ export function attestCurrentHost(env: NodeJS.ProcessEnv = process.env): Current
     return "codex"
   }
   if (env.GROK_AGENT === "1" || env.GROK_SESSION_ID) return "grok"
+  if (env.OPENCODE_TERMINAL) return "opencode"
   return "unknown"
 }
 
@@ -96,7 +97,17 @@ function commandExists(name: string): boolean {
 
 export function cellEnv(base: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
   const env = { ...base }
+  // Each cell's CLI re-sets its own attestation markers; an inherited marker
+  // from the launching harness makes the child attest as the wrong host.
   delete env.CLAUDECODE
+  delete env.CODEX_SANDBOX
+  delete env.CODEX_SANDBOX_NETWORK_DISABLED
+  delete env.CODEX_SESSION_ID
+  delete env.CODEX_THREAD_ID
+  delete env.CODEX_CI
+  delete env.GROK_AGENT
+  delete env.GROK_SESSION_ID
+  delete env.OPENCODE_TERMINAL
   delete env.CLICOLOR_FORCE
   delete env.GH_FORCE_TTY
   env.NO_COLOR = "1"
@@ -139,6 +150,24 @@ export function planHost(
     argv.push("--skip-git-repo-check", "-C", opts.cwd, opts.prompt)
     return { host, argv, env, stdin: "null", notes }
   }
+  if (host === "opencode") {
+    const argv = ["opencode", "run", "--dir", opts.cwd, opts.prompt]
+    // Always disable project config: a fixture's .opencode/{plugins,agents} load
+    // as trusted runtime before wrapPrompt's "don't use project .opencode" can
+    // apply, contaminating the eval (and, in a reviewed repo, overriding the deny).
+    // Only the permission overlay and --auto posture vary between read-only and write.
+    env.OPENCODE_DISABLE_PROJECT_CONFIG = "1"
+    if (opts.readOnly) {
+      // Omitting --auto is not read-only (defaults are permissive); the deny
+      // overlay merges after project config, so it wins on last-match.
+      env.OPENCODE_CONFIG_CONTENT = '{"permission":{"edit":"deny","bash":"deny","webfetch":"deny","task":"deny"}}'
+      notes.push("read-only: project config disabled; overlay denies edit, bash, webfetch, task")
+    } else {
+      argv.push("--auto")
+      notes.push("write: project config disabled so only the extracted skill ref is exercised")
+    }
+    return { host, argv, env, stdin: "null", notes }
+  }
   notes.push("progress narration prints to stdout before the answer; grep for trailers, do not treat the whole file as the answer")
   const argv = [
     "grok",
@@ -167,7 +196,7 @@ export function wrapPrompt(opts: { skillDir: string; workspace: string; task: st
   return [
     `Read the skill at ${path.join(opts.skillDir, "SKILL.md")} first.`,
     `Resolve bundled references and scripts from that directory.`,
-    `Do not read or use an installed plugin copy of this skill (not ~/.claude, ~/.grok, ~/.agents marketplace caches, or a plugin cache).`,
+    `Do not read or use an installed plugin copy of this skill (not ~/.claude, ~/.grok, ~/.agents, ~/.config/opencode, project .opencode, or a plugin cache).`,
     `The project workspace is ${opts.workspace}. Stay inside it.`,
     ``,
     `Task:`,

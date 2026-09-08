@@ -16,7 +16,7 @@ The goal of this tail is a **PR-ready** fix, not merely a locally green one — 
 
 **Review the final fix scope.** Review every non-mechanical fix unless review tooling is unavailable. Run default `ce-code-review` **only when its diff scope is known to be this fix**: the pre-fix tree was clean and you can pass `base:<pre-fix-HEAD>`. Review reads rather than writes, so a base-scoped diff is worth preferring where it is provably the fix; it is the one place the scope may come from a revision rather than the file list. On a pre-existing dirty branch or one with unrelated committed work, standalone review would reach outside the bug scope — instead use the harness's lightweight review tool if it accepts an explicit file scope, else review the fix-owned files manually and record `Code review: targeted manual due to unrelated branch work`. If `ce-code-review` is unavailable on an otherwise fix-only scope, fall back to the harness's lightweight review tool, else one explicit manual diff scan, and state that dedicated review was unavailable.
 
-**Handle residual findings before shipping.** Do not auto-open a PR with unresolved P0/P1 findings, or with findings whose fix needs a product/design decision — ask whether to fix now, accept/defer durably, or stop. Accepted residuals must not live only in the session: if a PR will be opened, pass them as "Known Residuals" context to `ce-commit-push-pr`; on commit-only or stop, file a ticket per finding in the tracker detected in Phase 1.4 — pick the sink and file it, do not ask which sink to use — with enough background to action it standalone (the finding, why it matters, file:line, severity, a pointer to the review run, and the branch/head SHA so it points at the code even without a PR). When no tracker is reachable, name the accepted findings in the final summary and say plainly that nothing else recorded them.
+**Handle residual findings before shipping.** Do not auto-open a PR with unresolved P0/P1 findings, or with findings whose fix needs a product/design decision — ask whether to fix now, accept/defer durably, or stop. Accepted residuals must not live only in the session: if a PR will be opened, pass them to `ce-commit-push-pr` as a `## Unapplied review findings` checklist section (`- [ ] <severity> — <file:line> — <title>` per finding); on commit-only or stop, file a ticket per finding in the tracker detected in Phase 1.4 — pick the sink and file it, do not ask which sink to use — with enough background to action it standalone (the finding, why it matters, file:line, severity, a pointer to the review run, and the branch/head SHA so it points at the code even without a PR). When no tracker is reachable, name the accepted findings in the final summary and say plainly that nothing else recorded them.
 
 **Re-verify after tail edits.** If simplification or review changed code, rerun the bug's regression test and any targeted checks the tail identified. Never proceed to commit or PR with a red tree.
 
@@ -27,7 +27,7 @@ Then append this block below the Debug Summary, before the commit/PR handoff:
 **Scope**: [fix-only branch / base:<pre-fix-HEAD> / fix-owned files only / targeted manual due to unrelated branch work]
 **Simplify**: [ran/skipped + reason]
 **Review**: [ran/skipped/manual + outcome]
-**Residuals**: [none / accepted Known Residuals for PR / filed as tracker tickets / stated in this summary only, no tracker reachable / blocked pending user decision]
+**Residuals**: [none / unapplied review findings section for PR / filed as tracker tickets / stated in this summary only, no tracker reachable / blocked pending user decision]
 **Re-verification**: [checks rerun after tail edits]
 ```
 
@@ -53,10 +53,8 @@ SKILL.md's Phase 4 **Routing** block owns the bare per-case actions — which sk
 
 ## Learning-capture criteria (after a PR is open)
 
-Most bugs are localized mechanical fixes where the only "lesson" is the bug itself, and compounding those clutters `<root>/solutions/` without adding value.
+Offer once only when the verified fix produced non-obvious, durable project reasoning that is not readily recoverable from the final code, tests, types, comments, or existing documentation, and losing it would plausibly cause recurrence, material risk, or substantial rediscovery.
 
-- **Skip silently** when the fix is mechanical with no generalizable insight. Default to this when in doubt.
-- **Offer neutrally** when the lesson fits in one sentence — "X.foo() returns T | undefined when Y, not just T", or "the diagnostic path was non-obvious and worth recording." If you cannot articulate the lesson, skip rather than offer.
-- **Lean into the offer** when the pattern appears in 3+ locations, or the root cause reveals a wrong assumption about a shared dependency, framework, or convention that other code is likely to repeat.
+Apply this counterfactual: if the learning document disappeared, would a future engineer reading the final implementation still be likely to repeat the mistake or redo substantial investigation? If not, skip silently. Completion, effort, and diff size do not establish eligibility.
 
 These are the criteria only; SKILL.md's Routing block owns what fires when the user accepts.

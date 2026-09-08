@@ -12,7 +12,7 @@ Load this when the input's fit for `ce-pov` is in doubt, or to route a Hold (SKI
 |---|---|---|
 | A neutral explainer ("tell me about X") | general research / answer it directly | `ce-pov` only returns a project-grounded verdict; with no project angle, answer it as a normal research question — or a dedicated deep-research-style tool *if the environment has one* — rather than forcing a verdict |
 | A holistic take on a supplied document ("what do you think of this doc?") | `ce-pov` | A take judges the document's direction, strengths, risks, and bottom line; "review this doc" or "find the issues" asks for findings and routes to `ce-doc-review`. When the wording is ambiguous, ask one clarifying line rather than guessing |
-| A judgment among approaches the user already supplied | `ce-pov` | Options supplied → judge them against the project; options still need to be invented → `ce-ideate` |
+| A judgment among approaches the user already supplied | `ce-pov` | Options developed → judge against the project; rough options needing development for a defined brief → `ce-bakeoff` |
 | Options invented from an open field | `ce-ideate` | Invented vs. discovered: ideate invents; `ce-pov` judges/selects from a discoverable field |
 | To scope an idea already chosen | `ce-brainstorm` | `ce-pov` decides *whether*; brainstorm scopes *what* once it's a yes |
 | To know how to build something decided | `ce-plan` | Verdict accepted → offer the handoff, or perform it only when the original request authorized that named action and the Phase 4 authority gate passes; `ce-pov` does no task breakdown |
@@ -25,6 +25,7 @@ A *selection* question ("what should we use for auth?") is a `ce-pov` verdict on
 
 When the field cannot be bounded without inventing options, or the criteria are unclear, **Hold and route out**:
 
+- Defined solution brief, but candidates need concrete development → `ce-bakeoff`.
 - Field too open to enumerate → Hold → `ce-ideate` to enumerate the candidates → offer to re-run `ce-pov` on the shortlist.
 - Criteria unclear / unstated requirements → Hold → `ce-brainstorm` to surface them → offer to re-run.
 

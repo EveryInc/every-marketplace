@@ -1,6 +1,6 @@
 # Investigation Techniques
 
-Techniques for deeper investigation when standard code tracing is not enough. Load this when a bug does not reproduce reliably, involves timing or concurrency, or requires framework-specific tracing.
+Techniques for deeper investigation when standard code tracing is not enough. Load this when a bug does not reproduce reliably, involves timing or concurrency, is a performance regression, or requires framework-specific tracing.
 
 ---
 
@@ -205,6 +205,16 @@ Mixed use is common: instrument first to localize, then attach a debugger at the
 | Browser JS | `debugger;` in code, or DevTools Sources → set breakpoint | DevTools attaches to page automatically |
 
 For test runs, most test runners integrate with the above — e.g., `node --inspect-brk $(which jest)`, `pytest --pdb`, `rspec` with `binding.pry`, `dlv test`. Prefer the runner's integration over trying to attach post-hoc.
+
+---
+
+## Performance Regressions
+
+When the symptom is "slow" rather than "wrong", logs and code reading mislead: intuition about where time goes is unreliable, and a plausible-looking hot spot is a hypothesis, not evidence. Measure first, change second:
+
+- Establish a numeric baseline before touching anything — a timing harness around the slow operation, a profiler run, a query plan (`EXPLAIN ANALYZE`). The baseline is Phase 1's reproduction check for a perf bug: the number is the red, and the fix is verified by re-measuring the same thing, not by reasoning that the change should be faster.
+- Attribute before optimizing: a profile or per-stage timings that show where the time actually goes. Optimizing an unmeasured suspect is the perf version of shotgun debugging.
+- If the slowness is a regression, bisect against the measurement (see Git Bisect above) rather than reading diffs for something that looks expensive.
 
 ---
 

@@ -11,9 +11,9 @@ const repoRoot = path.join(import.meta.dir, "..", "..")
 const checkHealthScript = path.join(repoRoot, "skills", "ce-setup", "scripts", "check-health")
 const configTemplate = path.join(repoRoot, "skills", "ce-setup", "references", "config-template.yaml")
 const configExample = path.join(repoRoot, ".compound-engineering", "config.example.yaml")
-const configDocs = path.join(repoRoot, "skills", "guides", "configuration.md")
-const ceWorkDocs = path.join(repoRoot, "skills", "guides", "ce-work.md")
-const lfgDocs = path.join(repoRoot, "skills", "guides", "lfg.md")
+const configDocs = path.join(repoRoot, "docs", "guides", "configuration.md")
+const ceWorkDocs = path.join(repoRoot, "docs", "guides", "ce-work.md")
+const lfgDocs = path.join(repoRoot, "docs", "guides", "lfg.md")
 
 type RunResult = {
   exitCode: number
@@ -28,6 +28,8 @@ async function runCheckHealth(cwd: string, pathValue: string): Promise<RunResult
       ...process.env,
       HOME: cwd,
       PATH: pathValue,
+      // A host CODEX_HOME would otherwise decide what the tool-map scan reads.
+      CODEX_HOME: path.join(cwd, ".codex"),
     },
     stderr: "pipe",
     stdout: "pipe",
@@ -55,6 +57,50 @@ async function initConfiguredRepo(root: string, localConfig: string): Promise<vo
 }
 
 describe("ce-setup check-health", () => {
+  async function runWithCodexAgents(contents: string): Promise<RunResult> {
+    const root = await mkdtemp(path.join(os.tmpdir(), "ce-setup-health-codex-"))
+    try {
+      await initGitRepo(root)
+      await mkdir(path.join(root, ".codex"), { recursive: true })
+      await writeFile(path.join(root, ".codex", "AGENTS.md"), contents)
+      return await runCheckHealth(root, "/usr/bin:/bin")
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  }
+
+  test("reports the legacy Codex tool map and keeps the verdict from reading all-clear", async () => {
+    const result = await runWithCodexAgents(
+      [
+        "my notes",
+        "<!-- BEGIN COMPOUND CODEX TOOL MAP -->",
+        "Task (subagent dispatch): run sequentially in main thread",
+        "<!-- END COMPOUND CODEX TOOL MAP -->",
+        "",
+      ].join("\n"),
+    )
+
+    expect(result.exitCode).toBe(0)
+    expect(result.stdout).toContain("Legacy Compound Codex tool map in")
+    expect(result.stdout).toContain("references/legacy-codex-tool-map.md")
+    expect(result.stdout).toContain("legacy Codex tool map above still needs attention")
+  })
+
+  test("reports no tool map without an ordered pair of standalone sentinel lines", async () => {
+    const result = await runWithCodexAgents(
+      [
+        "The retired map used `<!-- BEGIN COMPOUND CODEX TOOL MAP -->` to `<!-- END COMPOUND CODEX TOOL MAP -->` inline.",
+        "<!-- END COMPOUND CODEX TOOL MAP -->",
+        "my notes",
+        "<!-- BEGIN COMPOUND CODEX TOOL MAP -->",
+        "",
+      ].join("\n"),
+    )
+
+    expect(result.exitCode).toBe(0)
+    expect(result.stdout).not.toContain("Legacy Compound Codex tool map")
+  })
+
   test("does not require temporary-file-backed here-strings", async () => {
     const script = await readFile(checkHealthScript, "utf8")
 
@@ -64,10 +110,10 @@ describe("ce-setup check-health", () => {
   test("advertises agent-browser only for its current consumers", async () => {
     const [script, setupDocs, polishSkill, polishRun, polishDocs] = await Promise.all([
       readFile(checkHealthScript, "utf8"),
-      readFile(path.join(repoRoot, "skills", "guides", "ce-setup.md"), "utf8"),
+      readFile(path.join(repoRoot, "docs", "guides", "ce-setup.md"), "utf8"),
       readFile(path.join(repoRoot, "skills", "ce-polish", "SKILL.md"), "utf8"),
       readFile(path.join(repoRoot, "skills", "ce-polish", "references", "run.md"), "utf8"),
-      readFile(path.join(repoRoot, "skills", "guides", "ce-polish.md"), "utf8"),
+      readFile(path.join(repoRoot, "docs", "guides", "ce-polish.md"), "utf8"),
     ])
 
     const capability = "browser testing and dogfood QA"
@@ -97,8 +143,8 @@ describe("ce-setup check-health", () => {
     const [template, docs, setupDocs, catalog, instructions] = await Promise.all([
       readFile(configTemplate, "utf8"),
       readFile(configDocs, "utf8"),
-      readFile(path.join(repoRoot, "skills", "guides", "ce-setup.md"), "utf8"),
-      readFile(path.join(repoRoot, "skills", "guides", "README.md"), "utf8"),
+      readFile(path.join(repoRoot, "docs", "guides", "ce-setup.md"), "utf8"),
+      readFile(path.join(repoRoot, "docs", "guides", "README.md"), "utf8"),
       readFile(path.join(repoRoot, "AGENTS.md"), "utf8"),
     ])
 
@@ -111,7 +157,7 @@ describe("ce-setup check-health", () => {
     expect(docs).toContain("CLAUDE.md")
     expect(setupDocs).toContain("./configuration.md")
     expect(catalog).toContain("./configuration.md")
-    expect(instructions).toContain("skills/guides/configuration.md")
+    expect(instructions).toContain("docs/guides/configuration.md")
 
     for (const consumer of [
       "ce-brainstorm",
@@ -126,7 +172,7 @@ describe("ce-setup check-health", () => {
       "ce-work",
       "lfg",
     ]) {
-      const consumerDocs = await readFile(path.join(repoRoot, "skills", "guides", `${consumer}.md`), "utf8")
+      const consumerDocs = await readFile(path.join(repoRoot, "docs", "guides", `${consumer}.md`), "utf8")
       expect(consumerDocs).toContain("./configuration.md")
     }
   })

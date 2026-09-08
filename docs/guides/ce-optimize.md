@@ -1,0 +1,227 @@
+# `ce-optimize`
+
+> Keep confirmed improvements to a measurable target. Attribute a named-workload cost, or search a scored variant space.
+
+`ce-optimize` is an on-demand **optimization** skill. The goal is confirmed improvements on an `optimize/<spec-name>` branch, not a one-shot edit. A first run stays short and serial until the harness is trusted; a harder target spends longer in the same phases. On a cost target (latency, CPU, memory, throughput, I/O, wall time), it attributes shares before it tries implementation experiments. On a scored variant space (judge, clustering, search, prompts, a multi-objective that is not a single hotspot), it searches and keeps. If you already know the change, make it. If you need a root cause, that is `ce-debug`.
+
+It writes a spec (or loads yours), measures a baseline, then runs the next cheapest action that would change what gets implemented: a locating measurement, or experiments in isolated worktrees (or via Codex when the spec says so). Wins stay on an `optimize/<spec-name>` branch. Losses revert. It writes every result to disk, so a long run survives a crash or a compacted context.
+
+It handles multi-file code changes and non-ML work alike: clustering, search, prompts, build time, latency, anything you can score the same way twice.
+
+Skip it when you already know the change, when the job is diagnosis, or when nothing can be measured.
+
+---
+
+## TL;DR
+
+| Question | Answer |
+|----------|--------|
+| What does it do? | Writes or loads a spec, measures a baseline, attributes cost or searches scored variants against gates and (when needed) an LLM judge, keeps the best, stops on a rule you set |
+| When to use it | A named-workload cost you can attribute, or many plausible variants, plus a repeatable harness and a metric or rubric that "better" can be scored against |
+| What it produces | An `optimize/<spec-name>` branch with kept commits, plus a spec and experiment log under `.context/compound-engineering/ce-optimize/<spec-name>/` |
+| What's next | Review the cumulative diff, capture the winning strategy, open a PR, keep experimenting, or stop |
+
+---
+
+## Example invocations
+
+Plain-language goals build a spec with you. A YAML path skips that conversation and runs the file you already reviewed.
+
+```text
+# Asks what to optimize, then writes the spec with you
+/ce-optimize
+
+# Hard metric: smaller is better, as long as the build stays green
+/ce-optimize reduce build time by 30%
+
+# Expensive suite: several required hard targets, cheap screening first
+/ce-optimize reduce full-suite wall time without raising CI critical path or runner-minutes
+
+# Smallest memory limit that stays stable under the same load test
+/ce-optimize find the smallest memory setting that keeps this service stable under our load test
+
+# Qualitative target. Expect type: judge, not "more clusters"
+/ce-optimize improve clustering quality for notification categories
+
+# Cheaper prompt, judged for the downstream job, not for length
+/ce-optimize cheaper summarization prompt that still clusters related issues correctly
+
+# Existing spec: validate it, then start from setup
+/ce-optimize path/to/clustering-quality.yaml
+
+# Resume vs fresh start if optimize/<spec-name> already exists
+/ce-optimize .context/compound-engineering/ce-optimize/clustering-quality/spec.yaml
+```
+
+Pass a spec when the metric, gates, budget, or stop rule need a review before any experiment runs. First runs should stay serial and short until the harness is trusted.
+
+---
+
+## The Problem
+
+Guess-and-check tries one change at a time and never sees the wider set. Repeating an end-to-end total without attributing shares spends the same measurement on work that cannot move the number. A convenient proxy (cluster count, response length) can improve while real quality falls. Degenerate answers look perfect on paper: one giant cluster, a 100% score that means nothing. Multi-hour runs die in chat and take the results with them.
+
+A bug hunt is a different job. If you need a causal chain, that is `ce-debug`.
+
+## The Solution
+
+The next action is the cheapest step that would change what gets implemented. The loop is spec, baseline, then either locating work or experiments, then keep or revert:
+
+- A YAML spec names the metric, optional extra required objectives, gates, mutable files, measurement command, and stop rules. A description in the prompt becomes that spec through a short interview.
+- Evaluation is three layers: cheap degenerate gates, then the real metric or judge, then diagnostics that are logged and not gated. When the spec lists `metric.objectives`, an experiment is eligible if it improves one required objective without violating the others; the run is not done until every declared required target is met.
+- Expensive harnesses use `stability.mode: ladder`: smoke, one paired exploratory sample, extra samples only when promising or inconclusive, and the full confirmation protocol only before a keep.
+- Independent variants run in their own worktrees. If worktrees are unavailable, the same experiments run one at a time.
+- After a batch, the best merge lands on the optimization branch. A runner-up that touched different files can be cherry-picked and re-measured.
+- The experiment log on disk is the record. Chat is for you; it is not storage.
+- Phase 1 is a hard gate. Baseline, harness, parallelism probe, worktree budget, and any judge-cost estimate need an explicit go-ahead before experiments start.
+
+---
+
+## What Makes It Novel
+
+### Three-layer scoring, so a proxy cannot win alone
+
+Gates run first and are cheap. "Everything in one cluster" or "0% tests pass" dies there, before a judge is paid. For qualitative work the loop then scores sampled outputs against a rubric. Diagnostics (counts, timing, cost) explain a score change without becoming the thing being optimized.
+
+Hard metrics belong on targets where higher or lower is unambiguously better: build time, latency, test pass rate, memory. Judge mode belongs on clustering, search, prompts, and anything a human would have to look at. If you insist on a hard metric for a qualitative target, the skill warns and continues.
+
+### A judge that sees the output space, not one lucky slice
+
+Judge runs bucket the output (large, mid, small, singletons, or the equivalent for search or summaries), sample across buckets, and score on a 1-5 rubric with concrete levels. Singletons are sampled on their own when coverage matters, so missed groupings show up. `max_total_cost_usd` caps spend; uncapped spend needs an explicit yes.
+
+### Disk is the run, not the chat
+
+The loop appends each result to the experiment log the moment it is measured, then reads it back. A `result.yaml` in the experiment worktree covers the gap if the orchestrator dies before the log update. On resume the log is the source of truth; leftover markers are recovered into it.
+
+The files under `.context/compound-engineering/ce-optimize/<spec-name>/` are local scratch. They are gitignored, so they survive a resume on this machine and do not travel with the branch.
+
+### Parallel isolation, then file-disjoint combines
+
+Each experiment owns a worktree and a branch. Merges are serial. After the winner lands, the loop combines runners-up that edited completely different files and scores them again, up to a cap. A combo that is not eligible on the re-measurement is reverted and logged as promising alone but neutral or harmful together.
+
+After each batch a strategy digest (categories tried, what worked, what is still untried, current best) steers the next hypotheses. The digest is working state for the loop, not a kept deliverable.
+
+### Opportunity estimates carried through to measured results
+
+Before implementation, every hypothesis carries an opportunity record: workload, observed cost or rubric evidence, expected benefit with units and a comparison baseline, confidence, and implementation/measurement cost and behavioral risk. Estimates can be ranges or upper bounds. Unknown benefits stay unknown with a proposed measurement to resolve them. An unknown may sit on the backlog; it is not a runnable implementation experiment on a cost target while a cheaper locating measurement would change keep or skip. A scored variant space uses rubric evidence and does not require a performance profile or invented numerical forecasts.
+
+Selection favors credible benefit relative to cost and risk; the priority label does not rank the backlog, and there is no required hypothesis count. Each experiment retains its original forecast and the actual measured comparison identities. Standalone and combined results remain separate, so a runner-up's isolated improvement is not mistaken for its contribution after integration.
+
+Wrap-up reports every required objective from original baseline to confirmed final, each retained change's estimate versus measured contribution, uncertainty and correctness evidence, and remaining opportunities. Percentages are used only where meaningful, and successive gains are not added. Older logs still work: missing estimates and attribution evidence are reported as unrecorded.
+
+
+---
+
+## Quick Example
+
+You want better clustering on notification categories. Today's run makes 12 clusters and some of them look weak.
+
+You invoke `/ce-optimize clustering quality on notification categorization`. The skill treats this as qualitative and recommends `type: judge`, because optimizing cluster count would reward the wrong thing. You set strata (largest, mid, small, plus singletons), a 1-5 rubric, and gates such as `solo_pct <= 0.95` and `max_cluster_size <= 500`. For a first run it recommends serial mode and a 4-iteration cap.
+
+Phase 1 measures the baseline, looks up prior optimization learnings, probes parallelism, and asks you to approve the judge-cost estimate. You approve.
+
+Phase 2 proposes a backlog of hypotheses (signal extraction, embeddings, algorithm, parameters). One needs a new dependency; you approve the list in bulk.
+
+Phase 3 runs in batches. Each experiment gets a worktree, applies the change, runs gates, then the judge if the gates pass. Results hit disk immediately. The best of the batch merges; file-disjoint runners-up are re-measured on top of it.
+
+After four iterations the judge score is up 1.2 and three experiments sit on the kept branch. Wrap-up offers review, a learning write-up, a PR, more experiments, or stop.
+
+---
+
+## When to Reach For It
+
+Use `ce-optimize` when:
+
+- A named workload has a cost you can attribute, even if the first action is locating rather than a batch of variants
+- Several variants are plausible and you do not already know which one wins
+- You have a repeatable measurement command, or you can build one
+- "Better" is a hard metric or a rubric two judges would score similarly
+- A naive proxy would be easy to game (one giant cluster, a longer summary that is worse)
+
+Skip it when:
+
+- You already know the change → make it, or use `/ce-work`
+- You are tracing a bug, or why something is slow → `/ce-debug`
+- Nothing can be measured or judged the same way twice
+- The target is a scored variant space with only one plausible answer, so a search is theater
+- Each evaluation is so expensive that multiple runs cannot pay for themselves
+
+---
+
+## Use as Part of the Workflow
+
+This skill is its own loop. It still hands off:
+
+- A brainstorm or plan that is really "make X better" is the usual reason to come here
+- It reads prior optimization learnings before inventing a strategy
+- After the loop: `/ce-code-review` on baseline-to-final, `/ce-compound` for the winning strategy, or a PR from `optimize/<spec-name>`
+- You can resume later from the branch and the local experiment log
+
+---
+
+## Use Standalone
+
+Most runs start here, not from another skill.
+
+- Description: `/ce-optimize reduce build time by 30%`
+- Reviewed spec: `/ce-optimize path/to/spec.yaml`
+- Resume or fresh start: `/ce-optimize .context/compound-engineering/ce-optimize/<spec-name>/spec.yaml`
+
+Templates live next to the skill: `references/example-hard-spec.yaml` for a cheap single metric, `references/example-judge-spec.yaml` when quality needs a rubric, and `references/example-expensive-benchmark-spec.yaml` when each run costs minutes or several hard targets must all hold. The friendly overview of hard vs judge, plus longer kickoff prompts, is `references/usage-guide.md`.
+
+---
+
+## Reference
+
+| Argument | Effect |
+|----------|--------|
+| _(empty)_ | Asks "What would you like to optimize?" then writes the spec with you |
+| `<description>` | Same interview, seeded with that goal |
+| `<spec.yaml path>` | Loads and validates the spec, then starts setup |
+| Existing `.context/.../spec.yaml` | If `optimize/<spec-name>` already exists, offers Resume (continue from the log) or Fresh Start (archive the old branch) |
+
+In-scope files must be clean before measurement. Uncommitted changes in the spec's mutable or immutable paths have to be committed or stashed.
+
+`execution.backend: codex` (in the spec, not as a prompt flag) sends each experiment to `codex exec`. If you are already inside a Codex sandbox, or `.git` is not writable, it falls back to subagents. Three Codex failures in a row disable that backend for the rest of the run.
+
+First-run defaults worth keeping until the harness is trusted: `execution.mode: serial`, `max_concurrent: 1`, `max_iterations: 4`, `max_hours: 1`. For judge mode: `sample_size: 10`, `batch_size: 5`, `max_total_cost_usd: 5`.
+
+Spec schema: `references/optimize-spec-schema.yaml`. Experiment log schema: `references/experiment-log-schema.yaml`.
+
+---
+
+## FAQ
+
+**When should I use a hard metric vs an LLM judge?**
+Hard metrics when higher or lower is unambiguously better (build time, pass rate, latency). Judge when a person would have to look at the output (clustering, search, prompts). For qualitative work, a hard metric alone will optimize a proxy.
+
+**What is a degenerate gate?**
+A cheap check that rejects a broken solution before the expensive score. "All items in one cluster" is the classic. If any gate fails, the experiment is `degenerate` and the judge does not run.
+
+**What if an experiment needs a new dependency?**
+Hypothesis generation collects unique new deps and asks for one bulk approval. Unapproved hypotheses stay in the backlog, are skipped during the loop, and come back at wrap-up.
+
+**Can it run on Codex instead of subagents?**
+Yes, via `execution.backend: codex` in the spec. It falls back to subagents when Codex sandboxing is not usable from this context.
+
+**What is still there after the run?**
+The `optimize/<spec-name>` branch, with a commit per kept experiment. The spec and experiment log stay under `.context/compound-engineering/ce-optimize/<spec-name>/` on this machine. That directory is gitignored.
+
+**Can I optimize several hard targets at once?**
+Yes. Put them in `metric.objectives` as `role: required`. An experiment that improves one required target without regressing the others is eligible. The loop is not done until every declared required target is met. A spec that omits `objectives` still uses the single primary metric.
+
+**What if each measurement takes minutes?**
+Use `stability.mode: ladder` and a relative or paired comparison. The five-run protocol is for baseline, a candidate you are about to keep, and final confirmation, not for every exploratory try. See `references/example-expensive-benchmark-spec.yaml`.
+
+**Does it debug?**
+No. It attributes a named-workload cost or searches a scored variant space. A failing test, a stack trace, or "why is this wrong" is `/ce-debug`.
+
+---
+
+## See Also
+
+- [`ce-debug`](./ce-debug.md): root-cause a known failure; do not use optimize as a substitute
+- [`ce-code-review`](./ce-code-review.md): wrap-up option for the cumulative diff
+- [`ce-compound`](./ce-compound.md): write the winning strategy down as a learning
+- [`ce-retune`](./ce-retune.md): measurement-first retuning of a skill corpus, not a generic optimize loop
+- [`ce-worktree`](./ce-worktree.md): manual worktrees if you want isolation outside this loop

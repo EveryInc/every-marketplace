@@ -61,7 +61,7 @@ Name the few strengths and risks that actually determine the bottom line; do not
 
 ## Approach-set position contract
 
-An approach-set POV judges only the options the user or conversation supplied; generating a new option field belongs to `ce-ideate` or `ce-brainstorm`. Lead with a plain-language **Position**. Then state:
+An approach-set POV judges developed options supplied by the user, conversation, or calling skill. When comparison requires developing concrete solutions beyond their current form, route to `ce-bakeoff`; discovering an open field belongs to `ce-ideate`, and establishing goals or criteria belongs to `ce-brainstorm`. Lead with a plain-language **Position**. Then state:
 
 `Why` · `Tradeoffs by supplied approach` · `Verified facts (project + load-bearing external claims, kept distinct)` · `Conversation hypotheses (unverified — warm only)` · `Conditions` · `Handoff (optional separate continuation)`
 

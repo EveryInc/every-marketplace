@@ -63,6 +63,8 @@ After the health report, decide Phase 2 from writable-checkout availability:
 - If this session has no writable checkout, but the user named a repository and the harness exposes a remote repo-work surface with a writable checkout, run Phase 2 on that surface instead and report the remote repo-local fixes in Phase 3.
 - Otherwise skip Phase 2 and go to Phase 3, saying repo-local writes were skipped because no writable checkout is available.
 
+If the report names a legacy Compound Codex tool map, offer to remove it following `references/legacy-codex-tool-map.md` from this skill's directory. That block lives in the user's Codex home, not the checkout, so the offer stands whether or not Phase 2 runs.
+
 Also remediate these project issues when the report names them:
 
 - obsolete `compound-engineering.local.md`
@@ -75,7 +77,7 @@ If optional tools are missing, do not offer a bulk install. The diagnostic alrea
 
 ## Phase 2: Fix Repo-Local Issues
 
-Read `references/repo-fixes.md` from this skill's directory before making any repo-local change. It carries Steps 4-8: removing the obsolete `compound-engineering.local.md`, refreshing the example config, offering to create `config.yaml`, repairing invalid `work_engine_preferences` and `docs_root`, and the two `.gitignore` offers.
+Read `references/repo-fixes.md` from this skill's directory before making any repo-local change. It carries Steps 4-9: removing the obsolete `compound-engineering.local.md`, refreshing the example config, offering to create `config.yaml`, repairing invalid `work_engine_preferences` and `docs_root`, the two `.gitignore` offers, and the agent-instructions offers (a knowledge-store mention and the compounding directive).
 
 All paths there resolve from the repository root (`git rev-parse --show-toplevel`), not the current working directory. Maintaining the generated example files is the work Phase 2 does on its own — refreshing `config.example.yaml` and removing the superseded `config.local.example.yaml`. Every change to a user-owned file is offered and applied only if the user approves.
 
@@ -88,8 +90,8 @@ Display a brief summary:
 ```text
 ✅ Compound Engineering setup complete
 
-Fixed:     <repo-local fixes applied, or none>
-Skipped:   <repo-local fixes declined, or none>
+Fixed:     <fixes applied, or none>
+Skipped:   <fixes declined, or none>
 Optional:  <missing optional tools, or all available>
 
 Run `<rendered invocation>` anytime to re-check.

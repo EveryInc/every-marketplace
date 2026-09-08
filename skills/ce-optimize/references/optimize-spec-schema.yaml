@@ -43,7 +43,7 @@ required_fields:
 
           name:
             type: string
-            description: "Metric name — must match a key in the measurement command's JSON output (for hard type) or a scoring field (for judge type)"
+            description: "Metric name: must match a key in the measurement command's JSON output (for hard type) or a scoring field (for judge type)"
             example: "cluster_coherence"
 
           direction:
@@ -75,7 +75,7 @@ required_fields:
           required_children:
             name:
               type: string
-              description: "Metric name — must match a key in the measurement command's JSON output"
+              description: "Metric name: must match a key in the measurement command's JSON output"
             check:
               type: string
               description: "Comparison operator and threshold. Supported operators: >=, <=, >, <, ==, !="
@@ -103,7 +103,7 @@ required_fields:
           required_children:
             name:
               type: string
-              description: "Metric name — must match a key in the measurement command's JSON output"
+              description: "Metric name: must match a key in the measurement command's JSON output"
             direction:
               type: enum
               values:
@@ -148,7 +148,7 @@ required_fields:
           required_children:
             name:
               type: string
-              description: "Metric name — must match a key in the measurement command's JSON output"
+              description: "Metric name: must match a key in the measurement command's JSON output"
 
       judge:
         type: object

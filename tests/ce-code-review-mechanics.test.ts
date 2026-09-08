@@ -2,7 +2,9 @@ import { mkdtempSync, mkdirSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import path from "path"
 import { spawnSync } from "node:child_process"
-import { describe, expect, test } from "bun:test"
+import { describe, expect, setDefaultTimeout, test } from "bun:test"
+
+setDefaultTimeout(20_000)
 
 const SKILL_DIR = path.join(process.cwd(), "skills", "ce-code-review")
 const SCOPE_SCRIPT = path.join(SKILL_DIR, "scripts", "review-scope.py")
@@ -393,6 +395,37 @@ describe("ce-code-review deterministic mechanics", () => {
             owner: "human",
             requires_verification: true,
             pre_existing: false,
+          },
+        ],
+        residual_risks: [],
+        testing_gaps: [],
+      },
+    ]
+
+    const result = run("python3", [FINDINGS_SCRIPT], undefined, JSON.stringify(returns))
+    expect(result.status).toBe(0)
+    const merged = JSON.parse(result.stdout)
+
+    expect(merged.findings).toEqual([])
+    expect(merged.malformed_findings).toBe(1)
+  })
+
+  test("findings helper rejects notes stand-in when pre_existing is omitted", () => {
+    const returns = [
+      {
+        reviewer: "correctness",
+        findings: [
+          {
+            title: "Notes is not a compact-return field",
+            severity: "P1",
+            file: "src/worker.ts",
+            line: 12,
+            confidence: 75,
+            autofix_class: "manual",
+            owner: "human",
+            requires_verification: true,
+            notes: "Any user can read another user's orders",
+            first_evidence: "src/worker.ts:12 -- result = staleValue",
           },
         ],
         residual_risks: [],
