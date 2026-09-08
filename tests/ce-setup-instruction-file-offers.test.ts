@@ -17,8 +17,8 @@ function assetVariants(asset: string): Record<string, string> {
   return out
 }
 
-function guideBlockquotes(guide: string): string[] {
-  const section = guide.split("## Make capture automatic")[1]?.split("\n---")[0] ?? ""
+function guideBlockquotes(guide: string, heading = "## Make capture automatic"): string[] {
+  const section = guide.split(heading)[1]?.split("\n---")[0] ?? ""
   return [...section.matchAll(/^> (.+)$/gm)].map((m) => m[1].trim())
 }
 
@@ -70,22 +70,19 @@ describe("ce-setup instruction-file offers", () => {
   // The chat-register directive is the always-on path for ce-noslop's
   // agent-reporting register: the skill is not in context when an agent writes
   // a reply, so the instruction-file line has to carry the boundary, the
-  // register, and the exclusions on its own. No guide copies it yet, so the
-  // asset is pinned here byte-for-byte; a paraphrase forks the bar.
-  const NOSLOP_DIRECTIVE =
-    "Before you write a report, summary, or handoff to the user, invoke the `ce-noslop` skill in author mode and hold its tests while you write. " +
-    "This applies when you are the top-level agent writing to the user, not when you are a subagent reporting to its caller. " +
-    "Do not apply it to code, config, verbatim quotes, or text the user asked to post as written. " +
-    "If the skill is unavailable, apply its tests yourself: say what a thing does, not how it feels; cut any sentence that could move to another project unchanged; name the actor; keep one idea per sentence; lead with the outcome; gloss any identifier a reader without the code open cannot act on. " +
-    "Lead with the outcome, and write no acknowledgement, no offer of more help, and no narration of your own process."
-
-  test("noslop directive asset carries the pinned standing instruction verbatim", async () => {
+  // register, and the exclusions on its own. It lives in two always-visible
+  // places, the asset ce-setup inserts and the ce-noslop guide a user copies
+  // from, so the two are pinned byte-for-byte to each other; a paraphrase in
+  // either forks the bar.
+  test("noslop directive asset matches the ce-noslop guide blockquote verbatim", async () => {
     const variants = assetVariants(await readRepoFile("skills/ce-setup/assets/noslop-directive.md"))
     expect(Object.keys(variants)).toEqual(["Standing instruction"])
-    expect(variants["Standing instruction"]).toBe(NOSLOP_DIRECTIVE)
-    expect(NOSLOP_DIRECTIVE.length).toBeLessThan(900)
-    expect(NOSLOP_DIRECTIVE).toContain("invoke the `ce-noslop` skill")
-    expect(NOSLOP_DIRECTIVE).not.toMatch(/\/ce-noslop/)
+    const directive = variants["Standing instruction"]
+    const quotes = guideBlockquotes(await readRepoFile("docs/guides/ce-noslop.md"), "## Make it automatic")
+    expect(quotes).toEqual([directive])
+    expect(directive.length).toBeLessThan(900)
+    expect(directive).toContain("invoke the `ce-noslop` skill")
+    expect(directive).not.toMatch(/\/ce-noslop/)
   })
 
   test("Step 9 offers the noslop directive verbatim beside the compounding directive", async () => {
