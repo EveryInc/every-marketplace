@@ -259,6 +259,6 @@ This works on any harness. The host serves the chosen model natively where it ca
 
 ## Experimental Bake-off
 
-Explicitly request a Bake-off when alternatives need concrete development before choosing. See [ce-bakeoff](./ce-bakeoff.md) for the independent candidate contract and limits. General automatic routing is not enabled. The existing model choice also applies to candidate authors, increasing this step from one generation call to multiple fresh attempts. A candidate-model mix explicitly requested by the user takes precedence.
+Explicitly request a Bake-off when alternatives need concrete development before choosing. See [ce-bakeoff](./ce-bakeoff.md) for the independent candidate contract and limits. General automatic routing is not enabled. The existing model choice is passed to Bake-off as a candidate preference; an explicitly requested candidate mix takes precedence. Bake-off owns dispatch: native model-family diversity when no preference is set, then available authorized CLIs, then fresh same-host agents if those routes fail. It does not use the ordinary elevation adapter for bakers.
 
 Brainstorming uses it in Phase 2 for an unresolved product mechanism after goals are clear. It replaces ordinary generation for that question. Options still precede the recommendation, and user scope confirmation remains authoritative.

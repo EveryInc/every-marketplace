@@ -17,7 +17,7 @@ A defined goal with undeveloped alternatives belongs here, including supplied ro
 
 Produce non-executable artifacts at the requested fidelity: approach briefs, architectural sketches, product mechanisms, or directional pseudocode. Concrete means the mechanism and its consequential tradeoffs can be assessed. Runtime claims require experiments owned by `ce-optimize`; experience-dependent choices need `ce-prototype`. Identify those evidence needs rather than claim sketches prove them.
 
-Invocation authorizes scoped reading, candidate and judge delegation through available authorized model access, private scratch writes, and artifact verification. It does not authorize production implementation, publishing, or new external recipients. Inherit the caller's authority and budget without expanding them. Candidate elevation remains with the caller's existing owner. Judge dispatch follows `references/judging.md`; a requested oracle panel remains owned by `ce-pov`.
+Invocation authorizes scoped reading, candidate and judge delegation through available authorized model access, private scratch writes, and artifact verification. It does not authorize production implementation, publishing, or new external recipients. Inherit the caller's authority and budget without expanding them. The caller supplies candidate model preferences and constraints; Bake-off owns candidate dispatch through `references/candidates.md`. Judge dispatch follows `references/judging.md`; a requested oracle panel remains owned by `ce-pov`.
 
 ## Announce and develop
 

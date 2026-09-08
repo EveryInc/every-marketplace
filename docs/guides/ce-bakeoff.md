@@ -38,7 +38,7 @@ The return includes the winning artifact, actual comparison, rationale, incorpor
 
 ## Models and independent judgment
 
-Direct use inherits the session model unless the user selects a supported candidate mix. Requested planning and brainstorming Bake-offs use their existing `plan_model` and `brainstorm_model` choices for candidate authors. The session agent orchestrates; elevated authors remain read-only. Inline fallback is not independent generation.
+Bakers prefer different model families through native host access, then available authorized model CLIs. If those routes are unavailable or fail, fresh agents on the host's own model are the fallback. Explicit model choices and restrictions take precedence; planning and brainstorming pass their resolved `plan_model` and `brainstorm_model` preferences when set. Bake-off owns this dispatch with direct scoped CLI calls, without the peer-job Python framework. It briefly discloses external recipients and read scope unless already disclosed. Diversity is preferred; fresh contexts are required.
 
 A fresh subagent running `ce-pov` as a guest is required before selection. A different model family is preferred: use native host model access when suitable, otherwise an available authorized model CLI or adapter. A fresh same-family judge is a disclosed fallback; no independent judge means incomplete. The coordinator reconciles the assessment with its own comparison and verifies consequential premises against source evidence before returning the winner. An explicitly requested oracle, or a consequential disagreement that survives source checking and warrants consultation within budget, uses `ce-pov`'s existing panel. All judging and verification fit within the Bake-off budget.
 
