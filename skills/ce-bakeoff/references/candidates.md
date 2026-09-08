@@ -27,8 +27,8 @@ if [ -L "$SCRATCH_ROOT" ]; then echo "unsafe scratch root symlink: $SCRATCH_ROOT
 (umask 077; mkdir -p "$SCRATCH_ROOT") || exit 1;
 if [ -L "$SCRATCH_ROOT" ] || [ ! -O "$SCRATCH_ROOT" ]; then echo "scratch root is not owned by the current user: $SCRATCH_ROOT" >&2; exit 1; fi;
 chmod 700 "$SCRATCH_ROOT" || exit 1;
-SCRATCH_DIR="$SCRATCH_ROOT/ce-bakeoff/$(openssl rand -hex 4)";
-(umask 077; mkdir -p "$SCRATCH_DIR") || exit 1; chmod 700 "$SCRATCH_DIR" || exit 1;
+(umask 077; mkdir -p "$SCRATCH_ROOT/ce-bakeoff") || exit 1;
+SCRATCH_DIR=$(mktemp -d "$SCRATCH_ROOT/ce-bakeoff/run-XXXXXX") || exit 1;
 echo "$SCRATCH_DIR";
 ```
 
