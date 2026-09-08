@@ -73,7 +73,7 @@ Do the investigation work before escalating. Don't punt with "this is complex." 
 
 ## Reply text for reply-list and human-list items
 
-Compose these now -- you have the evidence. Quote the specific sentence being addressed, not the whole comment if it's long.
+Compose these now -- you have the evidence. Every reply is posted as the PR author. Invoke the `ce-noslop` skill in author mode and write each one in the user's-own-writing register. Quote the specific sentence being addressed, not the whole comment if it's long.
 
 For `replied` (a question, discussion, or a correct-but-immaterial point you're not changing):
 ```markdown
@@ -96,7 +96,7 @@ For `declined`:
 Declined: [specific harm cited, e.g., "this would add a defensive null check the type system already guarantees" or "violates the no-premature-abstraction rule in the project's conventions"]
 ```
 
-For `needs-human`, the **reply_text** is posted as the user. Invoke the `ce-noslop` skill in author mode and write it in the user's-own-writing register, as the PR author would:
+For `needs-human`, the **reply_text** sounds natural, as the PR author would write it:
 ```markdown
 > [quote the relevant part of the reviewer's comment]
 

@@ -82,7 +82,7 @@ Sentences get shorter; content does not. Exact identifiers, paths, commands, thr
 ## What it never touches
 
 - Code blocks, quoted text, frontmatter, link targets, identifiers, or any token the caller's own contract requires, unless the user names that content as the thing to fix.
-- Claims. Every claim, number, name, quote, and citation in the input survives, and nothing is added that the source or the caller did not supply.
+- Facts. Every fact, number, name, quote, and citation in the input survives, and nothing is added that the source or the caller did not supply. Importance stapled to a fact ("a vital component", "marks a turning point") is not a fact and is cut; in the user's-own-writing register the edit stays minimal and keeps the author's voice.
 - Files, unless the request asks for a named file to be written in place. Otherwise it returns the text.
 - Authorship. It never says whether text was written by a model.
 
