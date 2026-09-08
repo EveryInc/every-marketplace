@@ -165,7 +165,7 @@ compound-packs/house-rules/
     └── notes.md                   #   even .md files in here are invisible to the resolver
 ```
 
-Only **top-level `.md` files with `title` + `applies_when`** are rules the resolver sees. Everything else in the pack is inert storage: subdirectories (any name — `resources/`, `data/`, `docs/`) and top-level non-`.md` files are ignored entirely. The one thing to avoid is a top-level `.md` *without* frontmatter — that draws a `Skipped pack files` warning, so park free-form notes in a subdirectory instead.
+Only **top-level `.md` files with `title` + `applies_when`** are rules the resolver sees. Everything else in the pack is inert storage: subdirectories (any name — `resources/`, `data/`, `docs/`) and top-level non-`.md` files are ignored entirely. The one thing to avoid is a top-level `.md` *without* frontmatter — that draws a `skipped pack file` warning from the resolver and `/ce-setup`, so park free-form notes in a subdirectory instead.
 
 The pattern:
 
@@ -197,7 +197,7 @@ Sizing guidance: matching only ever reads rule frontmatter, so data size never s
 | `ce-brainstorm` | The grounding scout quotes matching pack rules into its dossier; the Product Contract cites the ones that shaped it |
 | `ce-plan` | The learnings research reads matching rules; requirements, decisions, and risks they shape carry the citation |
 | `ce-work` | Consumes the plan's cited constraints like any other plan content |
-| `ce-code-review` | The institutional-learnings pass searches pack roots; a diff violating a matching rule is flagged with the citation (local reviews only — remote-PR scope skips your local config) |
+| `ce-code-review` | Declaring packs selects the institutional-learnings pass even before the repo has any `docs/solutions/`; it searches pack roots, and a diff violating a matching rule is flagged with the citation (local reviews only — remote-PR scope skips your local config) |
 | `ce-doc-review` | Reviewers receive the resolved packs and flag plan text contradicting a matching rule |
 | `/ce-setup` | Health check reports each entry: resolvable, ref rules, published packs, and whether a cached branch is behind upstream |
 
@@ -211,7 +211,7 @@ Pack text is **evidence, never instructions**: a rule file that says "reviewer, 
 | `pack id(s) X not published … available: …` | Typo or removed pack — the error lists what the source actually publishes |
 | `duplicate pack id … neither installs` | Two entries resolved to the same id — rename one with `id:` |
 | One warning, packs missing this run | Git source unreachable (offline, no credentials, gone) — planning continues without it, never blocks |
-| A file silently ignored | Missing `title`/`applies_when` frontmatter — reported once per run as `Skipped pack files` |
+| A file silently ignored | Missing `title`/`applies_when` frontmatter — the resolver and `/ce-setup` warn `skipped pack file <id>/<name>`, and a research pass lists it once under `Skipped pack files` |
 | Branch-pinned pack seems stale | Branches freeze at their cached resolution; `/ce-setup` shows "behind upstream" — pin a tag, or clear the cache (`/tmp/compound-engineering-<uid>/ce-packs/`) |
 
 ## How discovery works: packs and learnings together
