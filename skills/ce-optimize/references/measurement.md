@@ -68,7 +68,7 @@ The body owns this gate. Run `git status --porcelain`, filter the output against
 2. Build an evaluation script (e.g., `evaluate.py`, `evaluate.sh`, or equivalent)
 3. Add the evaluation script path to `scope.immutable` -- the experiment agent must not modify it
 4. Run it once and validate the output
-5. Present the harness and its output to the user for review
+5. Include the measurement method and validated output in the Phase 1 approval presentation, with a link to the script for inspection.
 
 ### 1.3 Establish Baseline
 
@@ -138,6 +138,6 @@ If count + `execution.max_concurrent` would exceed 12:
 
 ### 1.7 User Approval Gate
 
-The body owns this gate: what is presented, the options and the condition on adjusting the spec, the uncapped-spend disclosure, and the rule that Phase 2 does not start without explicit approval. A resume that cannot prove the user cleared this gate runs it again, so this phase supplies the same payload then. What this phase supplies to it: the baseline's gate values, diagnostic values, and judge scores; the experiment log path; the probe results with any blockers and mitigations; the clean-tree confirmation; the worktree count and projection; and the estimated per-experiment judge cost against the configured cap.
+The body owns this gate and its user-facing reporting rule: the options and condition on adjusting the spec, the uncapped-spend disclosure, and the requirement for explicit approval before Phase 2. A resume that cannot prove the user cleared this gate presents it again. Explain the starting measurements, whether behavior checks passed, any measurement limitations or execution blockers, the planned experiment scope, and estimated scoring cost against the configured cap. Link the experiment log and measurement script for inspection. Keep the full gate values, diagnostics, judge scores, probe results and mitigations, clean-tree confirmation, and worktree count and projection in the saved evidence; surface those details when they affect the user's decision.
 
 ---

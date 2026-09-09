@@ -32,7 +32,7 @@ Record an `opportunity` on every hypothesis using the log schema before implemen
 
 An unknown opportunity may sit on the backlog. It is not a runnable implementation experiment while a cheaper locating measurement would change keep or skip. A scored variant space may leave numerical benefit unknown and does not require a performance profile.
 
-The backlog contains the credible opportunities supported by current evidence, not a required number of ideas. Rank by expected target benefit, confidence, implementation and measurement cost, and behavioral risk. Present the ranked opportunities and their estimates when recording CP-2, after the disk write and verification.
+The backlog contains the credible opportunities supported by current evidence, not a required number of ideas. Rank by expected target benefit, confidence, implementation and measurement cost, and behavioral risk. Persist and verify the ranked opportunities and estimates at CP-2. Apply the body's reporting rule to communicate findings that explain the chosen direction; the full backlog remains available on disk.
 
 ### 2.3 Dependency Pre-Approval
 
@@ -153,7 +153,7 @@ For each completed experiment, **immediately**:
    - If ANY gate fails: mark outcome as `degenerate`, skip judge evaluation, save money
 
 5. **If gates pass AND primary type is `judge`**:
-   - **Independence gate: check before dispatching.** A judge must not have authored the hypothesis or run the experiment it is scoring, and must not see other judges' results; that independence is what makes these scores usable as an accept/revert gate. If the host exposes no way to dispatch judges as separate agents, do **not** score inline: mark the experiment's outcome `error` with the reason (judges undispatchable), skip judge evaluation exactly as a failed degenerate gate does, and continue to the log-and-append step so the entry is still written to disk. An experiment stopped here never carries judge metrics, so it is not eligible to become `best` and does not enter the accept/revert comparison: it is unmeasured, not poor-scoring. Report the blocker to the user at the batch summary.
+   - **Independence gate: check before dispatching.** A judge must not have authored the hypothesis or run the experiment it is scoring, and must not see other judges' results; that independence is what makes these scores usable as an accept/revert gate. If the host exposes no way to dispatch judges as separate agents, do **not** score inline: mark the experiment's outcome `error` with the reason (judges undispatchable), skip judge evaluation exactly as a failed degenerate gate does, and continue to the log-and-append step so the entry is still written to disk. An experiment stopped here never carries judge metrics, so it is not eligible to become `best` and does not enter the accept/revert comparison: it is unmeasured, not poor-scoring. Report the blocker and its effect on the run to the user.
    - Read the experiment's output (cluster assignments, search results, etc.)
    - Apply stratified sampling per `metric.judge.stratification` config (using `sample_seed`)
    - Group samples into batches of `metric.judge.batch_size`
@@ -255,11 +255,7 @@ If none is met, proceed to the next batch (3.1).
 
 **Error handling**: Classify a failed measurement from what `measure.sh` actually signaled. The censored stderr marker (with exit 125) is `censored`. Exit 124 is `timeout`. Any other non-zero exit (including 125 without that marker) is `error`. Log that outcome with the error message, revert the experiment, and continue the batch.
 
-**Progress reporting**: After each batch, report:
-- Batch N of estimated M (based on backlog size)
-- Experiments run this batch and total
-- Current best metric and improvement from baseline
-- Cumulative judge cost (if applicable)
+**Progress reporting:** use the body's reporting rule. Base any reported improvement on persisted, verified measurements, distinguish preliminary from confirmed results, and state what was measured and any limits on the claim. Batch counts and cumulative scoring cost remain in the log for wrap-up; surface them during the run when they affect a decision.
 
 **Crash recovery**: See Persistence Discipline section. Per-experiment `result.yaml` markers are written in step 3.3. Individual experiment results are appended to the log immediately in step 3.3. Batch-level state (outcomes, best, digest) is written in step 3.5. On resume (Phase 0.4), the log on disk is the ground truth: scan for any `result.yaml` markers not yet reflected in the log.
 

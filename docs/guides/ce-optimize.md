@@ -72,8 +72,8 @@ The next action is the cheapest step that would change what gets implemented. Th
 - Expensive harnesses use `stability.mode: ladder`: smoke, one paired exploratory sample, extra samples only when promising or inconclusive, and the full confirmation protocol only before a keep.
 - Independent variants run in their own worktrees. If worktrees are unavailable, the same experiments run one at a time.
 - After a batch, the best merge lands on the optimization branch. A runner-up that touched different files can be cherry-picked and re-measured.
-- The experiment log on disk is the record. Chat is for you; it is not storage.
-- Phase 1 is a hard gate. Baseline, harness, parallelism probe, worktree budget, and any judge-cost estimate need an explicit go-ahead before experiments start.
+- The experiment log on disk is the record. Chat focuses on findings, decisions, blockers, and results, with occasional updates during longer work. Approval requests explain scope, evidence, and limits in plain language and link the saved details.
+- Before experiments start, you approve the starting measurements, behavior checks, planned scope, and any scoring cost. The measurement method and full execution checks remain available in the linked evidence.
 
 ---
 
@@ -184,7 +184,7 @@ In-scope files must be clean before measurement. Uncommitted changes in the spec
 
 `execution.backend: codex` (in the spec, not as a prompt flag) sends each experiment to `codex exec`. If you are already inside a Codex sandbox, or `.git` is not writable, it falls back to subagents. Three Codex failures in a row disable that backend for the rest of the run.
 
-First-run defaults worth keeping until the harness is trusted: `execution.mode: serial`, `max_concurrent: 1`, `max_iterations: 4`, `max_hours: 1`. For judge mode: `sample_size: 10`, `batch_size: 5`, `max_total_cost_usd: 5`.
+First-run limits are ceilings, not estimates of how long the work will take. The one-hour limit starts when experiments begin, excluding setup and baseline measurement. Defaults worth keeping until the measurement method is trusted: `execution.mode: serial`, `max_concurrent: 1`, `max_iterations: 4`, `max_hours: 1`. For judge mode: `sample_size: 10`, `batch_size: 5`, `max_total_cost_usd: 5`.
 
 Spec schema: `references/optimize-spec-schema.yaml`. Experiment log schema: `references/experiment-log-schema.yaml`.
 
