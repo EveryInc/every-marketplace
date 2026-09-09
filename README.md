@@ -18,6 +18,8 @@ It runs on 14 agent hosts, including Claude Code, Cursor, and Codex.
 
 Maintained by [Kieran Klaassen](https://github.com/kieranklaassen) and [Trevin Chow](https://github.com/tmchow), with contributions from the open-source community.
 
+For understanding before a change, ask `ce-explain` how the relevant behavior works and why it exists. For a recommendation, use `ce-pov`; “oracle this” adds independent model opinions. Both can contribute to another workflow without requiring a separate human interaction.
+
 ## Install
 
 ### Claude Code

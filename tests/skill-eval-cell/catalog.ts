@@ -108,6 +108,8 @@ export type Scenario = {
   baseline_ref?: string
 }
 
+const UNDERSTANDING_BASE_REF = "8df67793b9733d2220fa9a7fc37139931471af62"
+
 const FIX = "tests/skill-eval-cell/fixtures"
 
 const SETUP_INSTRUCTIONS_TASK =
@@ -755,6 +757,76 @@ The same decision owns open review thread PRRT_ci_contract_7 at https://github.c
       // asking would otherwise leave a clean tree and pass.
       committed_must_not: ["seat-cap.js"],
     },
+  },
+  {
+    id: "ce-explain/planning-understanding",
+    skill: "ce-explain",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: false,
+    fixture: `${FIX}/understanding-queue`,
+    baseline_ref: UNDERSTANDING_BASE_REF,
+    timeout_secs: 180,
+    why: "The old Codex path created HTML for a planning input. The answer must preserve undocumented rationale and return without artifact work; inspect prose for unsupported concurrency guarantees.",
+    pre_contract: "Teaching artifacts are the primary result; operational questions may answer directly in chat.",
+    task: "I am planning an event-driven queue worker. Explain how claim works and why polling and the 30-second lease exist. I need the explanation as input to my next planning step.",
+    grade: { workspace_read: ["queue.js", "DECISION.md"], must_include: ["polling", "30"], actions: "none" },
+  },
+  {
+    id: "ce-explain/embedded-pr-explanation",
+    skill: "ce-explain",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: false,
+    fixture: `${FIX}/understanding-queue`,
+    baseline_ref: UNDERSTANDING_BASE_REF,
+    timeout_secs: 180,
+    why: "An explanation for PR readers must be incorporable content, not an obligatory full-depth standalone lesson or a publication action.",
+    pre_contract: "Audience adaptation retains teaching depth and refuses a status-update form.",
+    task: "The PR-writing workflow needs a short explanation for reviewers of why this queue still polls despite notifications. Supply two paragraphs it can incorporate into the PR body.",
+    grade: { workspace_read: ["DECISION.md"], must_include: ["notification"], actions: "none" },
+  },
+  {
+    id: "ce-explain/teaching-artifact",
+    skill: "ce-explain",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: false,
+    fixture: `${FIX}/understanding-queue`,
+    baseline_ref: UNDERSTANDING_BASE_REF,
+    timeout_secs: 180,
+    why: "The PR concept handoff's deeper teaching use still creates a usable artifact and static exercises without blocking or publishing.",
+    pre_contract: "A teaching request creates an artifact; exercises are static and never block the run.",
+    task: "I followed the PR's suggestion to learn more. Teach me how this queue's polling and lease work. Make a standalone markdown explainer with exercises I can keep, and save it as queue-explainer.md here.",
+    grade: { workspace_contains: [{ path: "queue-explainer.md", needle: "Check yourself" }, { path: "queue-explainer.md", needle: "Answers" }], must_exclude: ["publish", "upload"] },
+  },
+  {
+    id: "ce-pov/caller-judgment",
+    skill: "ce-pov",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: false,
+    fixture: `${FIX}/understanding-queue`,
+    baseline_ref: UNDERSTANDING_BASE_REF,
+    timeout_secs: 180,
+    why: "A bounded planning decision should return a grounded judgment without redundant explanation dispatch or a continuation menu.",
+    pre_contract: "A warm invocation returns a POV as a guest, independently verifying conversation claims.",
+    task: "Our planning workflow needs your judgment: keep the current one-second recovery poll, or remove it and rely solely on notifications? Use the local queue and decision record. This decision is input to the plan I am writing.",
+    grade: { workspace_read: ["DECISION.md"], must_include: ["poll"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-explain/unavailable-framing",
+    skill: "ce-explain",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: false,
+    fixture: `${FIX}/understanding-queue`,
+    baseline_ref: UNDERSTANDING_BASE_REF,
+    timeout_secs: 180,
+    why: "An unattended caller with no recoverable subject needs the missing question returned, not an invented subject or clarification dialogue.",
+    pre_contract: "A bare subject requires asking what to explain; never invent a default artifact.",
+    task: "An unattended workflow delegated this task: explain why they chose that instead. The delegation contains no other context.",
+    grade: { must_include: ["subject"], actions: "none", delegates: "none" },
   },
   {
     id: "ce-pov/stay-read-only",
