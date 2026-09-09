@@ -335,9 +335,10 @@ worse than omitting it.
   user's prompt, glancing at obvious files) → omit.
   A constraint adopted from a Compound Pack file is cited inline as
   `(pack: <id>, <path within the pack>)` after the requirement or decision it
-  shaped — the path is relative to the pack's own directory, stable for path-
-  and git-sourced packs alike — bind the pack text, don't restate it. That marker is reserved for
-  pack files; `<root>/solutions/` learnings keep the ordinary path citation.
+  shaped. The path is relative to the pack's own directory, so it is stable
+  for path- and git-sourced packs alike. Cite the pack text; do not restate
+  it. That marker is reserved for pack files; `<root>/solutions/` learnings
+  keep the ordinary path citation.
 
 ## Agent agency
 
