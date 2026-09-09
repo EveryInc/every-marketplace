@@ -45,7 +45,7 @@ When the shape matches — at intake, or whenever later dialogue (Phases 1.3–2
 - Constrained, well-defined scope
 
 **If requirements are already clear:**
-Keep the interaction brief. Confirm understanding and present concise next-step options rather than forcing a long brainstorm. Whether a file is written is decided by the Lightweight rule in 0.3 below. Skip Phase 1.1 and 1.2 entirely — still classify tier in Phase 0.3, then go straight to Phase 1.3 or Phase 2.5 and follow `references/synthesis-summary.md`'s Path A / Path B gate exactly. Do not assume the synthesis is announce-only: a richly pre-loaded prompt classifies as Standard or Deep, which routes to Path B (full scoping synthesis + confirmation), not Path A — collapsing that gate is the defect `synthesis-summary.md` warns against.
+Keep the interaction brief. Confirm understanding and present concise next-step options rather than forcing a long brainstorm. Whether a file is written is decided by the Lightweight rule in 0.3 below. Skip Phase 1.1's scan and scout and all of Phase 1.2 — Pack discovery at the top of 1.1 still runs, because declared packs constrain the synthesis on every path — still classify tier in Phase 0.3, then go straight to Phase 1.3 or Phase 2.5 and follow `references/synthesis-summary.md`'s Path A / Path B gate exactly. Do not assume the synthesis is announce-only: a richly pre-loaded prompt classifies as Standard or Deep, which routes to Path B (full scoping synthesis + confirmation), not Path A — collapsing that gate is the defect `synthesis-summary.md` warns against.
 
 #### 0.3 Assess Scope
 

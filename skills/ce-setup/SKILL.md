@@ -1,6 +1,7 @@
 ---
 name: ce-setup
-description: "Check Compound Engineering health and repo-local config."
+description: "Check Compound Engineering health and repo-local config, or scaffold a Compound Pack with `pack:<id>`."
+argument-hint: "[pack:<id>]"
 disable-model-invocation: true
 ---
 
@@ -11,6 +12,10 @@ disable-model-invocation: true
 Ask each question below using the host's blocking question tool already in the current tool list (match by capability, not by a host-specific name). Presence in the current tool list is proof the tool exists; never call a user-facing question tool to discover whether it exists. If a matching tool is listed but unloaded, use the host's tool-discovery primitive to load that capability — do not search for another host's tool name. Fall back to a numbered list on the host's user-visible chat surface only when no such tool is in the list or a real question call errors. Never silently skip or auto-configure.
 
 `ce-setup` is a lightweight health check and repo-local config helper. It does **not** bulk-install every optional dependency. Missing tools are reported as optional capabilities so the user can install only the workflows they use.
+
+## Pack Scaffold
+
+When the invocation names a Compound Pack to add, create, or scaffold (the `pack:<id>` argument, or the same request in words), read `references/pack-scaffold.md` from this skill's directory and follow it in place of Phases 1-2: it writes the pack and its config entry only after the user approves, runs the health check itself, and reports into Phase 3.
 
 ## Artifact Root Resolution
 

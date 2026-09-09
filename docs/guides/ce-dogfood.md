@@ -81,6 +81,8 @@ Each user-visible change becomes a flowchart: entry, actions, branches, side eff
 
 Every scenario is scored twice: right data, right destination, no console errors; and whether it feels aligned with the product. Walking the flow as each primary persona produces paper cuts, small frictions that still `Pass` functionally. A sharp paper cut can enter the fix loop. The rest stay in the report.
 
+Declared [Compound Packs](./packs.md) feed both scores. A pack rule that describes a user is a persona the flows are walked as; one that prescribes how the product must look or behave is a criterion attached to every scenario it reaches, and a scenario that contradicts it fails with the `(pack: <id>, <path within the pack>)` citation. The report's Pack Compliance section lists each matched rule as honored, contradicted (fixed or escalated), or not exercised. When the branch contradicts a rule on purpose, the rule is what is in question: dogfood escalates a stale-rule decision instead of fighting the product. Judgments that generalize beyond the branch are handed to `ce-compound`, which owns whether they land in a writable pack; dogfood never writes a pack itself. Successive runs against the same packs therefore climb: each run fixes what contradicts the rules and refines the rules the product has outgrown.
+
 ### Size-gated autonomous fixes
 
 Auto-fix when the change is small, understood, and low-risk. Not when it needs an architecture or schema decision, changes product behavior, spans many files, or has competing answers. Each autonomous fix gets a regression test and a `ce-commit`. Too-big items go under "Decisions for a human" and the scenario becomes `Blocked (human decision)`.
@@ -169,6 +171,9 @@ Not on its own. Large, ambiguous, or product-changing issues are escalated. Smal
 
 **What do the Blocked states mean?**
 `Blocked (needs human verify)` is an external flow waiting on you. `Blocked (human decision)` is too big to auto-fix. Resume asks about those instead of re-running them.
+
+**Can a pack be my persona source?**
+Yes. A pack rule whose body describes who the user is and what they notice or refuse is walked as a persona, cited from the pack; product-doc personas join it when present. See [Personas as packs](./packs.md#personas-as-packs).
 
 ---
 

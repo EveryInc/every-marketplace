@@ -1,7 +1,12 @@
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "fs/promises"
 import os from "os"
 import path from "path"
-import { describe, expect, test } from "bun:test"
+import { describe, expect, setDefaultTimeout, test } from "bun:test"
+import { isolatedGitEnv, knowledgeFile } from "./helpers/packs-fixtures"
+
+// check-health cases spawn bash + git + the packs resolver; under full-suite load
+// they can cross the 5000ms default (AGENTS.md documents this flake mode).
+setDefaultTimeout(30000)
 
 const repoRoot = path.join(import.meta.dir, "..", "..")
 const checkHealthScript = path.join(repoRoot, "skills", "ce-setup", "scripts", "check-health")
@@ -17,7 +22,11 @@ type RunResult = {
   stderr: string
 }
 
-async function runCheckHealth(cwd: string, pathValue: string): Promise<RunResult> {
+async function runCheckHealth(
+  cwd: string,
+  pathValue: string,
+  extraEnv: Record<string, string> = {},
+): Promise<RunResult> {
   const proc = Bun.spawn(["bash", checkHealthScript], {
     cwd,
     env: {
@@ -26,6 +35,7 @@ async function runCheckHealth(cwd: string, pathValue: string): Promise<RunResult
       PATH: pathValue,
       // A host CODEX_HOME would otherwise decide what the tool-map scan reads.
       CODEX_HOME: path.join(cwd, ".codex"),
+      ...extraEnv,
     },
     stderr: "pipe",
     stdout: "pipe",
@@ -854,5 +864,199 @@ describe("ce-setup check-health docs_root resolution", () => {
     const result = await run({ tracked: "docs_root: .ce-artifacts/nested\n" })
     expect(result.stdout).toContain("Artifact root: .ce-artifacts/nested/ (from config.yaml)")
     expect(result.stdout).not.toContain("Invalid docs_root")
+  })
+})
+
+describe("ce-setup check-health Compound Packs section", () => {
+  test("reports resolved packs and flags config errors as project issues", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "ce-setup-health-"))
+    try {
+      await initGitRepo(root)
+      await mkdir(path.join(root, ".compound-engineering"), { recursive: true })
+      await copyFile(configTemplate, path.join(root, ".compound-engineering", "config.example.yaml"))
+      await mkdir(path.join(root, "packs", "house-rules"), { recursive: true })
+      await writeFile(path.join(root, "packs", "house-rules", "rule.md"), knowledgeFile("House rule"))
+      await writeFile(
+        path.join(root, ".compound-engineering", "config.yaml"),
+        "packs:\n  - source: packs/house-rules\n  - source: packs/missing\n",
+      )
+
+      const result = await runCheckHealth(root, process.env.PATH ?? "/usr/bin:/bin")
+
+      expect(result.exitCode).toBe(0)
+      expect(result.stdout).toContain("Compound Packs")
+      expect(result.stdout).toContain("pack house-rules")
+      expect(result.stdout).toContain("Pack config error:")
+      expect(result.stdout).toContain("project issue(s) found")
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  test("skips quietly when no packs are configured", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "ce-setup-health-"))
+    try {
+      await initGitRepo(root)
+      await mkdir(path.join(root, ".compound-engineering"), { recursive: true })
+      await copyFile(configTemplate, path.join(root, ".compound-engineering", "config.example.yaml"))
+      await copyFile(configTemplate, path.join(root, ".compound-engineering", "config.yaml"))
+
+      const result = await runCheckHealth(root, process.env.PATH ?? "/usr/bin:/bin")
+
+      expect(result.exitCode).toBe(0)
+      expect(result.stdout).toContain("No packs configured")
+      expect(result.stdout).not.toContain("Pack config error:")
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  // Subdirectories are storage. A pack with a top-level rule may keep rule-shaped
+  // drafts and evidence below it; the report counts them on the OK line and never
+  // counts them as a project issue.
+  test("notes rule-shaped files kept in subfolders on the pack's OK line, not as a warning or issue", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "ce-setup-health-"))
+    try {
+      await initGitRepo(root)
+      await mkdir(path.join(root, ".compound-engineering"), { recursive: true })
+      await copyFile(configTemplate, path.join(root, ".compound-engineering", "config.example.yaml"))
+      const pack = path.join(root, "packs", "house-rules")
+      await mkdir(path.join(pack, "research", "observations"), { recursive: true })
+      await writeFile(path.join(pack, "rule.md"), knowledgeFile("House rule"))
+      await writeFile(path.join(pack, "README.md"), knowledgeFile("About this pack"))
+      await writeFile(path.join(pack, "research", "obs-001.md"), knowledgeFile("Observation 1"))
+      await writeFile(path.join(pack, "research", "obs-002.md"), knowledgeFile("Observation 2"))
+      await writeFile(path.join(pack, "research", "observations", "obs-003.md"), knowledgeFile("Two levels down"))
+      await writeFile(path.join(root, ".compound-engineering", "config.yaml"), "packs:\n  - source: packs/house-rules\n")
+
+      const result = await runCheckHealth(root, process.env.PATH ?? "/usr/bin:/bin")
+
+      expect(result.exitCode).toBe(0)
+      expect(result.stdout).toContain("  🟢  pack house-rules -- 2 rule-shaped file(s) in subfolders kept as storage")
+      expect(result.stdout).not.toContain("that discovery never reads")
+      expect(result.stdout).not.toContain("skipped pack file")
+      expect(result.stdout).not.toContain("Pack config error:")
+      expect(result.stdout).toContain("Project config healthy")
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  // Resolver warnings relay into the report, so a pack that registers but can
+  // never be discovered is visible from /ce-setup, not only at planning time.
+  test("relays the resolver's nested-rule warning when a pack directory has rules only in a subdirectory", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "ce-setup-health-"))
+    try {
+      await initGitRepo(root)
+      await mkdir(path.join(root, ".compound-engineering"), { recursive: true })
+      await copyFile(configTemplate, path.join(root, ".compound-engineering", "config.example.yaml"))
+      const pack = path.join(root, "compound-packs", "house-rules")
+      await mkdir(path.join(pack, "research"), { recursive: true })
+      await writeFile(path.join(pack, "README.md"), "# House rules\n\nSee research/.\n")
+      await writeFile(path.join(pack, "research", "adr-001.md"), knowledgeFile("Decision 1"))
+      await writeFile(path.join(root, ".compound-engineering", "config.yaml"), "packs:\n  - source: compound-packs\n")
+
+      const result = await runCheckHealth(root, process.env.PATH ?? "/usr/bin:/bin")
+
+      expect(result.exitCode).toBe(0)
+      expect(result.stdout).toContain("publishes no packs")
+      expect(result.stdout).toContain(
+        "  🟡  config.yaml:2: pack `house-rules` has 1 rule-shaped file(s) under `research/` that discovery never reads",
+      )
+      expect(result.stdout).not.toContain("Pack config error:")
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+})
+
+describe("ce-setup check-health pack drift note", () => {
+  test("notes when a cached branch ref is behind upstream", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "ce-setup-health-"))
+    const cache = await mkdtemp(path.join(os.tmpdir(), "ce-packs-cache-"))
+    const upstream = await mkdtemp(path.join(os.tmpdir(), "ce-packs-up-"))
+    const g = (...args: string[]) => Bun.$`git -C ${upstream} ${args}`.env(isolatedGitEnv).quiet()
+    const commit = (message: string) => g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", message)
+    try {
+      await Bun.$`git init -q ${upstream}`.env(isolatedGitEnv).quiet()
+      await mkdir(path.join(upstream, "rails"), { recursive: true })
+      await writeFile(path.join(upstream, "rails", "r.md"), knowledgeFile("Rule"))
+      await g("add", "-A")
+      await commit("p")
+      const branch = (await g("branch", "--show-current").text()).trim()
+
+      await initGitRepo(root)
+      await mkdir(path.join(root, ".compound-engineering"), { recursive: true })
+      await copyFile(configTemplate, path.join(root, ".compound-engineering", "config.example.yaml"))
+      await writeFile(
+        path.join(root, ".compound-engineering", "config.yaml"),
+        `packs:\n  - source: file://${upstream}\n    ref: ${branch}\n`,
+      )
+
+      const run = () => runCheckHealth(root, process.env.PATH ?? "/usr/bin:/bin", { CE_PACKS_CACHE_ROOT: cache })
+
+      // First run caches the branch at its current tip: no drift note.
+      const first = await run()
+      expect(first.stdout).toContain("pack rails")
+      expect(first.stdout).not.toContain("behind upstream")
+
+      // Advance upstream; the cached resolution is now stale.
+      await writeFile(path.join(upstream, "rails", "r2.md"), knowledgeFile("Rule 2"))
+      await g("add", "-A")
+      await commit("later")
+
+      const second = await run()
+      expect(second.stdout).toContain("behind upstream")
+    } finally {
+      await rm(root, { recursive: true, force: true })
+      await rm(cache, { recursive: true, force: true })
+      await rm(upstream, { recursive: true, force: true })
+    }
+  })
+
+  // A tag is not immutable: `git tag --force` moves it upstream while every
+  // machine that already cached it keeps the old commit. Only a full commit id
+  // is exempt from the remote comparison.
+  test("notes when a cached tag was force-moved upstream", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "ce-setup-health-"))
+    const cache = await mkdtemp(path.join(os.tmpdir(), "ce-packs-cache-"))
+    const upstream = await mkdtemp(path.join(os.tmpdir(), "ce-packs-up-"))
+    const g = (...args: string[]) => Bun.$`git -C ${upstream} ${args}`.env(isolatedGitEnv).quiet()
+    const commit = (message: string) => g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", message)
+    try {
+      await Bun.$`git init -q ${upstream}`.env(isolatedGitEnv).quiet()
+      await mkdir(path.join(upstream, "rails"), { recursive: true })
+      await writeFile(path.join(upstream, "rails", "r.md"), knowledgeFile("Rule"))
+      await g("add", "-A")
+      await commit("p")
+      await g("-c", "user.email=t@t", "-c", "user.name=t", "tag", "-a", "v1", "-m", "v1")
+
+      await initGitRepo(root)
+      await mkdir(path.join(root, ".compound-engineering"), { recursive: true })
+      await copyFile(configTemplate, path.join(root, ".compound-engineering", "config.example.yaml"))
+      await writeFile(
+        path.join(root, ".compound-engineering", "config.yaml"),
+        `packs:\n  - source: file://${upstream}\n    ref: v1\n`,
+      )
+
+      const run = () => runCheckHealth(root, process.env.PATH ?? "/usr/bin:/bin", { CE_PACKS_CACHE_ROOT: cache })
+
+      const first = await run()
+      expect(first.stdout).toContain("pack rails (v1)")
+      expect(first.stdout).not.toContain("behind upstream")
+
+      // Move the tag to a new commit; the cached checkout still holds the old one.
+      await writeFile(path.join(upstream, "rails", "r2.md"), knowledgeFile("Rule 2"))
+      await g("add", "-A")
+      await commit("later")
+      await g("-c", "user.email=t@t", "-c", "user.name=t", "tag", "-f", "-a", "v1", "-m", "v1 moved")
+
+      const second = await run()
+      expect(second.stdout).toContain("pack rails (v1) -- cached resolution is behind upstream")
+    } finally {
+      await rm(root, { recursive: true, force: true })
+      await rm(cache, { recursive: true, force: true })
+      await rm(upstream, { recursive: true, force: true })
+    }
   })
 })
