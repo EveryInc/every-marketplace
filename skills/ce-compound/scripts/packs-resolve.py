@@ -6,13 +6,24 @@ and `config.local.yaml` (both layers concatenate; local adds, never replaces),
 validates each entry, resolves path and git sources, enumerates the packs each
 source publishes, applies selection, and prints one JSON object to stdout:
 
-    {"roots": [{"id": "...", "dir": "/abs/path"}], "warnings": [...], "errors": [...]}
+    {"roots": [{"id": "...", "dir": "/abs/path"}], "warnings": [...], "errors": [...],
+     "entries": <number of parsed packs entries>}
 
 Exit 0 whenever resolution ran (per-entry failures are data in `errors` /
 `warnings`); non-zero only when the resolver itself cannot run. Consumers treat
 `errors` as loud per-entry configuration problems and `warnings` as degraded
 availability (e.g. an unreachable git source skipped per the warn-and-continue
 contract).
+
+`--declared-only` answers the config-only question without touching git or the
+cache: it parses both config layers, shape-checks each entry, and prints
+
+    {"declared": <bool|null>, "entries": <n>, "errors": [...]}
+
+where `declared` is true when any entry parsed or the `packs:` block is
+malformed (a broken declaration is still a declaration the consumer should
+surface), false when neither config layer names packs, and null when no
+repository -- and so no config -- could be located.
 
 Entry shape (documented subset -- anything else under `packs:` is a loud error):
 
@@ -36,6 +47,7 @@ CE_PACKS_GIT_TIMEOUT (seconds, default 60).
 
 from __future__ import annotations
 
+import argparse
 import functools
 import hashlib
 import json
@@ -54,6 +66,7 @@ GIT_TIMEOUT = float(os.environ.get("CE_PACKS_GIT_TIMEOUT") or 60)
 
 CONFIG_FILES = ("config.yaml", "config.local.yaml")
 KNOWN_KEYS = {"source", "ref", "path", "pack", "id"}
+SCALAR_KEYS = ("source", "ref", "path", "id")  # every known key but the list-valued `pack`
 _TREE_URL_RE = re.compile(
     r"^(?P<base>https?://github\.com/[^/\s]+/[^/\s]+?)(?:\.git)?/tree/(?P<ref>[^/\s]+)(?:/(?P<path>[^\s]*))?/?$"
 )
@@ -176,7 +189,7 @@ def parse_packs_block(path: str, errors: list) -> list:
     """Return the entry dicts under this file's top-level `packs:` key."""
     if not os.path.isfile(path):
         return []
-    with open(path, encoding="utf-8", errors="replace") as fh:
+    with open(path, encoding="utf-8-sig", errors="replace") as fh:
         lines = fh.read().splitlines()
     entries, in_packs, current, pending_list_key = [], False, None, None
     for lineno, raw in enumerate(lines, 1):
@@ -187,7 +200,15 @@ def parse_packs_block(path: str, errors: list) -> list:
         if indent == 0 and not (in_packs and line.lstrip().startswith("-")):
             # A new top-level key ends the packs block; a zero-indent list item
             # (`- source: ...`) is still part of it -- YAML allows both styles.
-            in_packs = line.rstrip() in ("packs:", "packs: []")
+            key, sep, rest = line.partition(":")
+            in_packs = bool(sep) and key.strip() == "packs" and rest.strip() in ("", "[]")
+            if sep and key.strip() == "packs" and not in_packs:
+                # `packs: <inline value>` is malformed, not absent: say so rather
+                # than letting a flow list or a bare path declare nothing.
+                errors.append(
+                    f"{os.path.basename(path)}:{lineno}: `packs:` must be a block list of"
+                    f" `- source: ...` entries (got `{line.strip()}`)"
+                )
             current, pending_list_key = None, None
             continue
         if not in_packs:
@@ -323,21 +344,27 @@ def resolve_git_source(url: str, ref: str, warnings: list, label: str) -> str | 
 # --- pack enumeration --------------------------------------------------------
 
 _FRONTMATTER_KEYS = ("title:", "applies_when:")
+_FRONTMATTER_CAP = 64 * 1024  # frontmatter must close within this many characters
 
 
 @functools.lru_cache(maxsize=None)
 def _is_knowledge_file(path: str) -> bool:
+    """True when the file opens with a `---` frontmatter block, closed by a `---`
+    line within the cap, that carries `title:` and `applies_when:`. A UTF-8 BOM
+    is not part of the content."""
     try:
-        with open(path, encoding="utf-8", errors="replace") as fh:
-            head = fh.read(4096)
+        with open(path, encoding="utf-8-sig", errors="replace") as fh:
+            lines = fh.read(_FRONTMATTER_CAP).splitlines()
     except OSError:
         return False
-    if not head.startswith("---"):
+    if not lines or lines[0].strip() != "---":
         return False
-    parts = head.split("---", 2)
-    if len(parts) < 3:
+    for end, line in enumerate(lines[1:], 1):
+        if line.strip() == "---":
+            fm = "\n".join(lines[1:end])
+            break
+    else:
         return False
-    fm = parts[1]
     return all(re.search(rf"^\s*{re.escape(k)}", fm, re.MULTILINE) for k in _FRONTMATTER_KEYS)
 
 
@@ -395,13 +422,29 @@ def enumerate_packs(source_root: str, boundary: str, escaped: list, self_name: s
 
 # --- entry resolution --------------------------------------------------------
 
-def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, errors: list) -> None:
-    label = f"{entry.get('_origin', 'config')}:{entry.get('_line', '?')}"
-    source = entry.get("source")
-    if not isinstance(source, str) or not source:
+def _entry_label(entry: dict) -> str:
+    return f"{entry.get('_origin', 'config')}:{entry.get('_line', '?')}"
+
+
+def _entry_shape_ok(entry: dict, label: str, errors: list) -> bool:
+    """I/O-free checks on one parsed entry: `source:` present, and the scalar
+    keys actually scalar. False after appending the error."""
+    for key in SCALAR_KEYS:
+        val = entry.get(key)
+        if val is not None and not isinstance(val, str):
+            errors.append(f"{label}: `{key}:` must be a single string (got {val!r})")
+            return False
+    if not entry.get("source"):
         errors.append(f"{label}: entry has no `source:`")
+        return False
+    return True
+
+
+def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, errors: list) -> None:
+    label = _entry_label(entry)
+    if not _entry_shape_ok(entry, label, errors):
         return
-    ref, sub_path = entry.get("ref"), entry.get("path")
+    source, ref, sub_path = entry["source"], entry.get("ref"), entry.get("path")
 
     tree = _TREE_URL_RE.match(source)
     if tree:
@@ -515,50 +558,77 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
         roots.append(root)
 
 
-def _main() -> int:
+def _emit(declared_only: bool, entries: list, roots: list, warnings: list, errors: list,
+          declared: bool | None = None) -> int:
+    if declared_only:
+        print(json.dumps({"declared": declared, "entries": len(entries), "errors": errors}))
+    else:
+        print(json.dumps({
+            "roots": [{k: v for k, v in r.items() if not k.startswith("_")} for r in roots],
+            "warnings": warnings,
+            "errors": errors,
+            "entries": len(entries),
+        }))
+    return 0
+
+
+def _main(argv: list) -> int:
+    parser = argparse.ArgumentParser(description="Resolve the Compound Packs declared in CE config.")
+    parser.add_argument(
+        "--declared-only", action="store_true",
+        help="parse and shape-check the packs: entries only; no git or cache work",
+    )
+    args = parser.parse_args(argv)
+    warnings, errors, roots, entries = [], [], [], []
+
     if shutil.which("git") is None:
-        print(json.dumps({"roots": [], "warnings": ["git binary not found; packs unavailable"], "errors": []}))
-        return 0
+        warnings.append("git binary not found; packs unavailable")
+        return _emit(args.declared_only, entries, roots, warnings, errors)
     proc = subprocess.run(["git", "rev-parse", "--show-toplevel"],
                           stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
-    warnings, errors, roots = [], [], []
     if proc.returncode != 0:
-        print(json.dumps({"roots": [], "warnings": ["not inside a git repository; no CE config to read"], "errors": []}))
-        return 0
+        warnings.append("not inside a git repository; no CE config to read")
+        return _emit(args.declared_only, entries, roots, warnings, errors)
     repo_root = proc.stdout.strip()
     cfg_dir = os.path.join(repo_root, ".compound-engineering")
-    entries = []
     for name in CONFIG_FILES:
         entries.extend(parse_packs_block(os.path.join(cfg_dir, name), errors))
-    for entry in entries:
-        resolve_entry(entry, repo_root, roots, warnings, errors)
 
+    if args.declared_only:
+        for entry in entries:
+            _entry_shape_ok(entry, _entry_label(entry), errors)
+        return _emit(True, entries, roots, warnings, errors, declared=bool(entries or errors))
+
+    for entry in entries:
+        try:
+            resolve_entry(entry, repo_root, roots, warnings, errors)
+        except Exception as exc:  # one entry's surprise is that entry's error, not everyone's
+            errors.append(f"{_entry_label(entry)}: unexpected error resolving entry: {exc}")
+
+    # First declaration wins: config.yaml entries precede config.local.yaml in
+    # CONFIG_FILES, so a personal pack can never displace the team's.
     by_id = {}
     final = []
     for root in roots:
         prev = by_id.get(root["id"])
         if prev is not None:
             errors.append(
-                f"duplicate pack id `{root['id']}` declared by {prev['_label']} and {root['_label']}; neither installs"
+                f"duplicate pack id `{root['id']}`: {root['_label']} ignored, {prev['_label']} kept"
+                " -- rename one with `id:`"
             )
-            final = [r for r in final if r["id"] != root["id"]]
             continue
         by_id[root["id"]] = root
         final.append(root)
-
-    print(json.dumps({
-        "roots": [{k: v for k, v in r.items() if not k.startswith("_")} for r in final],
-        "warnings": warnings,
-        "errors": errors,
-    }))
-    return 0
+    return _emit(False, entries, final, warnings, errors)
 
 
 def main() -> int:
     try:
-        return _main()
+        return _main(sys.argv[1:])
     except Exception as exc:  # never a traceback: consumers need valid JSON
-        print(json.dumps({"roots": [], "warnings": [], "errors": [f"packs resolver failed unexpectedly: {exc}"]}))
+        print(json.dumps({
+            "roots": [], "warnings": [], "errors": [f"packs resolver failed unexpectedly: {exc}"], "entries": 0,
+        }))
         return 0
 
 

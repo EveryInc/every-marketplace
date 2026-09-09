@@ -6,6 +6,7 @@ import {
   lstatSync,
   mkdtempSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   realpathSync,
   rmSync,
@@ -15,7 +16,7 @@ import {
 import { tmpdir } from "os"
 import path from "path"
 import { afterAll, describe, expect, setDefaultTimeout, test } from "bun:test"
-import { isolatedGitEnv, writeKnowledgeFile } from "./helpers/packs-fixtures"
+import { isolatedGitEnv, knowledgeFile, writeKnowledgeFile } from "./helpers/packs-fixtures"
 
 // Deterministic proof for the Compound Packs resolver (plan AE1-AE7): fixture repos
 // and file:// git sources built per test, cache isolated via CE_PACKS_CACHE_ROOT.
@@ -74,8 +75,8 @@ function makePackRepo(packNames: string[], subfolder = ""): string {
   return dir
 }
 
-function resolve(projectDir: string, cacheDir?: string, extraEnv: Record<string, string> = {}) {
-  const res = spawnSync("python3", [RESOLVER], {
+function resolve(projectDir: string, cacheDir?: string, extraEnv: Record<string, string> = {}, args: string[] = []) {
+  const res = spawnSync("python3", [RESOLVER, ...args], {
     cwd: projectDir,
     encoding: "utf8",
     env: { ...process.env, CE_PACKS_CACHE_ROOT: cacheDir ?? tempDir("cache"), CE_PACKS_GIT_TIMEOUT: "20", ...extraEnv },
@@ -96,7 +97,7 @@ describe("packs-resolve.py copies", () => {
 describe("declaration and absence", () => {
   test("AE6: no packs key anywhere yields empty roots, no warnings, no errors", () => {
     const out = resolve(makeProject("docs_root: docs\n"))
-    expect(out).toEqual({ roots: [], warnings: [], errors: [] })
+    expect(out).toEqual({ roots: [], warnings: [], errors: [], entries: 0 })
   })
 
   test("AE4: config.yaml and config.local.yaml entries concatenate", () => {
@@ -110,7 +111,10 @@ describe("declaration and absence", () => {
     expect(ids(resolve(dir))).toEqual(["kk-style", "rails"])
   })
 
-  test("AE4: duplicate id across the two config files errors loudly and neither installs", () => {
+  // Local adds, never replaces: on a duplicate id the first-declared root (the
+  // team's config.yaml entry) stays installed and the later one is dropped, so a
+  // personal config.local.yaml collision cannot uninstall a team pack.
+  test("AE4: duplicate id across the two config files errors loudly and keeps the first-declared root", () => {
     const team = makePackRepo(["rails"])
     const local = tempDir("localdup")
     writeKnowledgeFile(path.join(local, "rails"), "other.md", "other rails")
@@ -119,8 +123,12 @@ describe("declaration and absence", () => {
       `packs:\n  - source: ${local}/rails\n`,
     )
     const out = resolve(dir)
-    expect(ids(out)).toEqual([])
-    expect(out.errors.join(" ")).toContain("duplicate pack id `rails`")
+    expect(ids(out)).toEqual(["rails"])
+    expect(out.roots[0].ref).toBe("v1") // the git-sourced team root, not the local path
+    expect(out.errors.length).toBe(1)
+    expect(out.errors[0]).toContain("duplicate pack id `rails`")
+    expect(out.errors[0]).toContain("config.local.yaml:2 ignored")
+    expect(out.errors[0]).toContain("config.yaml:2 kept")
   })
 })
 
@@ -240,7 +248,113 @@ describe("parser strictness", () => {
 
   test("commented packs examples are inert", () => {
     const out = resolve(makeProject("# packs:\n#   - source: packs/x\n"))
-    expect(out).toEqual({ roots: [], warnings: [], errors: [] })
+    expect(out).toEqual({ roots: [], warnings: [], errors: [], entries: 0 })
+  })
+
+  test("a non-empty value on the packs: key line is a loud error, not an absent key", () => {
+    for (const config of ["packs: [packs/local-rules]\n", "packs: packs/local-rules\n"]) {
+      const out = resolve(makeProject(config))
+      expect(out.roots).toEqual([])
+      expect(out.errors.length).toBe(1)
+      expect(out.errors[0]).toContain("config.yaml:1")
+      expect(out.errors[0]).toContain("must be a block list")
+    }
+  })
+
+  test("a non-string path: on one entry errors for that entry; the other entries still resolve", () => {
+    const repo = makePackRepo(["rails"])
+    const ok = tempDir("okpath")
+    writeKnowledgeFile(path.join(ok, "good"), "g.md", "good")
+    const out = resolve(
+      makeProject(`packs:\n  - source: file://${repo}\n    ref: v1\n    path: [a, b]\n  - source: ${ok}/good\n`),
+    )
+    expect(ids(out)).toEqual(["good"])
+    expect(out.errors.length).toBe(1)
+    expect(out.errors[0]).toContain("config.yaml:2")
+    expect(out.errors[0]).toContain("`path:` must be a single string")
+  })
+
+  test("an unexpected exception while resolving one entry becomes that entry's error", () => {
+    const ok = tempDir("okboom")
+    writeKnowledgeFile(path.join(ok, "good"), "g.md", "good")
+    const project = makeProject(`packs:\n  - source: ${ok}/boom\n  - source: ${ok}/good\n`)
+    // Force a crash inside resolve_entry for one entry only; the resolver must
+    // still print valid JSON with the other entry's root.
+    const probe = spawnSync(
+      "python3",
+      ["-c", `
+import importlib.util, sys
+spec = importlib.util.spec_from_file_location("pr", ${JSON.stringify(RESOLVER)})
+m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+real = m.resolve_entry
+def flaky(entry, *a, **kw):
+    if str(entry.get("source", "")).endswith("/boom"):
+        raise RuntimeError("kaboom")
+    return real(entry, *a, **kw)
+m.resolve_entry = flaky
+sys.exit(m.main())
+`],
+      { cwd: project, encoding: "utf8", env: { ...process.env, CE_PACKS_CACHE_ROOT: tempDir("cache") } },
+    )
+    expect(probe.status).toBe(0)
+    const out = JSON.parse(probe.stdout)
+    expect(ids(out)).toEqual(["good"])
+    expect(out.errors.length).toBe(1)
+    expect(out.errors[0]).toContain("config.yaml:2: unexpected error resolving entry: kaboom")
+  })
+})
+
+describe("rule file detection", () => {
+  test("a BOM-prefixed rule and one whose frontmatter exceeds 4096 bytes both publish without a skip warning", () => {
+    const local = tempDir("bom")
+    const pack = path.join(local, "rules")
+    mkdirSync(pack, { recursive: true })
+    writeFileSync(path.join(pack, "bom.md"), "\ufeff" + knowledgeFile("bom rule"))
+    const tags = Array.from({ length: 600 }, (_, i) => `  - tag-${i}-${"x".repeat(8)}`).join("\n")
+    const longFrontmatter = `---\ntitle: long rule\ntags:\n${tags}\napplies_when:\n  - always\n---\n\nRule body.\n`
+    expect(Buffer.byteLength(longFrontmatter)).toBeGreaterThan(4096)
+    writeFileSync(path.join(pack, "long.md"), longFrontmatter)
+
+    const out = resolve(makeProject(`packs:\n  - source: ${local}/rules\n`))
+    expect(ids(out)).toEqual(["rules"])
+    expect(out.warnings).toEqual([])
+  })
+})
+
+describe("--declared-only", () => {
+  test("reports the declaration from the config alone: declared path pack, no key, broken entry", () => {
+    const local = tempDir("declonly")
+    writeKnowledgeFile(path.join(local, "rules"), "r.md", "rule")
+    const declared = resolve(makeProject(`packs:\n  - source: ${local}/rules\n`), undefined, {}, ["--declared-only"])
+    expect(declared).toEqual({ declared: true, entries: 1, errors: [] })
+
+    const none = resolve(makeProject("docs_root: docs\n"), undefined, {}, ["--declared-only"])
+    expect(none).toEqual({ declared: false, entries: 0, errors: [] })
+
+    const broken = resolve(makeProject("packs:\n  - ref: v1\n"), undefined, {}, ["--declared-only"])
+    expect(broken.declared).toBe(true)
+    expect(broken.entries).toBe(1)
+    expect(broken.errors.join(" ")).toContain("no `source:`")
+
+    // Outside any repository there is no config to read: null, not false.
+    const nowhere = resolve(tempDir("not-a-repo"), undefined, {}, ["--declared-only"])
+    expect(nowhere).toEqual({ declared: null, entries: 0, errors: [] })
+  })
+
+  test("does no git or cache work: an unreachable git source is declared, never fetched", () => {
+    const cache = tempDir("cache-declonly")
+    const gone = path.join(scratch, "never-cloned")
+    const out = resolve(makeProject(`packs:\n  - source: file://${gone}\n    ref: v1\n`), cache, {}, ["--declared-only"])
+    expect(out).toEqual({ declared: true, entries: 1, errors: [] })
+    expect(readdirSync(cache)).toEqual([])
+  })
+
+  test("the normal output carries the parsed entry count", () => {
+    const local = tempDir("entries")
+    writeKnowledgeFile(path.join(local, "rules"), "r.md", "rule")
+    const out = resolve(makeProject(`packs:\n  - source: ${local}/rules\n  - source: ${local}/missing\n`))
+    expect(out.entries).toBe(2)
+    expect(ids(out)).toEqual(["rules"])
   })
 })
 

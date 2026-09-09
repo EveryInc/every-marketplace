@@ -119,27 +119,29 @@ def has_learnings_corpus(docs_root: str | None) -> bool:
 
 
 PACKS_RESOLVER = Path(__file__).resolve().parent / "packs-resolve.py"
-# The resolver bounds each git call with its own GIT_TIMEOUT (60s default); this
-# caps the whole run so a helper that is meant to be cheap can never hang scope.
-PACKS_RESOLVER_TIMEOUT = 180.0
+# Parse-only mode does no git or cache work, so this bound only guards against a
+# wedged interpreter; the helper is meant to be cheap and must never hang scope.
+PACKS_RESOLVER_TIMEOUT = 30.0
 
 
 def declared_packs() -> tuple[bool | None, int]:
-    """Whether the repo under review declares Compound Packs, and how many resolved.
+    """Whether the local CE config declares Compound Packs, from the config alone.
 
-    Runs the sibling resolver, which reads the `packs:` list from the CE config
-    layers. The resolver is silent (empty roots, warnings, and errors) exactly
-    when no config names a pack, so any root, warning, or error means at least
-    one entry is declared -- including a broken one, which the learnings pass
-    surfaces in Coverage. ``None`` means the helper could not tell (resolver
-    missing, crashed, or timed out); the caller then falls closed to reading the
-    config's `packs:` key itself.
+    Runs the sibling resolver in `--declared-only` mode, which parses the
+    `packs:` list from both CE config layers and shape-checks each entry with no
+    git or cache work. Its `declared` is true when any entry parsed or the block
+    is malformed -- a broken declaration is still one the learnings pass must
+    surface in Coverage. ``None`` means the helper could not tell (resolver
+    missing, crashed, timed out, or answered without `declared`); the caller
+    then falls closed to reading the config's `packs:` key itself. The second
+    value keeps the `pack_roots` output slot and is always 0: nothing resolves
+    here.
     """
     if not PACKS_RESOLVER.is_file():
         return None, 0
     try:
         proc = subprocess.run(
-            [sys.executable, str(PACKS_RESOLVER)],
+            [sys.executable, str(PACKS_RESOLVER), "--declared-only"],
             capture_output=True,
             text=True,
             check=False,
@@ -154,15 +156,21 @@ def declared_packs() -> tuple[bool | None, int]:
         data = json.loads(proc.stdout)
     except ValueError:
         return None, 0
-    roots = data.get("roots") or []
-    declared = bool(roots or data.get("errors") or data.get("warnings"))
-    return declared, len(roots)
+    declared = data.get("declared") if isinstance(data, dict) else None
+    if not isinstance(declared, bool):
+        return None, 0
+    return declared, 0
 
 
-def repo_signals(docs_root: str | None) -> dict[str, object]:
-    """Facts about the repo, not the diff: present in every result shape."""
+def repo_signals(docs_root: str | None, local_scope: bool) -> dict[str, object]:
+    """Facts about the repo, not the diff: present in every result shape.
+
+    `declared_packs` describes the local checkout's config, which is not the
+    reviewed tree's config in remote scope, so it is evaluated only when
+    `local_scope` is true and reported as ``None`` otherwise.
+    """
     learnings_corpus = has_learnings_corpus(docs_root)
-    declared, pack_roots = declared_packs()
+    declared, pack_roots = declared_packs() if local_scope else (None, 0)
     return {
         "has_learnings_corpus": learnings_corpus,
         "declared_packs": declared,
@@ -192,7 +200,9 @@ def main() -> int:
     parser.add_argument("--docs-root", default="docs")
     args = parser.parse_args()
 
-    repo = repo_signals(args.docs_root)
+    # Remote scope (pr-remote / branch-remote) always passes --head, even when a
+    # best-effort fetch left it empty; the local config is not that tree's config.
+    repo = repo_signals(args.docs_root, local_scope=args.head is None)
 
     if not valid_commit(args.base):
         print(json.dumps(fail_closed("invalid base endpoint", repo), sort_keys=True))

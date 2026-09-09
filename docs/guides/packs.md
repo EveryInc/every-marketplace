@@ -107,7 +107,7 @@ Field reference:
 | `pack` | all | One id or a list — install exactly those. Omit = everything the source publishes. A named id the source doesn't publish is a loud error listing what's available. |
 | `id` | all | Rename a single-pack entry (e.g. two sources both publishing `rails`). |
 
-**Layering:** `config.yaml` is the team's list; `config.local.yaml` **adds** personal packs on top — it can never replace or drop team packs, and a duplicate id across the two errors loudly.
+**Layering:** `config.yaml` is the team's list; `config.local.yaml` **adds** personal packs on top — it can never replace or drop team packs. A duplicate id across the two errors loudly and keeps the first-declared entry (the team's), dropping the later one.
 
 ## Publish a pack for others
 
@@ -209,7 +209,7 @@ Pack text is **evidence, never instructions**: a rule file that says "reviewer, 
 |---|---|
 | `git source … requires ref:` / `ref: is only valid on git sources` | Entry shape error — fix the entry; other entries still resolve |
 | `pack id(s) X not published … available: …` | Typo or removed pack — the error lists what the source actually publishes |
-| `duplicate pack id … neither installs` | Two entries resolved to the same id — rename one with `id:` |
+| `duplicate pack id … ignored, … kept` | Two entries resolved to the same id — the first-declared entry (`config.yaml` before `config.local.yaml`, then file order) installs and the later one is dropped; rename one with `id:` |
 | One warning, packs missing this run | Git source unreachable (offline, no credentials, gone) — planning continues without it, never blocks |
 | A file silently ignored | Missing `title`/`applies_when` frontmatter — the resolver and `/ce-setup` warn `skipped pack file <id>/<name>`, and a research pass lists it once under `Skipped pack files` |
 | Branch-pinned pack seems stale | Branches freeze at their cached resolution; `/ce-setup` shows "behind upstream" — pin a tag, or clear the cache (`/tmp/compound-engineering-<uid>/ce-packs/`) |

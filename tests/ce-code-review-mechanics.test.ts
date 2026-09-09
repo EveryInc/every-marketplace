@@ -121,9 +121,10 @@ describe("ce-code-review deterministic mechanics", () => {
 
   // Review enforcement of Compound Packs rides on the learnings persona, whose
   // gate used to require an existing solutions corpus. A repo that adopts packs
-  // before it has any learnings must still report a reason to select it. Each
-  // helper run spawns the resolver too, so the cases are split to stay well
-  // under the per-test timeout when the full suite loads the runner.
+  // before it has any learnings must still report a reason to select it. The
+  // helper answers from the config alone (the resolver's --declared-only mode:
+  // no clone, no cache), so `pack_roots` is always 0 and the signal is cheap in
+  // every scope.
   function packsFixture() {
     const fixture = fixtureRepo()
     mkdirSync(path.join(fixture.dir, ".compound-engineering"), { recursive: true })
@@ -157,8 +158,22 @@ describe("ce-code-review deterministic mechanics", () => {
     )
     const declared = JSON.parse(run("python3", [SCOPE_SCRIPT, "--base", base], dir).stdout)
     expect(declared.declared_packs).toBe(true)
-    expect(declared.pack_roots).toBe(1)
+    expect(declared.pack_roots).toBe(0)
     expect(declared.has_learnings_corpus).toBe(false)
+  })
+
+  test("scope helper does not evaluate declared_packs in remote scope", () => {
+    const { dir, base } = packsFixture()
+    writeFileSync(
+      path.join(dir, ".compound-engineering", "config.yaml"),
+      "packs:\n  - source: compound-packs/house-rules\n",
+    )
+    // Remote scope passes --head; the local config is not the reviewed tree's
+    // config, so the helper reports null without running the resolver at all.
+    const remote = JSON.parse(run("python3", [SCOPE_SCRIPT, "--base", base, "--head", base], dir).stdout)
+    expect(remote.status).toBe("complete")
+    expect(remote.declared_packs).toBeNull()
+    expect(remote.pack_roots).toBe(0)
   })
 
   test("scope helper treats a broken pack entry as declared, and keeps the signal when failing closed", () => {
