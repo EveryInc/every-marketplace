@@ -722,8 +722,12 @@ describe("ce-code-review contract", () => {
     expect(content).toMatch(
       /Stage 3b standards discovery completed successfully \(with applicable paths or a confirmed empty result\)/i,
     )
+    // #1159 pinned "no conditional other than project-standards"; the gate now
+    // states the condition that clause was a case of: only diff-content
+    // conditionals disqualify lite, while personas the repo's criteria sources
+    // select (standards paths, declared packs) ride it. Both must still be named.
     expect(content).toMatch(
-      /No conditional persona other than `project-standards` was selected in Stage 3/i,
+      /No conditional persona was selected in Stage 3 from the diff's own content\.[^\n]*`project-standards` from Stage 3b paths/i,
     )
     expect(content).toMatch(
       /Lite roster:[\s\S]{0,200}`project-standards-reviewer` only when Stage 3b found applicable paths/i,

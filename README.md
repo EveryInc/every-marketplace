@@ -18,7 +18,7 @@ It runs on 14 agent hosts, including Claude Code, Cursor, and Codex.
 
 Maintained by [Kieran Klaassen](https://github.com/kieranklaassen) and [Trevin Chow](https://github.com/tmchow), with contributions from the open-source community.
 
-For understanding before a change, ask `ce-explain` how the relevant behavior works and why it exists. For a recommendation, use `ce-pov`; “oracle this” adds independent model opinions. Both can contribute to another workflow without requiring a separate human interaction.
+For understanding before a change, ask `ce-explain` how the relevant behavior works and why it exists. For a recommendation, use `ce-pov`; “oracle this” adds independent model opinions. Both can contribute to another workflow without a separate human interaction.
 
 ## Install
 
@@ -121,7 +121,7 @@ Compound engineering inverts this. 80% is in planning and review, 20% is in exec
 - Codify knowledge so it is reusable with `/ce-compound`
 - Keep quality high so future changes are easy
 
-The point is not ceremony. The point is leverage. A good brainstorm makes the plan sharper. A good plan makes execution smaller. A good review catches the pattern, not just the bug. A good compound note means the next agent does not have to learn the same lesson from scratch.
+The point is leverage, not ceremony. A good brainstorm makes the plan sharper. A good plan makes execution smaller. A good review catches the pattern, not just the bug. A good compound note means the next agent does not have to learn the same lesson from scratch.
 
 ## The loop
 
@@ -136,7 +136,7 @@ The core loop is six steps: **brainstorm** the requirements, **plan** the implem
 | [`/ce-code-review`](docs/guides/ce-code-review.md) | Report-only multi-agent review against the plan before merging; local apply is explicit |
 | [`/ce-compound`](docs/guides/ce-compound.md) | Capture the learning into `docs/solutions/` so the next loop starts smarter |
 
-Each cycle compounds: `/ce-compound` writes learnings that the next `/ce-brainstorm` and `/ce-plan` read as grounding -- brainstorms sharpen plans, plans inform future plans, reviews catch more issues, patterns get documented. That return arrow is the whole point.
+Each cycle compounds. `/ce-compound` writes learnings that the next `/ce-brainstorm` and `/ce-plan` read as grounding. Brainstorms sharpen plans, plans inform future plans, reviews catch more issues, patterns get documented. That return arrow is the whole point.
 
 <img src="assets/demo/compound-loop.gif" alt="A ce-compound run writes a learning about an env-var trap; 18 days later, on unrelated work, a ce-plan run finds that learning and carries its constraints into the new plan" width="100%">
 
@@ -145,6 +145,8 @@ Each cycle compounds: `/ce-compound` writes learnings that the next `/ce-brainst
 <sub>Replayed from a real pair of sessions 18 days apart, with names and paths anonymized and the six-minute run compressed to about 30 seconds. Nothing shown is behavior the skills don't have — see <a href="assets/demo/README.md">assets/demo</a> for the source and the substitutions.</sub>
 
 > Artifact folders like `docs/solutions/` and `docs/plans/` are the **defaults**. A project whose `docs/` is tracked content can relocate every CE artifact folder under one repo-relative root via the `docs_root` setting -- see [configuration](docs/guides/configuration.md#artifact-root).
+>
+> Want the same knowledge compounding across every repo in your org -- team conventions, security policies, a stack's hard-won rules -- instead of being relearned in each one? Declare it as **Compound Packs**: folders of prescriptive rules (local, or ref-pinned git repos) that planning grounds in and review enforces, every use cited back to the rule file (experimental) -- see [Compound Packs](docs/guides/packs.md).
 
 ## Try it
 
@@ -234,7 +236,7 @@ Start a new Cline task after installing or updating skills. See [`.cline/INSTALL
 
 ### Grok Build CLI (`grok`)
 
-xAI's [Grok Build CLI](https://x.ai/cli) (`grok`) installs Compound Engineering directly from this repository — the repo root is a valid Grok plugin (`grok` reads the existing Claude-compatible manifests, and the repo also ships a native `.grok-plugin/plugin.json`):
+xAI's [Grok Build CLI](https://x.ai/cli) (`grok`) installs Compound Engineering directly from this repository. The repo root is a valid Grok plugin: `grok` reads the existing Claude-compatible manifests, and the repo also ships a native `.grok-plugin/plugin.json`.
 
 ```bash
 grok plugin install EveryInc/compound-engineering-plugin
@@ -438,6 +440,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, and [`docs/development.md`](
 |---|---|
 | [Skill catalog](docs/guides/README.md) | A page per skill, and how they chain together |
 | [Configuration](docs/guides/configuration.md) | `.compound-engineering/config.yaml` options |
+| [Compound Packs](docs/guides/packs.md) | Declaring, authoring, and publishing prescriptive rule packs |
 | [Installing](#install) · [Upgrading](docs/install/upgrading.md) | Per-host install and refresh |
 | [Contributing](CONTRIBUTING.md) · [Development](docs/development.md) | Working on the plugin itself |
 | [Security](SECURITY.md) · [Privacy](PRIVACY.md) | Reporting and data handling |

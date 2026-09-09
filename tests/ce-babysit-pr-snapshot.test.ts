@@ -4341,21 +4341,33 @@ print(json.dumps(signals))
     expect(JSON.parse(r.stdout)).toEqual([[125, 15]])
   })
 
+  // subprocess.run kills and reaps its child only for an exception raised inside
+  // communicate(). A takeover keyed on "the child exists" can land after fork but
+  // before run() reaches that call -- observed on a loaded CI runner -- and the
+  // _WatchSuperseded it raises there orphans the child, which then holds this
+  // test's stdout pipe open for the full spawnSync timeout. Fire the takeover
+  // from inside communicate() instead, so it can only land in the reaping region.
   test("watch: takeover interrupts and reaps an active fetch subprocess", () => {
-    const childPid = path.join(dir, "watch-fetch-child.pid")
     const python = `
-import os, signal, subprocess, threading, time
+import os, signal, subprocess, sys, threading, time
 from importlib.machinery import SourceFileLoader
 from types import SimpleNamespace
 m = SourceFileLoader("prs", ${JSON.stringify(SCRIPT)}).load_module()
-pid_file = ${JSON.stringify(childPid)}
+child = {}
+fetch_waiting = threading.Event()
+real_communicate = subprocess.Popen.communicate
+def communicate_and_announce(self, *args, **kwargs):
+    child["pid"] = self.pid
+    fetch_waiting.set()
+    return real_communicate(self, *args, **kwargs)
+subprocess.Popen.communicate = communicate_and_announce
 def fake_snapshot(args, now, advance_trajectory=True, watch_generation=None):
-    subprocess.run(["sh", "-c", "echo $$ > " + pid_file + "; exec sleep 30"], check=True)
+    subprocess.run(["sleep", "30"], check=True)
     return {"counts": {}, "pr_state": "OPEN", "session_seconds": 0}
-def stop_when_child_starts():
-    deadline = time.time() + 5
-    while time.time() < deadline and not os.path.exists(pid_file):
-        time.sleep(0.01)
+def stop_when_fetch_waits():
+    if not fetch_waiting.wait(5):
+        sys.stderr.write("fetch never reached communicate()\\n")
+        os._exit(3)
     os.kill(os.getpid(), signal.SIGTERM)
 m._run_snapshot = fake_snapshot
 m._fetch_snapshot = lambda args: {}
@@ -4366,15 +4378,14 @@ m._activate_watch = lambda args, generation, now, cur: (
 m._terminate_replaced_watch = lambda previous: None
 m._watch_is_current = lambda args, generation: True
 m._wake_reason = lambda actionable, settle_seconds, *_: None
-threading.Thread(target=stop_when_child_starts, daemon=True).start()
+threading.Thread(target=stop_when_fetch_waits, daemon=True).start()
 args = SimpleNamespace(reset_session=False, stop_file=None, settle_seconds=300, max_runtime=0,
                        interval=0.01, state_dir=${JSON.stringify(dir)}, pr=1, repo="o/r")
 started = time.time()
 m.cmd_watch(args)
-pid = int(open(pid_file).read())
 alive = True
 try:
-    os.kill(pid, 0)
+    os.kill(child["pid"], 0)  # succeeds for a running child and for an unreaped zombie
 except ProcessLookupError:
     alive = False
 print(f"{alive} {time.time() - started:.3f}")

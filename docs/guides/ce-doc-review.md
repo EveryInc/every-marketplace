@@ -10,6 +10,8 @@ It is the sibling of `/ce-code-review` for the docs side, and it is not a verdic
 
 ---
 
+If the repo declares [Compound Packs](./packs.md) in its `packs` config, reviewers receive the resolved packs and flag document content that contradicts a matching pack rule, citing `(pack: <id>, <path within the pack>)`.
+
 ## TL;DR
 
 | Question | Answer |
@@ -93,7 +95,7 @@ Conditional personas activate from what the doc says, not keyword matching:
 
 Personas also scope their techniques by doc shape. On plan-shape docs with validated upstream Product Contract provenance, product-lens, adversarial, and scope-guardian suppress premise-level techniques and run only implementation-level checks. On requirements-shape docs they run their full technique set. Feasibility inverts: deep implementability checks on plan-shape docs, a tight "would this direction force a fundamental rework?" check on requirements docs.
 
-Classification happens once, from readiness metadata, content-shape signals, frontmatter, R-IDs vs U-IDs, and section structure. Unified artifacts are sliced: a requirements-only plan reviews the Product Contract. An implementation-ready plan reviews Product Contract, Planning Contract, Implementation Units, Verification Contract, and Definition of Done.
+The skill classifies the doc once, from readiness metadata, content-shape signals, frontmatter, R-IDs vs U-IDs, and section structure. Unified artifacts are sliced: a requirements-only plan reviews the Product Contract. An implementation-ready plan reviews Product Contract, Planning Contract, Implementation Units, Verification Contract, and Definition of Done.
 
 ### Three surfaces, not a flat list
 

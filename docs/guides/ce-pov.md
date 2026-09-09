@@ -41,7 +41,7 @@ The skill investigates directly. When a judgment requires an explanation of unre
 
 Clear questions proceed without confirmation. The skill looks up facts it can verify. If essential context is still missing, it returns **Blocked — missing context**, explaining what is missing and why it matters. This applies to direct and workflow invocations; the caller decides whether to ask for clarification.
 
-A calling workflow receives the judgment and control back, without a menu or capture offer. An explicit oracle request still runs the panel. A recommendation alone does not authorize implementing it; requested downstream work must remain within scope, authorized, non-destructive, and supported by a result that resolves the decision needed for that action.
+A calling workflow receives the judgment and control back, without a menu or capture offer. An explicit oracle request still runs the panel. A recommendation alone does not authorize implementing it. Requested downstream work must remain within scope, authorized, non-destructive, and supported by a result that resolves the decision needed for that action.
 
 A requested write-up expands the judgment in the needed format. Ordinary answers need no file. Publication and durable capture are separate requested actions.
 

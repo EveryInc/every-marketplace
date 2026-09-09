@@ -82,6 +82,7 @@ Changes in this repo may affect one or more of these surfaces:
 - root plugin content under `skills/`, `AGENTS.md`, `README.md`, and platform manifests
 - marketplace catalogs under `.claude-plugin/`, `.cursor-plugin/`, and `.agents/plugins/`
 - the converter/install CLI in `src/` and `package.json`
+- the docs site under `site/` (a Jekyll build layer over `README.md`, `docs/guides/`, and `docs/install/`) and its workflow `.github/workflows/pages.yml`
 
 Do not assume a repo change is "just CLI" or "just plugin" without checking which surface owns the affected files.
 

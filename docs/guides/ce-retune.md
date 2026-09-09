@@ -68,7 +68,7 @@ Done is a cleared bar, or a report of the claim the run could not support. A gre
 
 ### Broken runs are their own bucket
 
-Empty transcripts and error exits look like model failures and silently inflate every effect. In the engagement this skill came from, 20% of an archive was broken runs, and excluding them falsified the first headline finding. `broken` is excluded from both numerator and denominator. If broken runs pile up on one arm, that is a harness fault wearing a model-effect costume.
+Empty transcripts and error exits look like model failures and silently inflate every effect. In the engagement this skill came from, 20% of an archive was broken runs, and excluding them falsified the first headline finding. `broken` is excluded from both numerator and denominator. If broken runs pile up on one arm, that is a harness fault, not a model effect.
 
 ### Two metrics, never collapsed
 

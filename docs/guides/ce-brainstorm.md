@@ -123,11 +123,11 @@ Before writing the doc, the skill emits a scoping synthesis: what is being built
 
 The Product Contract carries R-IDs (Requirements), A-IDs (Actors), F-IDs (Key Flows), and AE-IDs (Acceptance Examples). `ce-plan` traces every implementation unit and test scenario back to them. Scope boundaries flow through unchanged. Requirements describe expected behavior from the user's perspective, not libraries, schemas, endpoints, or file layouts, unless the brainstorm itself is about a technical decision. A decision you examined and chose during the dialogue lands as a labeled Key Decision and is not re-asked; `ce-plan` inherits the label.
 
-On Standard and Deep software runs, a cheap scout gathers a grounding dossier (verbatim quotes with `file:line` pointers) while you answer the first question. Before the plan lands, a verifier that never saw the dialogue checks the Product Contract's repo claims. Refuted claims get corrected; unverifiable ones become explicit assumptions. The dossier path is handed to `ce-plan`.
+On Standard and Deep software runs, a cheap scout gathers a grounding dossier (verbatim quotes with `file:line` pointers) while you answer the first question. If the repo declares [Compound Packs](./packs.md) in its `packs` config, the scout quotes the pack files whose `applies_when` matches the topic, and the Product Contract cites the ones that shaped it. Before the plan lands, a verifier that never saw the dialogue checks the Product Contract's repo claims. Refuted claims get corrected; unverifiable ones become explicit assumptions. The dossier path is handed to `ce-plan`.
 
 ### 6. Blindspot pass and non-software facilitation
 
-When you flag unfamiliarity, or consecutive answers show you cannot weigh the options, the skill offers a blindspot pass before questioning that territory further: a map of 3-7 decisions and hazards, each with why it matters, the realistic options, and a recommended default. You pick which to walk through; the rest take defaults recorded as explicit assumptions. Works on both software and non-software routes.
+When you flag unfamiliarity, or consecutive answers show you cannot weigh the options, the skill offers a blindspot pass before questioning that territory further: a map of 3-7 decisions and hazards, each with why it matters, the realistic options, and a recommended default. You pick which to walk through; the rest take defaults recorded as explicit assumptions. The pass works on both software and non-software routes.
 
 Non-software work uses a domain-agnostic facilitator with the same one-question discipline. It does not write a software unified-plan artifact.
 

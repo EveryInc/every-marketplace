@@ -161,6 +161,8 @@ Settled decisions: {settled_ktds}
 
 {decision_primer}
 
+{pack_constraints}
+
 Document content:
 {document_content}
 </review-context>
