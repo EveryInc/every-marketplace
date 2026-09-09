@@ -23,6 +23,8 @@ The shared authoring standard explains why choosing a fix and approving an edit 
 
 The before version is `1caa4d73`, the previously pushed change. The after version uses working-tree skills loaded into fresh Claude and Codex CLI sessions. No model override was supplied, so these results do not establish how a specific model tier performs. Runs were read-only and stopped after deciding which findings to keep and how to handle them. The actual decisions were reviewed; keyword checks alone do not determine success.
 
+The catalog now uses main-branch commit `153e605e1622154a0d7da095fceed13edcb68bf7` for future baseline runs. The rebase left `1caa4d73` outside the history available to fresh checkouts, and a replacement on this feature branch could disappear after a squash merge. Future comparisons therefore measure the full PR against its main-branch baseline, not just the later ownership change. The historical results below still describe runs against `1caa4d73`; they are not results for the replacement baseline.
+
 Raw artifacts: `/var/folders/yr/rc1_m71d72zcl3zxwsdd75400000gn/T/ce-doc-ownership-eval-sOGtOx/`.
 
 ## Iterations and exclusions
