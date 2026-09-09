@@ -169,8 +169,10 @@ describe("review stage grounds in packs", () => {
   // Two cloud-agent re-verification runs had to guess this route before it was stated.
   test("a contradicted pack rule becomes a numbered finding, not only a Known Pattern note", () => {
     const CR_FINISH = read("skills/ce-code-review/references/finish-review.md")
-    expect(CR_RESEARCHER).toMatch(/any changed line contradicts it/)
-    expect(CR_RESEARCHER).toMatch(/honored in one place and contradicted in another is a contradiction/)
+    expect(CR_RESEARCHER).toMatch(/\*\*changed\*\* line that contradicts it/)
+    expect(CR_RESEARCHER).toMatch(/\*\*unchanged\*\* line only[^\n]*pre-existing partition/)
+    expect(CR_FINISH).toMatch(/violated only by an unchanged line[^\n]*`pre_existing: true`/)
+    expect(CR_FINISH).toMatch(/`coverage\.compound_packs`/)
     expect(CR_DISPATCH).toMatch(/contradicts becomes a numbered finding in Stage 5/)
     expect(section(CR_FINISH, "### Stage 5: Merge findings", "### Stage 5b")).toMatch(
       /\*\*contradicts\*\*[^\n]*compact reviewer return/,
