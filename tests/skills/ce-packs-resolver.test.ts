@@ -3,12 +3,12 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import path from "path"
 import { afterAll, describe, expect, setDefaultTimeout, test } from "bun:test"
+import { isolatedGitEnv, writeKnowledgeFile } from "./helpers/packs-fixtures"
 
 // Deterministic proof for the Compound Packs resolver (plan AE1-AE7): fixture repos
 // and file:// git sources built per test, cache isolated via CE_PACKS_CACHE_ROOT.
 setDefaultTimeout(30000)
 
-const RESOLVER = path.join(process.cwd(), "skills/ce-plan/scripts/packs-resolve.py")
 const COPIES = [
   "skills/ce-plan/scripts/packs-resolve.py",
   "skills/ce-brainstorm/scripts/packs-resolve.py",
@@ -17,6 +17,7 @@ const COPIES = [
   "skills/ce-doc-review/scripts/packs-resolve.py",
   "skills/ce-compound/scripts/packs-resolve.py",
 ]
+const RESOLVER = path.join(process.cwd(), COPIES[0])
 
 const scratch = mkdtempSync(path.join(tmpdir(), "ce-packs-resolver-"))
 afterAll(() => rmSync(scratch, { recursive: true, force: true }))
@@ -29,8 +30,12 @@ function tempDir(name: string): string {
 }
 
 function git(cwd: string, ...args: string[]): void {
-  const res = spawnSync("git", args, { cwd, encoding: "utf8" })
+  const res = spawnSync("git", args, { cwd, encoding: "utf8", env: isolatedGitEnv })
   if (res.status !== 0) throw new Error(`git ${args.join(" ")} failed: ${res.stderr}`)
+}
+
+function commit(cwd: string, message: string): void {
+  git(cwd, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", message)
 }
 
 /** A git repo usable as the consuming project, with .compound-engineering config. */
@@ -44,14 +49,6 @@ function makeProject(config: string, localConfig?: string): string {
   return dir
 }
 
-function writeKnowledgeFile(dir: string, name: string, title: string): void {
-  mkdirSync(dir, { recursive: true })
-  writeFileSync(
-    path.join(dir, name),
-    `---\ntitle: ${title}\napplies_when:\n  - adding a page that needs server data\ntags: [fixture]\n---\n\nRule body for ${title}.\n`,
-  )
-}
-
 /** A git repo publishing packs under an optional subfolder, tagged v1. */
 function makePackRepo(packNames: string[], subfolder = ""): string {
   const dir = tempDir("packrepo")
@@ -60,16 +57,16 @@ function makePackRepo(packNames: string[], subfolder = ""): string {
     writeKnowledgeFile(path.join(dir, subfolder, name), `${name}-rule.md`, `${name} rule`)
   }
   git(dir, "add", "-A")
-  git(dir, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "packs")
+  commit(dir, "packs")
   git(dir, "tag", "v1")
   return dir
 }
 
-function resolve(projectDir: string, cacheDir?: string) {
+function resolve(projectDir: string, cacheDir?: string, extraEnv: Record<string, string> = {}) {
   const res = spawnSync("python3", [RESOLVER], {
     cwd: projectDir,
     encoding: "utf8",
-    env: { ...process.env, CE_PACKS_CACHE_ROOT: cacheDir ?? tempDir("cache"), CE_PACKS_GIT_TIMEOUT: "20" },
+    env: { ...process.env, CE_PACKS_CACHE_ROOT: cacheDir ?? tempDir("cache"), CE_PACKS_GIT_TIMEOUT: "20", ...extraEnv },
   })
   expect(res.status).toBe(0)
   return JSON.parse(res.stdout)
@@ -163,7 +160,7 @@ describe("selection and publishing", () => {
     // add a nested dir with knowledge files inside the outer pack
     writeKnowledgeFile(path.join(repo, "outer", "nested"), "n.md", "nested rule")
     git(repo, "add", "-A")
-    git(repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "nested")
+    commit(repo, "nested")
     git(repo, "tag", "-f", "v1")
     const out = resolve(makeProject(`packs:\n  - source: file://${repo}\n    ref: v1\n`))
     expect(ids(out)).toEqual(["outer"])
@@ -245,7 +242,7 @@ describe("cache and failure modes", () => {
     // mutate upstream: add a pack after the first resolution
     writeKnowledgeFile(path.join(repo, "later"), "l.md", "later rule")
     git(repo, "add", "-A")
-    git(repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "later")
+    commit(repo, "later")
     // cached branch resolution does not advance
     expect(ids(resolve(project, cache))).toEqual(["rails"])
   })
@@ -300,7 +297,7 @@ describe("review regressions", () => {
     git(repo, "init", "-q")
     writeKnowledgeFile(repo, "r.md", "root rule")
     git(repo, "add", "-A")
-    git(repo, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "p")
+    commit(repo, "p")
     git(repo, "tag", "v1")
     const out = resolve(makeProject(`packs:\n  - source: file://${repo}\n    ref: v1\n`))
     expect(out.roots.length).toBe(1)
@@ -323,13 +320,7 @@ describe("review regressions", () => {
     const home = tempDir("home")
     writeKnowledgeFile(path.join(home, "packs", "kk"), "k.md", "kk rule")
     const project = makeProject("packs:\n  - source: ~/packs/kk\n")
-    const res = spawnSync("python3", [RESOLVER], {
-      cwd: project,
-      encoding: "utf8",
-      env: { ...process.env, HOME: home, CE_PACKS_CACHE_ROOT: tempDir("cache") },
-    })
-    expect(res.status).toBe(0)
-    expect(ids(JSON.parse(res.stdout))).toEqual(["kk"])
+    expect(ids(resolve(project, undefined, { HOME: home }))).toEqual(["kk"])
   })
 
   test("id: renames a single-pack git entry and keeps its git metadata", () => {

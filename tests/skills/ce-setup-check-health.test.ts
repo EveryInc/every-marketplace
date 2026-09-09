@@ -2,6 +2,7 @@ import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "fs/promises"
 import os from "os"
 import path from "path"
 import { describe, expect, setDefaultTimeout, test } from "bun:test"
+import { isolatedGitEnv, knowledgeFile } from "./helpers/packs-fixtures"
 
 // check-health cases spawn bash + git + the packs resolver; under full-suite load
 // they can cross the 5000ms default (AGENTS.md documents this flake mode).
@@ -21,7 +22,11 @@ type RunResult = {
   stderr: string
 }
 
-async function runCheckHealth(cwd: string, pathValue: string): Promise<RunResult> {
+async function runCheckHealth(
+  cwd: string,
+  pathValue: string,
+  extraEnv: Record<string, string> = {},
+): Promise<RunResult> {
   const proc = Bun.spawn(["bash", checkHealthScript], {
     cwd,
     env: {
@@ -30,6 +35,7 @@ async function runCheckHealth(cwd: string, pathValue: string): Promise<RunResult
       PATH: pathValue,
       // A host CODEX_HOME would otherwise decide what the tool-map scan reads.
       CODEX_HOME: path.join(cwd, ".codex"),
+      ...extraEnv,
     },
     stderr: "pipe",
     stdout: "pipe",
@@ -869,10 +875,7 @@ describe("ce-setup check-health Compound Packs section", () => {
       await mkdir(path.join(root, ".compound-engineering"), { recursive: true })
       await copyFile(configTemplate, path.join(root, ".compound-engineering", "config.example.yaml"))
       await mkdir(path.join(root, "packs", "house-rules"), { recursive: true })
-      await writeFile(
-        path.join(root, "packs", "house-rules", "rule.md"),
-        "---\ntitle: House rule\napplies_when:\n  - always\n---\n\nBody.\n",
-      )
+      await writeFile(path.join(root, "packs", "house-rules", "rule.md"), knowledgeFile("House rule"))
       await writeFile(
         path.join(root, ".compound-engineering", "config.yaml"),
         "packs:\n  - source: packs/house-rules\n  - source: packs/missing\n",
@@ -914,17 +917,15 @@ describe("ce-setup check-health pack drift note", () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "ce-setup-health-"))
     const cache = await mkdtemp(path.join(os.tmpdir(), "ce-packs-cache-"))
     const upstream = await mkdtemp(path.join(os.tmpdir(), "ce-packs-up-"))
-    const g = (...args: string[]) => Bun.$`git -C ${upstream} ${args}`.quiet()
+    const g = (...args: string[]) => Bun.$`git -C ${upstream} ${args}`.env(isolatedGitEnv).quiet()
+    const commit = (message: string) => g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", message)
     try {
-      await Bun.$`git init -q ${upstream}`.quiet()
+      await Bun.$`git init -q ${upstream}`.env(isolatedGitEnv).quiet()
       await mkdir(path.join(upstream, "rails"), { recursive: true })
-      await writeFile(
-        path.join(upstream, "rails", "r.md"),
-        "---\ntitle: Rule\napplies_when:\n  - always\n---\n\nBody.\n",
-      )
+      await writeFile(path.join(upstream, "rails", "r.md"), knowledgeFile("Rule"))
       await g("add", "-A")
-      await g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "p")
-      const branch = (await Bun.$`git -C ${upstream} branch --show-current`.text()).trim()
+      await commit("p")
+      const branch = (await g("branch", "--show-current").text()).trim()
 
       await initGitRepo(root)
       await mkdir(path.join(root, ".compound-engineering"), { recursive: true })
@@ -934,32 +935,20 @@ describe("ce-setup check-health pack drift note", () => {
         `packs:\n  - source: file://${upstream}\n    ref: ${branch}\n`,
       )
 
-      const env = { CE_PACKS_CACHE_ROOT: cache }
-      const run = () =>
-        Bun.spawn(["bash", checkHealthScript], {
-          cwd: root,
-          env: { ...process.env, ...env, HOME: root },
-          stdout: "pipe",
-          stderr: "pipe",
-        })
+      const run = () => runCheckHealth(root, process.env.PATH ?? "/usr/bin:/bin", { CE_PACKS_CACHE_ROOT: cache })
 
       // First run caches the branch at its current tip: no drift note.
-      const first = run()
-      await first.exited
-      const firstOut = await new Response(first.stdout).text()
-      expect(firstOut).toContain("pack rails")
-      expect(firstOut).not.toContain("behind upstream")
+      const first = await run()
+      expect(first.stdout).toContain("pack rails")
+      expect(first.stdout).not.toContain("behind upstream")
 
       // Advance upstream; the cached resolution is now stale.
-      await writeFile(path.join(upstream, "rails", "r2.md"),
-        "---\ntitle: Rule 2\napplies_when:\n  - always\n---\n\nBody.\n")
+      await writeFile(path.join(upstream, "rails", "r2.md"), knowledgeFile("Rule 2"))
       await g("add", "-A")
-      await g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "later")
+      await commit("later")
 
-      const second = run()
-      await second.exited
-      const secondOut = await new Response(second.stdout).text()
-      expect(secondOut).toContain("behind upstream")
+      const second = await run()
+      expect(second.stdout).toContain("behind upstream")
     } finally {
       await rm(root, { recursive: true, force: true })
       await rm(cache, { recursive: true, force: true })

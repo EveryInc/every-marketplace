@@ -36,11 +36,13 @@ CE_PACKS_GIT_TIMEOUT (seconds, default 60).
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -63,6 +65,11 @@ def _is_git_url(source: str) -> bool:
     )
 
 
+def _within(path: str, parent: str) -> bool:
+    """True when `path` is `parent` or lies below it (both already realpath'd)."""
+    return path == parent or path.startswith(parent + os.sep)
+
+
 # --- scratch root (peer-job-runner shape: probe /tmp, fall back to TMPDIR) ---
 
 def _owned_dir(path: str) -> bool:
@@ -71,7 +78,7 @@ def _owned_dir(path: str) -> bool:
         st = os.lstat(path)
     except OSError:
         return False
-    if not __import__("stat").S_ISDIR(st.st_mode):
+    if not stat.S_ISDIR(st.st_mode):
         return False
     if _EFFECTIVE_UID is not None and st.st_uid != _EFFECTIVE_UID:
         return False
@@ -90,6 +97,7 @@ def _private_root_usable(path: str) -> bool:
     return os.path.isdir(path) and os.access(path, os.W_OK)
 
 
+@functools.lru_cache(maxsize=None)
 def cache_base() -> str | None:
     configured = os.environ.get("CE_PACKS_CACHE_ROOT")
     if configured:
@@ -195,7 +203,7 @@ def parse_packs_block(path: str, errors: list) -> list:
             continue
         key, _, val = stripped.partition(":")
         key = key.strip()
-        if val.strip() == "" and key in ("pack",):
+        if val.strip() == "" and key == "pack":
             current[key] = []
             pending_list_key = key
             continue
@@ -213,6 +221,7 @@ def _set_key(entry: dict, key: str, raw_val: str, loc: str, errors: list) -> Non
 
 # --- git ---------------------------------------------------------------------
 
+@functools.lru_cache(maxsize=None)
 def _git_env() -> dict:
     env = dict(os.environ)
     env["GIT_TERMINAL_PROMPT"] = "0"
@@ -226,7 +235,7 @@ def _git_env() -> dict:
 def _run_git(args: list, cwd: str | None = None):
     return subprocess.run(
         ["git", *args], cwd=cwd, env=_git_env(), timeout=GIT_TIMEOUT,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        capture_output=True, text=True,
     )
 
 
@@ -257,11 +266,12 @@ def resolve_git_source(url: str, ref: str, warnings: list, label: str) -> str | 
         if proc.returncode != 0:
             # tag/branch clone failed -- retry treating ref as a commit sha
             try:
-                if _run_git(["init", "--quiet", tmp]).returncode == 0 \
-                        and _run_git(["fetch", "--quiet", "--depth", "1", "--end-of-options", url, ref], cwd=tmp).returncode == 0 \
-                        and _run_git(["checkout", "--quiet", "FETCH_HEAD"], cwd=tmp).returncode == 0:
-                    pass  # resolved by treating ref as a commit sha
-                else:
+                fetched = (
+                    _run_git(["init", "--quiet", tmp]).returncode == 0
+                    and _run_git(["fetch", "--quiet", "--depth", "1", "--end-of-options", url, ref], cwd=tmp).returncode == 0
+                    and _run_git(["checkout", "--quiet", "FETCH_HEAD"], cwd=tmp).returncode == 0
+                )
+                if not fetched:
                     warnings.append(f"{label}: cannot fetch `{ref}` from {url}; source skipped")
                     return None
             except subprocess.TimeoutExpired:
@@ -274,7 +284,7 @@ def resolve_git_source(url: str, ref: str, warnings: list, label: str) -> str | 
                 pass  # another resolver published the same key concurrently
         return dest
     finally:
-        if os.path.isdir(tmp) and tmp != dest:
+        if os.path.isdir(tmp):
             shutil.rmtree(tmp, ignore_errors=True)
 
 
@@ -283,6 +293,7 @@ def resolve_git_source(url: str, ref: str, warnings: list, label: str) -> str | 
 _FRONTMATTER_KEYS = ("title:", "applies_when:")
 
 
+@functools.lru_cache(maxsize=None)
 def _is_knowledge_file(path: str) -> bool:
     try:
         with open(path, encoding="utf-8", errors="replace") as fh:
@@ -291,10 +302,10 @@ def _is_knowledge_file(path: str) -> bool:
         return False
     if not head.startswith("---"):
         return False
-    body = head.split("---", 2)
-    if len(body) < 3:
+    parts = head.split("---", 2)
+    if len(parts) < 3:
         return False
-    fm = body[1]
+    fm = parts[1]
     return all(re.search(rf"^\s*{re.escape(k)}", fm, re.MULTILINE) for k in _FRONTMATTER_KEYS)
 
 
@@ -343,9 +354,6 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
             errors.append(f"{label}: tree URL path `{t_path}` conflicts with `path: {sub_path}` -- remove one")
             return
         source, ref, sub_path = tree.group("base"), t_ref, t_path or None
-        tree_sugar = True
-    else:
-        tree_sugar = False
 
     if _is_git_url(source):
         if not isinstance(ref, str) or not ref:
@@ -356,7 +364,7 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
             return
         checkout = resolve_git_source(source, ref, warnings, label)
         if checkout is None:
-            if tree_sugar:
+            if tree:
                 warnings.append(
                     f"{label}: if the branch name contains `/`, tree-URL parsing splits it wrong -- use explicit `ref:` and `path:` fields"
                 )
@@ -364,7 +372,7 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
         git_meta = {"url": source, "ref": ref}
         source_root = os.path.join(checkout, sub_path) if sub_path else checkout
         real_root, real_checkout = os.path.realpath(source_root), os.path.realpath(checkout)
-        if not (real_root == real_checkout or real_root.startswith(real_checkout + os.sep)):
+        if not _within(real_root, real_checkout):
             errors.append(f"{label}: path `{sub_path}` escapes the source checkout")
             return
         source_root = real_root
@@ -385,9 +393,7 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
         else:
             source_root = os.path.realpath(os.path.join(repo_root, expanded))
             repo_real = os.path.realpath(repo_root)
-            if not (source_root == repo_real or source_root.startswith(repo_real + os.sep)) \
-                    or os.path.join(repo_real, ".git") == source_root \
-                    or source_root.startswith(os.path.join(repo_real, ".git") + os.sep):
+            if not _within(source_root, repo_real) or _within(source_root, os.path.join(repo_real, ".git")):
                 errors.append(f"{label}: repo-relative source `{source}` resolves outside the repository")
                 return
         if not os.path.isdir(source_root):

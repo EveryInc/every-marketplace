@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import re
@@ -83,6 +84,7 @@ def normalize_docs_root(docs_root: str | None) -> str:
     return docs_root
 
 
+@functools.lru_cache(maxsize=None)
 def repo_root() -> Path:
     """The repository root, matching how docs_root is resolved everywhere else.
 
@@ -157,11 +159,18 @@ def declared_packs() -> tuple[bool | None, int]:
     return declared, len(roots)
 
 
-def fail_closed(
-    reason: str,
-    learnings_corpus: bool = False,
-    packs: tuple[bool | None, int] = (None, 0),
-) -> dict[str, object]:
+def repo_signals(docs_root: str | None) -> dict[str, object]:
+    """Facts about the repo, not the diff: present in every result shape."""
+    learnings_corpus = has_learnings_corpus(docs_root)
+    declared, pack_roots = declared_packs()
+    return {
+        "has_learnings_corpus": learnings_corpus,
+        "declared_packs": declared,
+        "pack_roots": pack_roots,
+    }
+
+
+def fail_closed(reason: str, signals: dict[str, object]) -> dict[str, object]:
     return {
         "status": "unknown",
         "reason": reason,
@@ -171,9 +180,7 @@ def fail_closed(
         "signals": [],
         "test_files_changed": False,
         "agent_surface": False,
-        "has_learnings_corpus": learnings_corpus,
-        "declared_packs": packs[0],
-        "pack_roots": packs[1],
+        **signals,
         "lite_eligible": False,
     }
 
@@ -185,28 +192,27 @@ def main() -> int:
     parser.add_argument("--docs-root", default="docs")
     args = parser.parse_args()
 
-    learnings_corpus = has_learnings_corpus(args.docs_root)
-    packs = declared_packs()
+    repo = repo_signals(args.docs_root)
 
     if not valid_commit(args.base):
-        print(json.dumps(fail_closed("invalid base endpoint", learnings_corpus, packs), sort_keys=True))
+        print(json.dumps(fail_closed("invalid base endpoint", repo), sort_keys=True))
         return 0
     if args.head is not None and not valid_commit(args.head):
-        print(json.dumps(fail_closed("invalid head endpoint", learnings_corpus, packs), sort_keys=True))
+        print(json.dumps(fail_closed("invalid head endpoint", repo), sort_keys=True))
         return 0
 
     diff_args = [args.base]
     if args.head:
         merge_base = unique_merge_base(args.base, args.head)
         if merge_base is None:
-            print(json.dumps(fail_closed("merge base unavailable or ambiguous", learnings_corpus, packs), sort_keys=True))
+            print(json.dumps(fail_closed("merge base unavailable or ambiguous", repo), sort_keys=True))
             return 0
         diff_args = [merge_base, args.head]
 
     names = git("diff", "--name-only", *diff_args)
     numstat = git("diff", "--numstat", *diff_args)
     if names.returncode != 0 or numstat.returncode != 0:
-        print(json.dumps(fail_closed("git diff failed", learnings_corpus, packs), sort_keys=True))
+        print(json.dumps(fail_closed("git diff failed", repo), sort_keys=True))
         return 0
 
     files = sorted(line for line in names.stdout.splitlines() if line)
@@ -240,9 +246,7 @@ def main() -> int:
         "signals": signals,
         "test_files_changed": any(TEST_PATTERN.search(file) for file in files),
         "agent_surface": any(AGENT_SURFACE_PATTERN.search(file) for file in files),
-        "has_learnings_corpus": learnings_corpus,
-        "declared_packs": packs[0],
-        "pack_roots": packs[1],
+        **repo,
         "lite_eligible": lite,
     }
     print(json.dumps(result, sort_keys=True))

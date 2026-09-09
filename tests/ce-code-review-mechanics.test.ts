@@ -3,6 +3,7 @@ import { tmpdir } from "os"
 import path from "path"
 import { spawnSync } from "node:child_process"
 import { describe, expect, setDefaultTimeout, test } from "bun:test"
+import { writeKnowledgeFile } from "./skills/helpers/packs-fixtures"
 
 setDefaultTimeout(20_000)
 
@@ -126,10 +127,11 @@ describe("ce-code-review deterministic mechanics", () => {
   function packsFixture() {
     const fixture = fixtureRepo()
     mkdirSync(path.join(fixture.dir, ".compound-engineering"), { recursive: true })
-    mkdirSync(path.join(fixture.dir, "compound-packs", "house-rules"), { recursive: true })
-    writeFileSync(
-      path.join(fixture.dir, "compound-packs", "house-rules", "validate-input.md"),
-      "---\ntitle: Validate input at the boundary\napplies_when:\n  - adding an HTTP handler\n---\nRule body.\n",
+    writeKnowledgeFile(
+      path.join(fixture.dir, "compound-packs", "house-rules"),
+      "validate-input.md",
+      "Validate input at the boundary",
+      "adding an HTTP handler",
     )
     return fixture
   }

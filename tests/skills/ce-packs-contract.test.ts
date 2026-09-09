@@ -2,11 +2,11 @@ import { readFileSync } from "fs"
 import path from "path"
 import { describe, expect, test } from "bun:test"
 
-// Compound Packs (docs/plans/2026-08-26-001-feat-ce-packs-config-sources-plan.md)
-// has no runtime code — the whole mechanism is prose in two skills. These guards
-// pin the load-bearing tokens so a later edit cannot silently drop pack
-// discovery, `applies_when` matching, the skip-warning relay, or the citation
-// marker that distinguishes a pack rule from a docs/solutions learning.
+// Compound Packs (docs/plans/2026-08-26-001-feat-ce-packs-config-sources-plan.md):
+// the resolver has its own suite (ce-packs-resolver.test.ts); these guards pin
+// the prose tokens across the consuming skills so a later edit cannot silently
+// drop pack discovery, `applies_when` matching, the skip-warning relay, or the
+// citation marker that distinguishes a pack rule from a docs/solutions learning.
 
 const read = (rel: string) =>
   readFileSync(path.join(process.cwd(), rel), "utf8")
