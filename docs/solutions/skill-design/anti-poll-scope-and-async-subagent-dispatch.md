@@ -44,15 +44,15 @@ Conflating the two is what made #1159 serialize local reviewer dispatch one-at-a
 
 A portable rule classifies what dispatch actually returned:
 
-- **Terminal outcome:** the launch is collected. Consume a valid compact result; classify a terminal tool error or malformed output under the workflow's failed/degraded rules.
-- **Launch identifier or asynchronous receipt:** a launch receipt means the reviewer is uncollected. Use the host's blocking collection capability until the launch reaches a terminal outcome.
-- **No reliable blocking collector:** stop the launched work and take the workflow's failure or degraded path. Fail closed only after discharging lifecycle obligations for detached work already started. Never wait for a notification, emit progress-only output, or synthesize a partial roster.
+- **Terminal result payload matched to a launch:** the launch is collected. Consume a valid compact result. Classify a terminal tool error or malformed output under the workflow's failed/degraded rules. The usual asynchronous success is a host-native terminal answer that names the launched work and carries that payload.
+- **Launch identifier or asynchronous receipt:** a launch receipt means the reviewer is uncollected. Wait on a live host path that can match the launch to a terminal result payload. An ID-addressed blocking collector is one sufficient path, not a required one.
+- **No matchable terminal path:** stop the launched work and take the workflow's failure or degraded path. Fail closed only after discharging lifecycle obligations for detached work already started. Never wait on unmatched notifications, emit progress-only output, or synthesize a partial roster. A progress or status notification is not a terminal result even when it names the reviewer.
 
-The same classification governs both reviewer batches and later validator batches. A foreground request is an intent, not evidence that a result arrived. A host-specific collector is acceptable only when its live contract shows that it accepts the launch identifier, blocks until terminal, and returns the terminal outcome; a plausible tool name is not enough.
+The same classification governs both reviewer batches and later validator batches. A foreground request is an intent, not evidence that a result arrived. Do not infer a collection path from a tool name. A live contract must match the launch to a terminal result payload.
 
 For an asynchronous primitive, the rule still needs three explicit clauses:
 
-- **Collect the complete roster.** Blocking collection waits continue until every successful launch reaches a terminal outcome. These harness-managed waits are not the forbidden detached-delegate poll loop.
+- **Collect the complete roster.** Waits continue until every successful launch can be matched to a terminal result payload. These harness-managed waits are not the forbidden detached-delegate poll loop.
 - **Release collected agents when the primitive retains slots.** A completed agent can keep occupying its concurrency slot until explicitly closed; release it before refilling and before the validator stage.
 - **Guard the transition.** Synthesis cannot begin on launch receipts or a partial roster. If complete collection is unavailable, return the mode-appropriate failure instead.
 
@@ -60,9 +60,9 @@ On a harness that does not run same-message calls concurrently, this identical d
 
 ## Why This Matters
 
-Codex review of PR #1214 caught a partial-roster gap and a slot-cleanup gap in its asynchronous primitive. The resulting host-name split still assumed Claude Code supplied an all-return barrier. Issue #1523 falsified that assumption: Claude `-p` recorded local reviewers as background work despite foreground requests, then hit its print-mode background ceiling without returning final review JSON.
+Codex review of PR #1214 caught a partial-roster gap and a slot-cleanup gap in its asynchronous primitive. The resulting host-name split still assumed Claude Code supplied an all-return barrier. Issue #1523 falsified that assumption: Claude `-p` recorded local reviewers as background work despite foreground requests, then hit its print-mode background ceiling without returning final review JSON. Issue #1654 then showed a host that delivers matchable terminal answers without an ID-addressed collector. The collection rule has to classify the payload, not the collector signature.
 
-The deeper lesson is that a harness label describes neither every version nor every execution mode. When a rule encodes concurrency or pool/refill semantics, the observable result is the contract: a terminal outcome means collected and ready for validation; a receipt means collection remains; no blocking collector means fail closed.
+The deeper lesson is that a harness label describes neither every version nor every execution mode. When a rule encodes concurrency or pool/refill semantics, the observable result is the contract: a terminal result payload matched to a launch means collected and ready for validation; a receipt means collection remains; a progress notification is not a terminal result; no matchable terminal path means fail closed. Issue #1654 showed the inverse of #1523: a host can deliver that payload as a native terminal answer without an ID-addressed collector.
 
 ## When to Apply
 

@@ -29,6 +29,8 @@ export const DOC_REVIEW_BASE_REF = "6f6c5779d31c0f847773e0cbc1e7e7fc7b11f272"
 export const HOLDABLE_OBJECTIVE_BASE_REF = "0e758b60b35cec165470443fde5acf60db8bdae9"
 export const CE_OPTIMIZE_BASE_REF = "b159e1fa4c70efa995742269d38269bcc7524dd2"
 export const SUSTAINED_HANDOFF_BASE_REF = "153e605e1622154a0d7da095fceed13edcb68bf7"
+/** main before collection accepted a matchable host-native terminal answer (#1654). */
+export const TERMINAL_COLLECT_BASE_REF = "b36047e1b4b2123df2f3529bf04b5f2a7c5f84e4"
 /** The working tree, not HEAD — the post arm exists to grade the edit you have not committed yet. */
 export const POST_SWEEP_REF = WORKTREE_REF
 
@@ -1489,6 +1491,69 @@ Also quote the specific rules you found in those files.`,
       actions: "none",
       git: "clean",
       workspace_contains: [{ path: "src/greet.js", needle: "hello ${name}" }],
+    },
+  },
+  {
+    id: "ce-code-review/collect-matched-terminal-answer",
+    baseline_ref: TERMINAL_COLLECT_BASE_REF,
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    git_init: true,
+    git_staged: ["src/greet.js"],
+    fixture: `${FIX}/tiny-lib`,
+    why: "A host can deliver reviewer finals as native terminal answers that name the launched work, with no ID-addressed collector. Pre-change prose failed closed. Post-change must collect those matched payloads.",
+    pre_contract:
+      "An asynchronous launch receipt requires a blocking collector that accepts the launch identifier and returns the terminal outcome. Waiting for notifications is forbidden, so native terminal answers fail closed.",
+    task: `Use the ce-code-review skill in mode:agent. You are about to collect local reviewers that already launched.
+
+Live tool contracts:
+- spawn_agent returns { "task_name": "/root/<name>" }
+- wait_agent({timeout_ms}) accepts no agent identifier and returns an update summary, not the result
+- Terminal answers arrive as messages that name the sender's canonical task name and include the result payload
+- The tool catalog has no other agent-result collector
+
+Do not dispatch and do not start the review. Report exactly one line, then stop:
+
+COLLECTION: collect
+or
+COLLECTION: fail-closed`,
+    grade: {
+      must_include_field: "COLLECTION",
+      must_include: ["collect"],
+      actions: "none",
+    },
+  },
+  {
+    id: "ce-code-review/progress-notification-is-not-terminal",
+    baseline_ref: TERMINAL_COLLECT_BASE_REF,
+    skill: "ce-code-review",
+    cohort: "resized",
+    key_behavior: "judgment",
+    read_only: true,
+    git_init: true,
+    git_staged: ["src/greet.js"],
+    fixture: `${FIX}/tiny-lib`,
+    why: "Regression for #1523. Progress notifications that omit the result payload must still fail closed on both arms.",
+    pre_contract:
+      "An asynchronous launch receipt with no blocking collector and no terminal result payload fails closed. Progress notifications are not collected outcomes.",
+    task: `Use the ce-code-review skill in mode:agent. You are about to collect local reviewers that already launched.
+
+Live tool contracts:
+- spawn_agent returns an asynchronous id
+- The host then emits progress notifications that name the reviewer and omit the result payload
+- No tool returns the terminal outcome for a launch
+
+Do not dispatch and do not start the review. Report exactly one line, then stop:
+
+COLLECTION: collect
+or
+COLLECTION: fail-closed`,
+    grade: {
+      must_include_field: "COLLECTION",
+      must_include: ["fail-closed"],
+      actions: "none",
     },
   },
   {
