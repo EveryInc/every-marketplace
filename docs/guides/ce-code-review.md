@@ -96,7 +96,7 @@ When you pass a PR number or URL, trivial automated PRs (lockfile bumps, chore v
 
 ## Repo-owned review criteria
 
-Everything else the skill checks is what we ship. This is the part you own.
+Everything else the skill checks ships with the plugin. This is the part you own.
 
 Put a `CODING_STANDARDS.md` in your repository, write the rules your team actually cares about, and the review enforces them. A finding from that file cites the rule it broke, so it arrives as "this violates the rule you wrote" rather than someone's taste.
 
@@ -112,7 +112,7 @@ Four things worth knowing:
 - **Placement scopes it.** A file at the repo root governs the whole checkout. One at `skills/CODING_STANDARDS.md` governs only what is under `skills/`. Several can apply to the same file at once.
 - **Any format works.** Prose, bullets, tables, nested headings, with or without frontmatter. The content is the contract. A paragraph of plain English is a valid rules file.
 - **It replaces the instruction file as criteria, per changed file.** `CLAUDE.md` and `AGENTS.md` remain the criteria for any changed file that no `CODING_STANDARDS.md` governs, so a repo that has never written one keeps the review it already had. No file is ever graded against both kinds, and the report names the fallback in Coverage when it supplies the criteria.
-- **It can grow.** An instruction file is loaded into every agent's context on every turn, so it stays short and rules get cut for space. A criteria file is read once, by one reviewer, at review time. That is the reason to keep enforceable rules here rather than in `AGENTS.md`: this file has room, and adding to it costs nothing until review runs.
+- **It can grow.** An instruction file is loaded into every agent's context on every turn, so it stays short and rules get cut for space. A criteria file is read once, by one reviewer, at review time. That is the reason to keep enforceable rules here rather than in `AGENTS.md`. This file has room, and adding to it costs nothing until review runs.
 
 That last point is what makes review strictness compound. Notice a mistake worth preventing, write the rule down, and every review after that catches it.
 

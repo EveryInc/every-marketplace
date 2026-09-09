@@ -49,7 +49,7 @@ Late-stage feel fits none of the other skills. Code review does not tell you the
 `ce-polish` does the plumbing once, then stays in a short loop:
 
 1. **Workspace.** With no argument it stays in the current checkout. For a PR or branch it prefers an existing worktree, and falls back to the harness's checkout capability only when no other worktree owns the target. It refuses the default branch and detached checkouts.
-2. **Server.** It reuses a running server only when it can confirm that process is this project's server; otherwise it starts one in the background and probes the default `http://localhost:<port>` candidate for up to 30 seconds; server output or your correction can identify a different actual URL. It continues only once the response is attributable to the server it selected. If the server it launched never answers, it shows diagnostics with the last 20 log lines and asks what to do.
+2. **Server.** It reuses a running server only when it can confirm that process is this project's server. Otherwise it starts one in the background and probes the default `http://localhost:<port>` candidate for up to 30 seconds. Server output or your correction can identify a different actual URL. It continues only once the response is attributable to the server it selected. If the server it launched never answers, it shows diagnostics with the last 20 log lines and asks what to do.
 3. **Loop.** You describe a fix, it edits, hot reload shows the result. When you ask it to look at something, it uses whatever browser inspection the harness exposes; with none available, you describe what you see. When you say done, it commits and stops.
 
 ---

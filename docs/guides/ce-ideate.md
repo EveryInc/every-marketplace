@@ -64,7 +64,7 @@ If the options are already on the table and you need a verdict, use `ce-pov` ins
 
 ## Why not just ask the model for ideas?
 
-Because one "give me ideas" prompt returns plausible bullets with no grounding in the actual subject, drawn from the model's most-trained directions, ranked by nothing, with no record of what was considered and cut. `ce-ideate` separates grounding, generation, critique, and selection, and gets its quality from explicit rejection with reasons.
+Because one "give me ideas" prompt returns plausible bullets with no grounding in the actual subject. They come from the model's most-trained directions, ranked by nothing, with no record of what was considered and cut. `ce-ideate` separates grounding, generation, critique, and selection, and gets its quality from explicit rejection with reasons.
 
 - Grounding agents go first: codebase scan (in a repo), past learnings, web prior art, optional Slack and issue intelligence
 - The topic splits into 3-5 axes from that grounding: what to cover, separate from how to think

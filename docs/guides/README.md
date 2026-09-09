@@ -28,7 +28,7 @@ Artifact paths shown throughout these pages (`docs/plans/`, `docs/solutions/`, `
 └── /ce-compound      "Capture what we learned."
 ```
 
-`/ce-compound` is the closer that makes the loop *compound*: it writes learnings into `docs/solutions/`, which the next iteration's `/ce-brainstorm` and `/ce-plan` read as grounding. That return arrow is the whole point. `/ce-ideate` is an optional prelude for when you don't yet know what to work on. Everything else in this catalog is either an anchor around the loop or an on-demand tool used when a specific need arises, not a step you walk through every time.
+`/ce-compound` is the closer that makes the loop *compound*: it writes learnings into `docs/solutions/`, which the next iteration's `/ce-brainstorm` and `/ce-plan` read as grounding. `/ce-ideate` is an optional prelude for when you don't yet know what to work on. Everything else in this catalog is either an anchor around the loop or an on-demand tool used when a specific need arises, not a step you walk through every time.
 
 ---
 
@@ -65,7 +65,7 @@ Invoked when a specific need arises, not part of any chain.
 
 | Skill | Description |
 |-------|-------------|
-| [`/ce-bakeoff`](./ce-bakeoff.md) | Independent approach development and selection for better brainstorming and planning decisions. Explicitly requested from those workflows, or used standalone. |
+| [`/ce-bakeoff`](./ce-bakeoff.md) | Independently develop and select competing approaches to improve brainstorming and planning decisions. Explicitly requested from those workflows, or used standalone. |
 | [`/ce-pov`](./ce-pov.md) | A project-grounded judgment on adoption, documents, or supplied approaches, with an oracle panel for independent model opinions. |
 | [`/ce-explain`](./ce-explain.md) | An evidence-backed explanation of how something works and why, delivered for learning or further work; standalone teaching artifacts when useful. |
 | [`/ce-prototype`](./ce-prototype.md) | Build a throwaway prototype so someone can experience how the product should work, feel, or read, then write those decisions into an existing plan or continue into brainstorm or plan |

@@ -111,7 +111,7 @@ When the change introduces a concept new to this repo (checked against the base 
 
 New PRs get the Compound Engineering badge only with `branding:on` or an explicit ask. Rewrites keep whatever branding is already there.
 
-After a newly created PR, a successful stack submit, or new commits on an open PR, the run hands monitoring to `/ce-babysit-pr`. That skill selects the monitoring mode. When the same agent runs both skills, it continues until babysit reaches its stop condition. Declining an existing PR’s description rewrite still proceeds to this handoff gate. `babysit:off` skips it; `babysit:continuous` and `babysit:checkpoint` force that mode. `auto_babysit: false` in CE config (`config.local.yaml` then `config.yaml`) is the standing opt-out. Description-only, description-update, `mode:pipeline` (except after a stack submit), non-GitHub remotes, a draft this run created, and a head you cannot push all skip the handoff. Fork PRs are fine when you can push the head.
+After a newly created PR, a successful stack submit, or new commits on an open PR, the run hands monitoring to `/ce-babysit-pr`. That skill selects the monitoring mode. When the same agent runs both skills, it continues until babysit reaches its stop condition. Declining an existing PR's description rewrite still proceeds to this handoff gate. `babysit:off` skips it; `babysit:continuous` and `babysit:checkpoint` force that mode. `auto_babysit: false` in CE config (`config.local.yaml` then `config.yaml`) is the standing opt-out. Description-only, description-update, `mode:pipeline` (except after a stack submit), non-GitHub remotes, a draft this run created, and a head you cannot push all skip the handoff. Fork PRs are fine when you can push the head.
 
 ### Opt-in stacks
 
@@ -158,7 +158,7 @@ On-demand shipping. Not a required ideation-chain stage.
 /ce-commit ->  /ce-commit-push-pr     (if you committed first, then decide to ship)
 ```
 
-`/lfg` and `/ce-work` call this with `branding:on` when they own the ship, unless the project's instructions name their own shipping process, which then runs instead. You can also invoke it on a branch you already finished by hand.
+`/lfg` and `/ce-work` call this with `branding:on` when they own the ship. If the project's instructions name their own shipping process, that process runs instead. You can also invoke it on a branch you already finished by hand.
 
 ---
 

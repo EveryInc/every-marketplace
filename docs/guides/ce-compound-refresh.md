@@ -116,7 +116,7 @@ After the per-doc pass, the skill looks for overlap, a newer doc that subsumes a
 
 Auto-delete requires all three: the implementation that lived in this repo is gone (or a successor already states the same guidance); the problem domain is gone; inbound markdown citations are absent or decorative. A doc that never pointed at in-repo code never auto-deletes. A citation another doc depends on is a Replace or Keep signal, not a cleanup task.
 
-An accurate doc is never deleted for being redundant with the codebase unless you ask for that judgment. Say you want the store cleaned up, culled, or upgraded to the capture bar and the skill confirms the worth lens once, then applies the same counterfactual `ce-compound` uses before writing: is this reasoning recoverable from a named in-repo artifact? Every worth-based delete or cut quotes the artifact that states the reasoning. Non-interactive runs record those verdicts as recommendations rather than applying them.
+An accurate doc is never deleted for being redundant with the codebase unless you ask for that judgment. Say you want the store cleaned up, culled, or upgraded to the capture bar. The skill confirms the worth lens once, then applies the same counterfactual `ce-compound` uses before writing: is this reasoning recoverable from a named in-repo artifact? Every worth-based delete or cut quotes the artifact that states the reasoning. Non-interactive runs record those verdicts as recommendations rather than applying them.
 
 If the current approach cannot be documented from a file scan, the doc is marked stale rather than guessed into a replacement. The recommendation is `/ce-compound` the next time you work in that area.
 

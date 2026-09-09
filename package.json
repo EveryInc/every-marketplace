@@ -28,7 +28,11 @@
     "plugin:validate": "claude plugin validate --strict .claude-plugin/marketplace.json && claude plugin validate --strict .claude-plugin/plugin.json",
     "release:preview": "bun run scripts/release/preview.ts",
     "release:sync-metadata": "bun run scripts/release/sync-metadata.ts --write",
-    "release:validate": "bun run scripts/release/validate.ts"
+    "release:validate": "bun run scripts/release/validate.ts",
+    "site:build": "cd site && bundle exec jekyll build --strict_front_matter",
+    "site:serve": "cd site && bundle exec jekyll serve --livereload",
+    "site:test": "cd site && bundle exec rake test",
+    "site:check": "cd site && LC_ALL=C.UTF-8 bundle exec htmlproofer _site --disable-external --allow-missing-href --no-enforce-https --swap-urls '^/compound-engineering/:/'"
   },
   "dependencies": {
     "citty": "^0.1.6",

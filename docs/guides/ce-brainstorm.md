@@ -127,7 +127,7 @@ On Standard and Deep software runs, a cheap scout gathers a grounding dossier (v
 
 ### 6. Blindspot pass and non-software facilitation
 
-When you flag unfamiliarity, or consecutive answers show you cannot weigh the options, the skill offers a blindspot pass before questioning that territory further: a map of 3-7 decisions and hazards, each with why it matters, the realistic options, and a recommended default. You pick which to walk through; the rest take defaults recorded as explicit assumptions. Works on both software and non-software routes.
+When you flag unfamiliarity, or consecutive answers show you cannot weigh the options, the skill offers a blindspot pass before questioning that territory further: a map of 3-7 decisions and hazards, each with why it matters, the realistic options, and a recommended default. You pick which to walk through; the rest take defaults recorded as explicit assumptions. The pass works on both software and non-software routes.
 
 Non-software work uses a domain-agnostic facilitator with the same one-question discipline. It does not write a software unified-plan artifact.
 
