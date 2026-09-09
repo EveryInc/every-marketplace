@@ -235,21 +235,6 @@ function extractFeedback(view: unknown): any[] {
   return JSON.parse(r.stdout.trim())
 }
 
-function eyesReactionIdentities(pages: unknown): string[] {
-  const r = spawnSync(
-    "python3",
-    [
-      "-c",
-      `import json; from importlib.machinery import SourceFileLoader; ` +
-        `m=SourceFileLoader('prs', ${JSON.stringify(SCRIPT)}).load_module(); ` +
-        `print(json.dumps(m._eyes_reaction_identities(json.loads(${JSON.stringify(JSON.stringify(pages))}))))`,
-    ],
-    { encoding: "utf8" },
-  )
-  expect(r.status, r.stderr).toBe(0)
-  return JSON.parse(r.stdout.trim())
-}
-
 function probeBaseIdentity(options: {
   refStatus?: number
   refError?: string
@@ -3137,6 +3122,27 @@ print(json.dumps({
     expect(d.trajectory.heads_since_progress).toBe(1) // head moved s1->s2 between agent ticks; not starved by the poll
   }, 15000)
 
+  test("invariant_rounds count unique heads for a resolver-supplied key (#1575)", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "inv-rounds-"))
+    const state = path.join(dir, "state")
+    const t = (head: string) => ({
+      ...FAILING,
+      head_sha: head,
+      checks: [],
+      threads: [{ thread_id: "T1", last_comment_id: head, last_comment_at: head }],
+    })
+    snapshot(state, fetchFile(dir, "h1.json", t("h1")))
+    mark(state, ["--thread", "T1", "--invariant-key", "golden-boundary"])
+    snapshot(state, fetchFile(dir, "h2.json", t("h2")))
+    mark(state, ["--thread", "T1", "--invariant-key", "golden-boundary"])
+    // Two recorded rounds is the trigger state: the next fix would be the third.
+    const atTrigger = snapshot(state, fetchFile(dir, "h3.json", t("h3")))
+    expect(atTrigger.trajectory.invariant_rounds).toEqual([{ key: "golden-boundary", rounds: 2 }])
+    mark(state, ["--thread", "T1", "--invariant-key", "golden-boundary"])
+    const d = snapshot(state, fetchFile(dir, "h3b.json", { ...FAILING, head_sha: "h3", checks: [], threads: [] }))
+    expect(d.trajectory.invariant_rounds).toEqual([{ key: "golden-boundary", rounds: 3 }])
+  })
+
   test("check recurrence catches a CLEAR observed only on a watch poll (C1)", () => {
     const sd = path.join(dir, "recurwatch")
     const RED = { key: "CI/x", name: "x", status: "COMPLETED", conclusion: "FAILURE", details_url: "u" }
@@ -3808,12 +3814,12 @@ m.cmd_snapshot(args)
     }
 
     const wake = watch(sd, fetchFile(dir, "approval-drain-feedback-watch.json", withFeedback), [
-      "--blocked-external-drain-seconds", "1",
+      "--blocked-external-drain-seconds", "1", "--feedback-coalesce-seconds", "0",
     ])
     expect(wake.reason).toBe("feedback-candidate")
   })
 
-  test("a review lifecycle starting during an approval drain wakes for a longer bound", () => {
+  test("reviewer movement during an approval drain wakes for a longer bound", () => {
     const sd = path.join(dir, "approval-drain-signal")
     const gated = {
       ...FAILING,
@@ -3823,17 +3829,12 @@ m.cmd_snapshot(args)
       threads: [],
       feedback: [],
       awaiting_approval: 1,
-      review_in_progress: false,
-      review_signal_count: 0,
-      review_signal_identities: [],
+      review_decision: null,
     }
     snapshot(sd, fetchFile(dir, "approval-drain-signal-first.json", gated))
-    const withSignal = {
-      ...gated,
-      review_in_progress: true,
-      review_signal_count: 1,
-      review_signal_identities: ["review-bot"],
-    }
+    // Reviewer movement during the drain: the decision state changed, which is external review
+    // activity even though it adds nothing to the attention set.
+    const withSignal = { ...gated, review_decision: "REVIEW_REQUIRED" }
 
     const wake = watch(sd, fetchFile(dir, "approval-drain-signal-watch.json", withSignal), [
       "--blocked-external-drain-seconds", "300",
@@ -4364,7 +4365,7 @@ m._activate_watch = lambda args, generation, now, cur: (
     {}, {"counts": {}, "pr_state": "OPEN", "session_seconds": 0})
 m._terminate_replaced_watch = lambda previous: None
 m._watch_is_current = lambda args, generation: True
-m._wake_reason = lambda actionable, settle_seconds: None
+m._wake_reason = lambda actionable, settle_seconds, *_: None
 threading.Thread(target=stop_when_child_starts, daemon=True).start()
 args = SimpleNamespace(reset_session=False, stop_file=None, settle_seconds=300, max_runtime=0,
                        interval=0.01, state_dir=${JSON.stringify(dir)}, pr=1, repo="o/r")
@@ -4431,7 +4432,7 @@ def caller_handler(_signum, _frame):
     pass
 real_signal(signal.SIGTERM, caller_handler)
 m._watch_is_current = lambda args, generation: True
-m._wake_reason = lambda actionable, settle_seconds: "actionable"
+m._wake_reason = lambda actionable, settle_seconds, *_: "actionable"
 m.cmd_watch(args)
 print(json.dumps({"ordinary_restored": signal.getsignal(signal.SIGTERM) is caller_handler}))
 `
@@ -4578,148 +4579,119 @@ print(json.dumps({"ids": [t["thread_id"] for t in threads], "calls": calls}))
       checks: [RUNNING],
       feedback: [{ id: "IC_status", kind: "comment", author: "review-bot", edit_id: "status-v1" }],
     }
-    expect(watch(path.join(dir, "wfc"), fetchFile(dir, "wfc.json", candidate)).reason).toBe("feedback-candidate")
+    expect(watch(path.join(dir, "wfc"), fetchFile(dir, "wfc.json", candidate),
+      ["--feedback-coalesce-seconds", "0"]).reason).toBe("feedback-candidate")
   }, 15000)
 
-  test("watch: an in-progress review signal blocks until the 15-minute stale-review check", () => {
-    const base = {
+  // Every non-empty top-level body is a candidate the resolver must classify, so a comment-only
+  // wake buys a full ce-resolve-pr-feedback dispatch to conclude "status noise". These three pin
+  // that the wake waits for the set to settle, while the candidates stay actionable throughout.
+  test("watch: a still-settling candidate yields the tick to a lower-priority reason", () => {
+    const sd = path.join(dir, "coalesce-yield")
+    const green = {
       ...FAILING,
       merge_state_status: "CLEAN",
-      review_decision: "APPROVED",
       threads: [],
-      checks: [GREEN_CHECK],
+      checks: [{ key: "CI/test", name: "test", status: "COMPLETED", conclusion: "SUCCESS", details_url: "u" }],
+      feedback: [{ id: "IC_bot", kind: "comment", author: "coverage-bot", edit_id: "v1" }],
+    }
+    const f = fetchFile(dir, "coalesce-yield.json", green)
+    snapshot(sd, f)
+    // merge-ready sits below feedback-candidate in precedence, so before coalescing this woke
+    // as feedback-candidate. The candidate is still counted -- the tick that runs handles it.
+    const wake = watch(sd, f, ["--settle-seconds", "0"])
+    expect(wake.reason).toBe("merge-ready")
+    expect(snapshot(sd, f).counts.comments).toBe(1)
+  }, 15000)
+
+  test("watch: a candidate with no coalesce clock wakes rather than being held", () => {
+    const sd = path.join(dir, "coalesce-noclock")
+    const candidate = {
+      ...FAILING,
+      merge_state_status: "CLEAN",
+      threads: [],
+      checks: [{ key: "CI/test", name: "test", status: "COMPLETED", conclusion: "SUCCESS", details_url: "u" }],
+      feedback: [{ id: "IC_human", kind: "comment", author: "reviewer", edit_id: "v1" }],
+    }
+    const f = fetchFile(dir, "coalesce-noclock.json", candidate)
+    snapshot(sd, f)
+    // `_elapsed` reads an absent clock as 0, so holding on it would strand the candidate for the
+    // rest of the run. Unknown must fail toward waking.
+    patchState(sd, { feedback_candidate_changed_at: null })
+    expect(watch(sd, f, ["--settle-seconds", "0"]).reason).toBe("feedback-candidate")
+  }, 15000)
+
+  test("watch: a settled candidate wakes once its window elapses", () => {
+    const sd = path.join(dir, "coalesce-elapsed")
+    const candidate = {
+      ...FAILING,
+      merge_state_status: "CLEAN",
+      threads: [],
+      checks: [{ key: "CI/test", name: "test", status: "COMPLETED", conclusion: "SUCCESS", details_url: "u" }],
+      feedback: [{ id: "IC_human", kind: "comment", author: "reviewer", edit_id: "v1" }],
+    }
+    const f = fetchFile(dir, "coalesce-elapsed.json", candidate)
+    snapshot(sd, f)
+    patchState(sd, { feedback_candidate_changed_at: isoAgo(600) })
+    expect(watch(sd, f, ["--settle-seconds", "0"]).reason).toBe("feedback-candidate")
+  }, 15000)
+
+  test("a new candidate restarts the window so a burst costs one wake", () => {
+    const sd = path.join(dir, "coalesce-burst")
+    const base = {
+      ...FAILING,
+      threads: [],
+      checks: [{ key: "CI/test", name: "test", status: "IN_PROGRESS", conclusion: null, details_url: "u" }],
+      feedback: [{ id: "IC_1", kind: "comment", author: "bot", edit_id: "v1" }],
+    }
+    snapshot(sd, fetchFile(dir, "coalesce-burst-1.json", base))
+    patchState(sd, { feedback_candidate_changed_at: isoAgo(600) })
+    const second = { ...base, feedback: [...base.feedback, { id: "IC_2", kind: "comment", author: "bot", edit_id: "v1" }] }
+    const after = snapshot(sd, fetchFile(dir, "coalesce-burst-2.json", second))
+    expect(after.counts.comments).toBe(2)
+    // The second arrival reset the clock: the aged timestamp did not survive it.
+    expect(new Date(after.feedback_candidate_changed_at).getTime())
+      .toBeGreaterThan(new Date(isoAgo(60)).getTime())
+  }, 15000)
+
+  // #1606: Cursor's review bot adds an eyes reaction and never removes it, even after its own
+  // current-head check reaches a terminal conclusion. Presence alone was read as "a review is
+  // underway", so every green PR waited out the 900s stale-review floor instead of the 300s settle.
+  test("watch: movement under a widened arm reopens the judgment; unchanged evidence never does", () => {
+    // A widened settle is the agent's judgment about evidence it looked at. When that evidence moves
+    // the judgment may not hold, so the watch hands the decision back. The anti-loop half is the one
+    // that matters: an earlier fix keyed this on a state value instead of on movement, which re-fired
+    // on evidence the agent had already rejected and looped the wake every poll.
+    const base = {
+      pr_state: "OPEN",
       counts: { threads: 0, ci: 0, comments: 0 },
+      stack_blocker: null,
+      base_ref_blocker: null,
+      unrequested_base_merge: null,
+      branch_currency: {},
+      branch_currency_blocker: null,
+      blocked_external: false,
+      open_needs_human: 0,
+      mergeability_certain: true,
+      mergeable: "MERGEABLE",
+      merge_state_status: "CLEAN",
       checks_terminal: true,
       has_failing_checks: false,
       checks_awaiting_approval: 0,
-      open_needs_human: 0,
-      stack_blocker: null,
-    }
-    expect(wakeReason({ ...base, review_in_progress: true, quiet_seconds: 899 }, 0)).toBeNull()
-    expect(wakeReason({ ...base, review_in_progress: true, quiet_seconds: 900 }, 0)).toBe("merge-ready")
-    expect(wakeReason({ ...base, review_in_progress: false, quiet_seconds: 0 }, 0)).toBe("merge-ready")
-  })
-
-  test("snapshot: remembers an incomplete current-head review after the eyes signal disappears", () => {
-    const base = {
-      ...FAILING,
-      merge_state_status: "CLEAN",
-      review_decision: "APPROVED",
-      threads: [],
-      checks: [GREEN_CHECK],
     }
 
-    snapshot(state, fetchFile(dir, "signal-absent.json", { ...base, review_in_progress: false }))
-    const statePath = path.join(state, "state.json")
-    const prior = JSON.parse(readFileSync(statePath, "utf8"))
-    prior.last_change_at = "2026-07-17T12:00:00+00:00"
-    writeFileSync(statePath, JSON.stringify(prior))
-
-    const started = snapshot(state, fetchFile(dir, "signal-started.json", { ...base, review_in_progress: true }))
-    expect(started.review_signal_seen_on_head).toBe(true)
-    expect(started.review_signal_first_seen_at).toBe(started.review_signal_last_changed_at)
-    expect(started.review_signal_first_seen_at).not.toBe(prior.last_change_at)
-    const firstSeenAt = started.review_signal_first_seen_at
-
-    const disappeared = snapshot(state, fetchFile(dir, "signal-disappeared.json", { ...base, review_in_progress: false }))
-    expect(disappeared.review_in_progress).toBe(false)
-    expect(disappeared.review_signal_seen_on_head).toBe(true)
-    expect(disappeared.review_signal_first_seen_at).toBe(firstSeenAt)
-    expect(disappeared.review_signal_last_changed_at).not.toBe(firstSeenAt)
-    expect(disappeared.changed_this_tick).toBe(true)
-    expect(disappeared.quiet_seconds).toBeLessThan(2)
-
-    const nextHead = snapshot(state, fetchFile(dir, "signal-new-head.json", {
-      ...base,
-      head_sha: "s2",
-      review_in_progress: false,
-    }))
-    expect(nextHead.review_signal_seen_on_head).toBe(false)
-    expect(nextHead.review_signal_first_seen_at).toBeNull()
-    expect(nextHead.review_signal_last_changed_at).toBeNull()
-  })
-
-  test("snapshot: eyes identity changes reset quiet time even when the count stays fixed", () => {
-    expect(eyesReactionIdentities([[
-      { content: "eyes", user: { node_id: "U_bot_b" } },
-      { content: "eyes", user: { node_id: "U_bot_a" } },
-      { content: "+1", user: { node_id: "U_other" } },
-    ]])).toEqual(["U_bot_a", "U_bot_b"])
-
-    const base = {
-      ...FAILING,
-      merge_state_status: "CLEAN",
-      review_decision: "APPROVED",
-      threads: [],
-      checks: [GREEN_CHECK],
-      review_in_progress: true,
+    for (const widened of [900, 1800]) {
+      expect(wakeReason({ ...base, quiet_seconds: 5, changed_this_tick: true }, widened))
+        .toBe("review-evidence-moved")
+      // Unchanged evidence must stay silent however long the window has been running.
+      expect(wakeReason({ ...base, quiet_seconds: 500, changed_this_tick: false }, widened)).toBeNull()
+      // ...and the widened bound itself still decides when it genuinely elapses.
+      expect(wakeReason({ ...base, quiet_seconds: widened, changed_this_tick: false }, widened))
+        .toBe("merge-ready")
     }
-    const first = snapshot(state, fetchFile(dir, "signal-count-one.json", {
-      ...base,
-      review_signal_identities: ["U_bot_a"],
-    }))
-    expect(first.review_signal_count).toBe(1)
-    expect(first.review_signal_identities).toEqual(["U_bot_a"])
-    const statePath = path.join(state, "state.json")
-    const prior = JSON.parse(readFileSync(statePath, "utf8"))
-    prior.last_change_at = "2026-07-17T12:00:00+00:00"
-    prior.review_signal_last_changed_at = prior.last_change_at
-    writeFileSync(statePath, JSON.stringify(prior))
 
-    const swapped = snapshot(state, fetchFile(dir, "signal-reviewer-swapped.json", {
-      ...base,
-      review_signal_identities: ["U_bot_b"],
-    }))
-    expect(swapped.review_in_progress).toBe(true)
-    expect(swapped.review_signal_count).toBe(1)
-    expect(swapped.review_signal_identities).toEqual(["U_bot_b"])
-    expect(swapped.review_signal_last_changed_at).not.toBe(prior.review_signal_last_changed_at)
-    expect(swapped.changed_this_tick).toBe(true)
-    expect(swapped.quiet_seconds).toBeLessThan(2)
-
-    const persisted = JSON.parse(readFileSync(statePath, "utf8"))
-    persisted.last_change_at = "2026-07-17T12:00:00+00:00"
-    persisted.review_signal_last_changed_at = persisted.last_change_at
-    writeFileSync(statePath, JSON.stringify(persisted))
-
-    const unchanged = snapshot(state, fetchFile(dir, "signal-reviewer-unchanged.json", {
-      ...base,
-      review_signal_identities: ["U_bot_b"],
-    }))
-    expect(unchanged.review_in_progress).toBe(true)
-    expect(unchanged.review_signal_count).toBe(1)
-    expect(unchanged.changed_this_tick).toBe(false)
-    expect(unchanged.quiet_seconds).toBeGreaterThan(60)
-  })
-
-  test("snapshot: a count-only legacy review signal migrates to reactor identities", () => {
-    const base = {
-      ...FAILING,
-      merge_state_status: "CLEAN",
-      review_decision: "APPROVED",
-      threads: [],
-      checks: [GREEN_CHECK],
-      review_in_progress: true,
-      review_signal_count: 1,
-    }
-    snapshot(state, fetchFile(dir, "signal-legacy-count.json", base))
-    const statePath = path.join(state, "state.json")
-    const legacy = JSON.parse(readFileSync(statePath, "utf8"))
-    delete legacy.review_signal_identities
-    legacy.last_change_at = "2026-07-17T12:00:00+00:00"
-    legacy.review_signal_last_changed_at = legacy.last_change_at
-    writeFileSync(statePath, JSON.stringify(legacy))
-
-    const migrated = snapshot(state, fetchFile(dir, "signal-identity-aware.json", {
-      ...base,
-      review_signal_identities: ["U_bot_a"],
-    }))
-    expect(migrated.review_in_progress).toBe(true)
-    expect(migrated.review_signal_count).toBe(1)
-    expect(migrated.review_signal_identities).toEqual(["U_bot_a"])
-    expect(migrated.review_signal_seen_on_head).toBe(true)
-    expect(migrated.changed_this_tick).toBe(true)
-    expect(migrated.quiet_seconds).toBeLessThan(2)
+    // On the ordinary arm this never fires: movement there just resets the quiet clock.
+    expect(wakeReason({ ...base, quiet_seconds: 5, changed_this_tick: true }, 300)).toBeNull()
   })
 
   test("watch: a no-check MERGEABLE/CLEAN PR still reaches merge-ready (the >=1-check guard is pipeline-only)", () => {
@@ -4843,6 +4815,9 @@ print(json.dumps({"ids": [t["thread_id"] for t in threads], "calls": calls}))
     expect(later.base_ref_blocker).toBeNull()
     expect(later.mergeability_certain).toBe(true)
     expect(wakeReason(later)).toBe("merge-ready")
+    // Presentation-only degrade must not reset the quiet clock (#1562).
+    expect(JSON.parse(readFileSync(statePath, "utf8")).last_change_at).toBe("2026-07-17T12:00:00+00:00")
+    expect(wakeReason(later, 300)).toBe("merge-ready")
 
     // A pending (unclassified) head forces uncertainty even through the stale-computation degrade.
     const pendingStale = snapshot(state, fetchFile(dir, "stale-race-pending.json", { ...race,
@@ -4867,6 +4842,36 @@ print(json.dumps({"ids": [t["thread_id"] for t in threads], "calls": calls}))
       head_sha: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
       base: { ...race.base, merge_parent_oids: ["1111111111111111111111111111111111111111", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] } }))
     expect(moved.base_ref_blocker).toBe("race")
+  })
+
+  test("genuine base identity transitions still change the settle signature", () => {
+    const frozen = "2026-07-17T12:00:00+00:00"
+    const baseCore = {
+      host: "github.com", repository: "o/r", ref: "main",
+      oid: "2222222222222222222222222222222222222222",
+      graphql_oid: "2222222222222222222222222222222222222222",
+      historical_oid: "1111111111111111111111111111111111111111",
+      merge_parent_oids: ["2222222222222222222222222222222222222222", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
+    }
+    const green = {
+      ...FAILING, merge_state_status: "CLEAN", review_decision: "APPROVED",
+      checks: [{ key: "CI/test", name: "test", status: "COMPLETED", conclusion: "SUCCESS", details_url: "u" }],
+      threads: [], head_sha: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      base: { ...baseCore, identity: "probe-error" },
+    }
+    const file = fetchFile(dir, "identity-steps.json", green)
+    snapshot(state, file)
+    const statePath = path.join(state, "state.json")
+    const identities = ["race", "mergeability-pending", "current"]
+    for (const identity of identities) {
+      const persisted = JSON.parse(readFileSync(statePath, "utf8"))
+      persisted.last_change_at = frozen
+      writeFileSync(statePath, JSON.stringify(persisted))
+      snapshot(state, fetchFile(dir, `identity-${identity}.json`, {
+        ...green, base: { ...baseCore, identity },
+      }))
+      expect(JSON.parse(readFileSync(statePath, "utf8")).last_change_at).not.toBe(frozen)
+    }
   })
 
   // Pipelined stack traversal: the watcher polls the active (upper) layer and keeps probing the

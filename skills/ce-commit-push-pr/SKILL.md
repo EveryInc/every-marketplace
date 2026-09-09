@@ -48,9 +48,11 @@ Resolve `<root>` once when archival is on: it writes an explainer under `<root>/
 
 ## Step 3: Commit and push
 
-**Read `references/commit-and-push.md`** for branch creation, commit grouping, the message and staging shapes, and the push. Branching off the default branch is the fragile case — stale local base, unpushed commits on it, colliding uncommitted changes — and `references/branch-creation.md` owns that flow. If the stack reference already committed retrospective layers, skip to Step 4; `gh stack submit` pushes in Step 5.
+**Read `references/commit-and-push.md`** for commit/push mechanics and default-branch handling via `references/branch-creation.md`. If stack mode committed its layers, skip to Step 4; Step 5 submits them.
 
-Two rules bound this step. Never `git add -A` or `git add .` — name the files, so `.env`, build, and generated files cannot ride along, and pass that same path list to `git commit`, so nothing staged earlier is swept in. Honor `exclude:<paths>`: those files stay uncommitted and the report says so.
+**Project publishing gate.** Before publishing commits, resolve every applicable pre-push or review-ready requirement from the project's active instructions and conventions already in context and any additional scoped instructions governing the committed paths. Only evidence valid for the exact commit state being sent satisfies them; otherwise stop before the external write and report what is missing or failing. If none, proceed.
+
+Never use `git add -A` or `git add .`. Name files in both add and commit so unrelated staged files stay out. Honor `exclude:<paths>`: leave and report them.
 
 ## Step 4: Compose the PR title and body
 
@@ -60,8 +62,8 @@ If Step 1 found an existing PR, pass its URL to Step 4 so PR mode fetches the ex
 
 ## Step 5: Apply and report
 
-**Read `references/apply-and-handoff.md`** for the apply routes, preview-before-edit, archival, and handoff. Two rules bound the external writes. Re-run the existing-PR check right before `gh pr create` and route on it: a matching PR takes the existing-PR path, exit-0 `[]` creates, non-zero blocks. And pass the body via `--body-file <path>`, never stdin — `gh` exits 0 with an empty body.
+**Read `references/apply-and-handoff.md`** for apply, preview, archival, and handoff. Before `gh pr create`, re-check PR presence: a matching PR takes the existing-PR path, exit-0 `[]` creates, non-zero blocks. Pass the body via `--body-file <path>`, never stdin — `gh` exits 0 with an empty body.
 
-**The completion gate is here.** In an interactive full workflow, or in `mode:pipeline` when this run submitted a stack, a reported PR URL, a stack submit, or new commits on an open PR leave this run **not done** until `ce-babysit-pr` owns follow-on for that PR. Reporting the PR URL alone is not success.
+**The completion gate is here.** An interactive full workflow or pipeline stack submit is **not done** until `ce-babysit-pr` owns follow-on for the published PR. Reporting the PR URL alone is not success. Load the callee to choose the monitoring mode. If running it in this session, continue until its stop condition permits a final report.
 
-The only skips are `babysit:off`, a standing `auto_babysit: false` in CE config, and that reference's do-not-fire cases, drafts among them. No other watch substitutes: not `ci-watcher`, not `gh pr checks --watch`, not a hand-rolled poll, not "later". If `ce-babysit-pr` cannot be loaded or started, stop and report it blocked.
+Only `babysit:off`, CE config's `auto_babysit: false`, or the reference's do-not-fire cases skip this gate. No other watch substitutes: not `ci-watcher`, not `gh pr checks --watch`, not a hand-rolled poll, not "later". If `ce-babysit-pr` cannot be loaded or started, stop and report it blocked.

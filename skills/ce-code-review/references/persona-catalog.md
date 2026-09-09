@@ -11,7 +11,7 @@ Correctness is spawned on every multi-agent review. Project-standards is spawned
 | Persona | Prompt asset | Focus |
 |---------|-------|-------|
 | `correctness` | `correctness-reviewer` | Logic errors, edge cases, state bugs, error propagation, intent compliance |
-| `project-standards` | `project-standards-reviewer` | CLAUDE.md and AGENTS.md compliance -- frontmatter, references, naming, cross-platform portability, tool selection |
+| `project-standards` | `project-standards-reviewer` | Compliance with the project's designated criteria files, cited rule by rule |
 
 ## Generic conditional
 
@@ -22,7 +22,7 @@ These lenses are broadly applicable but not automatically useful. Spawn only whe
 | `testing` | `testing-reviewer` | Test files, test infrastructure, fixtures, mocks, or harness behavior; or meaningful runtime behavior changed without corresponding test work. Behavioral triggers include new or changed branches, state mutation, API/control-flow behavior, and error handling. Production-file presence alone and non-behavioral edits do not select it. |
 | `maintainability` | `maintainability-reviewer` | Large or structural work: substantial refactors, new abstractions, file moves, coupling/type-boundary changes, or at least 200 executable changed lines. |
 | `agent-native` | `agent-native-reviewer` | Agent-facing features or surfaces: skills, agents, prompts, commands, tools, MCP, or a product capability expected to be agent-accessible. |
-| `learnings` | `learnings-researcher` | An existing `<root>/solutions/` corpus has a plausible path/title match for the changed modules or patterns. Run a cheap search first; corpus existence alone does not select it. |
+| `learnings` | `learnings-researcher` | The change has institutional knowledge to be checked against: an existing `<root>/solutions/` corpus has a plausible path/title match for the changed modules or patterns (run a cheap search first; corpus existence alone does not select it), or, in local scope, the repo's CE config declares Compound Packs (Stage 1b `declared_packs`; when the helper reports `null`, read the config's `packs:` key yourself). Declared packs select it without a pre-search: the persona matches every rule's `applies_when` semantically, and a rule missed at review is the violation the pack exists to prevent. |
 
 ## Conditional (7 personas)
 

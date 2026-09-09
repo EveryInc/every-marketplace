@@ -7,6 +7,37 @@ async function readRepoFile(relativePath: string): Promise<string> {
 }
 
 describe("ce-commit-push-pr contract", () => {
+  test("gates every commit publication on project-defined requirements", async () => {
+    const publishSurfaceSpecs = [
+      ["skills/ce-commit-push-pr/references/commit-and-push.md", "git push -u origin HEAD"],
+      ["skills/ce-commit-push-pr/references/stack-submit.md", "gh stack submit --auto --open"],
+      ["skills/ce-commit-push-pr/references/apply-and-handoff.md", "then push"],
+    ] as const
+    const [skill, ...publishSurfaces] = await Promise.all([
+      readRepoFile("skills/ce-commit-push-pr/SKILL.md"),
+      ...publishSurfaceSpecs.map(async ([relativePath, publish]) => ({
+        relativePath,
+        publish,
+        content: await readRepoFile(relativePath),
+      })),
+    ])
+
+    expect(skill).toContain("**Project publishing gate.**")
+    expect(skill).toMatch(/project's active instructions and conventions already in context/)
+    expect(skill).toMatch(/scoped instructions governing the committed paths/)
+    expect(skill).toMatch(/exact commit state being sent/)
+    expect(skill).toMatch(/stop before the external write/)
+    expect(skill).toMatch(/If none, proceed/)
+
+    for (const { relativePath, publish, content } of publishSurfaces) {
+      const gate = content.indexOf("Project publishing gate")
+      const action = content.indexOf(publish)
+      expect(gate, `${relativePath} must apply the publishing gate`).toBeGreaterThan(-1)
+      expect(action, `${relativePath} must retain its publish transition`).toBeGreaterThan(-1)
+      expect(gate, `${relativePath} must gate publication at the point of use`).toBeLessThan(action)
+    }
+  })
+
   test("reconciles the complete branch scope before composition", async () => {
     const content = await readRepoFile(
       "skills/ce-commit-push-pr/references/pr-description-writing.md",
@@ -55,6 +86,34 @@ describe("ce-commit-push-pr contract", () => {
     // Bidirectional contrast: middle PR needs prior + residual, not local-only
     expect(sizingSection).toContain("too local for a middle PR")
     expect(sizingSection).toContain("Continues the session-revocation rewrite")
+    // #1422 enforced "one idea" with a placement absolute (program never in the
+    // opening's sentence). #1572 falsified it: a first-in-series change whose
+    // local outcome is unmotivated without the program was rejected twice for
+    // reading as if it had no point. Both directions stay pinned — the opening
+    // must stand alone, and the program joins it only when it is what gives the
+    // change its point.
+    expect(sizingSection).toContain("outcome does not stand on its own")
+    expect(content).not.toMatch(/never part of the opening's sentence/i)
+    expect(content).not.toMatch(/never folded into the opening/i)
+
+    const assemblySection = content.match(
+      /## Step C: Assemble the body([\s\S]+?)## Step D:/,
+    )?.[1]
+    expect(assemblySection).toBeDefined()
+    expect(assemblySection).toMatch(
+      /reviewer who reads only it can say what this PR changes and why it takes this shape/i,
+    )
+    expect(assemblySection).toMatch(/does not stand on its own/i)
+    // Both halves are required; the order is not. An earlier revision mandated
+    // "the bigger picture first", which contradicted the local-first worked
+    // example at the Step A bullet above and reinstated an ordering absolute of
+    // the same class this block removes (#1576 review). Keep it gone.
+    expect(assemblySection).toMatch(/either half may lead/i)
+    expect(content).not.toMatch(/the bigger picture first/i)
+    // The counter-failure: leading with the arc and losing the local outcome.
+    expect(assemblySection).toMatch(
+      /names the arc but leaves a reviewer unable to say what this PR changes/i,
+    )
 
     const auditSection = content.match(
       /## Step E: Pre-apply coverage audit([\s\S]+)\s*$/,
@@ -66,6 +125,11 @@ describe("ce-commit-push-pr contract", () => {
     expect(auditSection).toMatch(
       /program context was absent.+invent a multi-PR series/is,
     )
+    // The audit used to check placement ("move program context out"), which
+    // would have broken the accepted #1572 opening. It now checks legibility.
+    expect(auditSection).toMatch(/reader who does not already know this project/i)
+    expect(auditSection).toMatch(/reads as unmotivated without the program/i)
+    expect(auditSection).toMatch(/which part of it this PR delivers/i)
 
     // Tracker refs stay separate from series narrative
     const relatedSection = content.match(
@@ -77,33 +141,81 @@ describe("ce-commit-push-pr contract", () => {
     )
   })
 
-  test("scopes STE-inspired prose to non-load-bearing wording", async () => {
+  test("judges altitude by the condition, and audits the umbrella itself", async () => {
     const content = await readRepoFile(
       "skills/ce-commit-push-pr/references/pr-description-writing.md",
     )
 
-    expect(content).toContain("ASD-STE100 Simplified Technical English")
+    // #1594: an opening that named the mechanism ("personas now anchor their
+    // checks to named canonical frameworks") passed every check. The core
+    // principle enumerated moves/renames/adds, and a mechanism description is
+    // none of the three, so it walked through the list. The condition replaces
+    // the enumeration; the failing shape stays as a worked example.
     expect(content).toMatch(
-      /Prefer plain wording wherever domain terms are not load-bearing/i,
+      /If the lead describes what was edited rather than what is now different for someone using this/i,
     )
+    expect(content).not.toMatch(/moves\/renames\/adds/i)
+    expect(content).toContain("Bad (states how the work was done)")
+
+    // #1595 review: an unconditional "naming the mechanism is the same failure"
+    // contradicted the `TokenStore.invalidate` example under the prose rule and
+    // Step E's carve-out for a mechanism that is itself the outcome, so a
+    // literal agent could strip a correct atomicity or protocol lead. The
+    // boundary is stated as a condition, pointing at the prose rule that
+    // already owns it rather than restating the distinction a third time.
     expect(content).toMatch(
-      /Keep necessary technical jargon.+where they \*are\* the claim/is,
+      /is how the work was done, while a mechanism that \*is\* what the reader gets stays/i,
     )
+
+    // The map sets the altitude the title and opening inherit, so the umbrella
+    // is stated as an outcome where it is named (Step A), not left to a
+    // downstream check that can only compare against it.
+    const sizingSection = content.match(
+      /## Step A: Size the description([\s\S]+?)## Step B:/,
+    )?.[1]
+    expect(sizingSection).toMatch(
+      /State the umbrella as what is now different for someone using this, never as the mechanism that produced it/i,
+    )
+
+    // #1457 made the opening auditable against the map but never tested the map.
+    // The umbrella check runs before the two questions that compare against it.
+    const auditSection = content.match(
+      /## Step E: Pre-apply coverage audit([\s\S]+)\s*$/,
+    )?.[1]
+    expect(auditSection).toMatch(/Is the umbrella itself an outcome/i)
+    expect(auditSection!.indexOf("Is the umbrella itself an outcome")).toBeLessThan(
+      auditSection!.indexOf("Does the title express the umbrella outcome"),
+    )
+
+    // Asked for what *and* why, #1594's revision grew the opening to ~5
+    // sentences rather than fusing them. Step C now says which way the why goes.
+    const assemblySection = content.match(
+      /## Step C: Assemble the body([\s\S]+?)## Step D:/,
+    )?.[1]
+    expect(assemblySection).toMatch(
+      /why belongs inside that one idea when it is the reason the outcome takes its shape/i,
+    )
+    expect(assemblySection).toMatch(/past two sentences it is carrying a second idea/i)
+  })
+
+  test("delegates prose rules to ce-noslop and keeps the value-first lead", async () => {
+    const content = await readRepoFile(
+      "skills/ce-commit-push-pr/references/pr-description-writing.md",
+    )
+
+    // The generic STE paragraph moved to ce-noslop; the file invokes it at the
+    // composition point instead of restating it.
+    expect(content).toContain("`ce-noslop`")
+    // Domain rule that stays: the opening leads with what changed for the user,
+    // not the mechanism that produced it.
     expect(content).toMatch(
-      /do not dilute mechanism language into vague plain English/i,
+      /State the umbrella as what is now different for someone using this, never as the mechanism that produced it/,
     )
-    // Contrast pins both failure directions: decorative jargon vs load-bearing terms
-    expect(content).toContain("jargon without need")
-    expect(content).toContain("jargon is the claim")
-    expect(content).toContain("`TokenStore.invalidate` is now atomic under concurrent refresh.")
 
     const auditSection = content.match(
       /## Step E: Pre-apply coverage audit([\s\S]+)\s*$/,
     )?.[1]
     expect(auditSection).toBeDefined()
-    expect(auditSection).toMatch(
-      /domain jargon that is not load-bearing/i,
-    )
   })
 
   test("repository PR-body contracts set structure without replacing editorial guidance", async () => {
@@ -218,7 +330,15 @@ describe("ce-commit-push-pr contract", () => {
     expect(content).toMatch(/never ask yes\/no/i)
     // Off is the explicit choice: per-run token + standing config opt-out.
     expect(content).toContain("babysit:off")
-    expect(content).toContain("auto_babysit: false")
+    // The standing opt-out must be READ at the handoff, not merely named: naming it
+    // while the only config read lived in the Step 4 reference is how a run reached
+    // the gate and handed off against `auto_babysit: false` (#1601).
+    expect(content).toContain("auto_babysit")
+    expect(content).toContain("<!-- ce-config-layers:start -->")
+    expect(content).toContain(".compound-engineering/config.local.yaml")
+    // A skipped handoff is a successful terminal, not a blocked one -- otherwise the
+    // completion gate's "stop and report it blocked" swallows the opt-out.
+    expect(content).toMatch(/opted out[^.]{0,120}successful terminal/i)
     // Hard-off cases (orchestrated, no PR, non-GitHub, non-pushable head).
     expect(content).toMatch(/do not fire/i)
     expect(content).toMatch(/mode:pipeline/)
@@ -341,7 +461,7 @@ describe("PR concept teaching contract", () => {
     // Completion gate: PR URL alone is not done; ce-babysit-pr must own follow-on.
     expect(handoff).toMatch(/not done.+until `ce-babysit-pr` owns/is)
     expect(handoff).toMatch(/Reporting the PR URL alone is not success/)
-    expect(handoff).toMatch(/\*\*Success\*\*.+`ce-babysit-pr` has started/is)
+    expect(handoff).toMatch(/\*\*Success\*\*.+`ce-babysit-pr` owns the monitoring lifecycle/is)
     // Harness-agnostic load: use the host's normal skill mechanism without a platform matrix.
     expect(handoff).toMatch(/host's normal skill-invocation mechanism/)
     expect(handoff).not.toContain("Claude Code `Skill` tool")
@@ -433,7 +553,7 @@ describe("PR concept teaching contract", () => {
     // The pipeline exception is part of the do-not-fire list in the apply reference.
     expect(applyRef).toMatch(/mode:pipeline` \*\*except\*\* when this run completed a stack-mode submit/i)
     expect(applyRef).toMatch(/outer orchestrator[\s\S]{0,80}second bare babysit/i)
-    expect(applyRef).toMatch(/mode:pipeline[\s\S]{0,160}started-only is not enough/i)
+    expect(applyRef).toMatch(/mode:pipeline[\s\S]{0,160}wait for its pipeline stop/i)
     expect(submit).toMatch(/authoritative parent tip/i)
     expect(submit).toContain('git checkout -b -- "<branch-name>" "<parent-tip>"')
     expect(submit).toMatch(/Do not hard-code `origin\/<parent>`/i)

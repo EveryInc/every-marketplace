@@ -1,6 +1,6 @@
 ---
 name: ce-debug
-description: "Diagnosis loop for bugs and failing behavior. Use when asked to debug or fix failing behavior."
+description: "Diagnosis loop for bugs and failing behavior. Use when asked to debug or fix failing or slow behavior."
 argument-hint: "[issue reference, error message, test path, or description of broken behavior]"
 ---
 
@@ -22,6 +22,10 @@ Default is **interactive**: investigate, run the Phase 2 fix-choice gate, then t
 ## Blocking questions
 
 Wherever this skill asks the user something, use the host's blocking question tool already in the current tool list (match by capability, not by a host-specific name). Presence in the current tool list is proof the tool exists; never call a user-facing question tool to discover whether it exists. If a matching tool is listed but unloaded, use the host's tool-discovery primitive to load that capability — do not search for another host's tool name. Fall back to numbered options on the host's chat surface only when no such tool is in the list or a real question call errors. Never silently skip the question, and never end a phase without a response.
+
+## Secrets in evidence
+
+Debugging surfaces raw output constantly — command results, captured payloads, log excerpts — and the harness may render a command's output the moment it runs, so the gate fires when you construct the command, not afterward. Keep credentials in env vars rather than on the command line; when a command's output may carry a secret (verbose HTTP traces, dumped headers, config or environment prints), capture it to a file and surface only sanitized excerpts, writing `<REDACTED>` in place of each secret. No secret (credential, token, auth header, connection string) appears in anything shown, written, or committed. If sanitizing removes what the diagnosis needs, say so and ask the user rather than un-redacting.
 
 ## Artifact Root
 
@@ -113,4 +117,4 @@ If the user chose "Diagnosis only," skip to Phase 4's summary. If they chose "Re
 
 **Contextual override** ("don't open PRs from skills", "commit only", "stop after the fix") — follow what the user said, and **Stop here** without committing when that is what they asked for. A vague tonal cue is not an override.
 
-**After a PR is open** — apply the reference's learning-capture criteria; if the user accepts, invoke the `ce-compound` skill, then commit the learning doc to the same branch and push so the open PR picks it up.
+**After a PR is open** — apply the reference's learning-capture criteria. Only when that gate qualifies the fix, offer capture; if the user accepts, invoke the `ce-compound` skill, then commit and push only the artifacts it actually wrote or updated so the open PR picks them up. If it writes nothing, end without a documentation commit.

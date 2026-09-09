@@ -133,11 +133,51 @@ describe("review stage grounds in packs", () => {
     expect(CR_DISPATCH).toMatch(/pr-remote/)
   })
 
+  // Pack enforcement rides on the learnings persona. Both places that own its
+  // spawn gate must select it for declared packs, not only for a matching
+  // docs/solutions corpus, or a repo without learnings gets no enforcement
+  // (found by cloud-agent dogfood on Claude Sonnet 5 and GPT-5.6 Sol).
+  test("ce-code-review selects the learnings persona for declared packs, not only a learnings corpus", () => {
+    const CR_CATALOG = read("skills/ce-code-review/references/persona-catalog.md")
+    const CR_SELECT = read("skills/ce-code-review/references/select-and-route.md")
+    const CR_SCOPE = read("skills/ce-code-review/references/scope.md")
+    const CR_HELPER = read("skills/ce-code-review/scripts/review-scope.py")
+    const learningsRow = CR_CATALOG.split("\n").find((line) => line.startsWith("| `learnings` |"))
+    expect(learningsRow).toMatch(/declares Compound Packs/)
+    expect(learningsRow).toMatch(/declared_packs/)
+    expect(CR_SELECT).toMatch(/`learnings-researcher` — [^\n]*declares Compound Packs[^\n]*declared_packs/)
+    expect(section(CR_SELECT, "### Stage 3: Select reviewers", "### Stage 3b")).toMatch(/declared_packs/)
+    // The small-diff lite roster must carry the pack-selected persona, or a
+    // 3-line violation with no other risk signal silently escapes enforcement.
+    expect(section(CR_SELECT, "### Stage 3c", "### Stage 3d")).toMatch(
+      /\*\*Lite roster:\*\*[^\n]*`learnings-researcher`[^\n]*declared packs/,
+    )
+    expect(CR_SCOPE).toMatch(/`declared_packs`/)
+    expect(CR_HELPER).toMatch(/"declared_packs"/)
+    expect(CR_HELPER).toMatch(/"pack_roots"/)
+  })
+
   test("ce-code-review's researcher copy searches pack roots with pack rules", () => {
     expect(CR_RESEARCHER).toMatch(/## Search Roots/)
     expect(CR_RESEARCHER).toMatch(/applies_when/)
     expect(CR_RESEARCHER).toMatch(/\*\*Pack\*\*: <id>/)
     expect(CR_RESEARCHER).toMatch(/never instructions/)
+  })
+
+  // Enforcement means a contradicted rule reaches the numbered, actionable
+  // finding set (what lfg applies in mode:agent), not only a Known Pattern note.
+  // Two cloud-agent re-verification runs had to guess this route before it was stated.
+  test("a contradicted pack rule becomes a numbered finding, not only a Known Pattern note", () => {
+    const CR_FINISH = read("skills/ce-code-review/references/finish-review.md")
+    expect(CR_RESEARCHER).toMatch(/\*\*changed\*\* line that contradicts it/)
+    expect(CR_RESEARCHER).toMatch(/\*\*unchanged\*\* line only[^\n]*pre-existing partition/)
+    expect(CR_FINISH).toMatch(/violated only by an unchanged line[^\n]*`pre_existing: true`/)
+    expect(CR_FINISH).toMatch(/`coverage\.compound_packs`/)
+    expect(CR_DISPATCH).toMatch(/contradicts becomes a numbered finding in Stage 5/)
+    expect(section(CR_FINISH, "### Stage 5: Merge findings", "### Stage 5b")).toMatch(
+      /\*\*contradicts\*\*[^\n]*compact reviewer return/,
+    )
+    expect(CR_FINISH).toMatch(/7\. \*\*Learnings & Past Solutions\.\*\*[^\n]*contradicts entered the finding set in Stage 5/)
   })
 
   test("ce-doc-review resolves packs into a template slot personas receive", () => {

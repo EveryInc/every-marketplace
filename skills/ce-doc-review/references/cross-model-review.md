@@ -21,10 +21,11 @@ if [ "${CLAUDECODE:-}" = "1" ]; then XHOST_HARNESS=claude; XHOST_FAMILY=claude;
 elif [ -n "${CODEX_SANDBOX:-}${CODEX_SANDBOX_NETWORK_DISABLED:-}${CODEX_SESSION_ID:-}${CODEX_THREAD_ID:-}${CODEX_CI:-}" ]; then XHOST_HARNESS=codex; XHOST_FAMILY=codex;
 elif [ "${GROK_AGENT:-}" = "1" ] || [ -n "${GROK_SESSION_ID:-}" ]; then XHOST_HARNESS=grok; XHOST_FAMILY=grok;
 elif [ -n "${CURSOR_AGENT:-}${CURSOR_CONVERSATION_ID:-}" ]; then XHOST_HARNESS=cursor; XHOST_FAMILY=unknown;
+elif [ -n "${OPENCODE_TERMINAL:-}" ]; then XHOST_HARNESS=opencode; XHOST_FAMILY=unknown;
 else XHOST_HARNESS=unknown; XHOST_FAMILY=unknown; fi
 ```
 
-Pass `XHOST_HARNESS` as `CROSS_MODEL_HOST_HARNESS`; pass `XHOST_FAMILY` as the first worker argument. The snippet is evidence, not the verdict: it resolves the harnesses whose environment markers it already names, and where it yields `unknown` on a harness you can identify from your own runtime, attest what you know instead. A harness the snippet does not name needs no new branch here. Both tokens come from the peer-key vocabulary the worker accepts, never a provider's corporate name — family `codex`, `claude`, `grok`, `composer`, or `unknown`; harness `codex`, `claude`, `grok`, `cursor`, or `unknown` — and a name such as `anthropic`, `openai`, or `xai` in either slot fail-closes the job with no artifact.
+Pass `XHOST_HARNESS` as `CROSS_MODEL_HOST_HARNESS`; pass `XHOST_FAMILY` as the first worker argument. The snippet is evidence, not the verdict: it resolves the harnesses whose environment markers it already names, and where it yields `unknown` on a harness you can identify from your own runtime, attest what you know instead. A harness the snippet does not name needs no new branch here. Both tokens come from the peer-key vocabulary the worker accepts, never a provider's corporate name — family `codex`, `claude`, `grok`, `composer`, or `unknown`; harness `codex`, `claude`, `grok`, `cursor`, `opencode`, or `unknown` — and a name such as `anthropic`, `openai`, or `xai` in either slot fail-closes the job with no artifact.
 
 Cursor is the one identity self-knowledge cannot complete, because the harness does not determine the serving model: it keeps family `unknown` unless an observable serving-family attestation supplies `codex`, `claude`, `grok`, or `composer`. Never infer serving family from the Cursor brand. An unknown host family cannot satisfy automatic same-family exclusion, so skip the automatic cross-model pass.
 
@@ -54,6 +55,7 @@ Before content egresses, resolve each selected target to one concrete installed 
 | `grok` | `grok-cli` (native CLI) or `grok-cursor` (via Cursor intermediary) |
 | `cursor` | `cursor` |
 | `composer` | `composer` |
+| `opencode` | `opencode` |
 
 The host harness does not choose the Grok route. Target `grok` binds `grok-cli` when that CLI is installed. Bind `grok-cursor` only when the user asked for Grok through Cursor, or when the grok CLI is absent and Cursor is a sanctioned recipient.
 
@@ -135,7 +137,7 @@ The nested windows are one budget with one knob, `CROSS_MODEL_HARD_SECS`. The ru
 Omit `--result-path`; `done` means only that the worker exited. The fixed target determines the expected `<reviewer-name>-<target>.json` filename.
 
 - `<host-serving-family>` is `codex`, `claude`, `grok`, `composer`, or `unknown`; `<host-harness>` is `codex`, `claude`, `grok`, `cursor`, or `unknown`.
-- `<target>` is exactly one of `codex`, `claude`, `grok`, `cursor`, or `composer`; `<fixed-route>` is its already-sanctioned concrete route token from the Step 1 table (`codex`, `claude`, `grok-cli`, `grok-cursor`, `cursor`, or `composer`).
+- `<target>` is exactly one of `codex`, `claude`, `grok`, `cursor`, `composer`, or `opencode`; `<fixed-route>` is its already-sanctioned concrete route token from the Step 1 table (`codex`, `claude`, `grok-cli`, `grok-cursor`, `cursor`, `composer`, or `opencode`).
 - `<reviewer-name>` = the activated lens (`security-lens`, `adversarial`, or `product-lens`). The script derives the persona-brief filename and (per provider) model from this allowlisted value — the brief path is never caller-controlled.
 - `<document-path>` = the document under review.
 - `<document-type>` = the Phase 1 classification (`requirements` / `plan` / `unified-requirements` / `unified-plan`).
@@ -163,10 +165,10 @@ The cross-model pass does **not** receive the accumulated decision primer that i
   ```bash
   SKILL_DIR="<absolute path of the directory containing the ce-doc-review SKILL.md you read>";
   PY="$(for c in python3 python py; do command -v "$c" >/dev/null 2>&1 && "$c" -c '' >/dev/null 2>&1 && { echo "$c"; break; }; done)"; [ -n "$PY" ] || { echo "no working Python 3 interpreter on PATH" >&2; exit 1; };
-  "$PY" "$SKILL_DIR/scripts/peer-job-runner.py" result --path <run-dir>/<reviewer-name>-<target>.json
+  "$PY" "$SKILL_DIR/scripts/peer-job-runner.py" result "<job-id>" --path <run-dir>/<reviewer-name>-<target>.json
   ```
 
-  (fd-ownership-checked, bounded; exit 4 means unreadable -> treat as no file). If present, treat it as one reviewer return with `reviewer: <reviewer-name>-<target>`. It enters ordinary dedup, but enters cross-model agreement promotion **only when `independence_verified` is `true`**. A false or absent value may contribute findings but never raises an anchor. Peer returns never grant silent-apply authority.
+  The read is fd-ownership-checked and bounded. Exit 0 emits the artifact. Exit 2 means the job is still running, so the deadline loop above was left early — return to it rather than classifying. Exit 3 is the only outcome that means the peer produced nothing; it names that lens's job state, which selects the matching branch below. Any other exit means the runner could not complete the read — a trust failure on the artifact or on the job's own state, or a job id that did not resolve. None of those has a branch below: name the failure in Coverage as a degraded cross-model pass, and never fold it into the silent skip. If present, treat it as one reviewer return
 - **No file, clean skip** (script skipped before starting real work: host un-attestable, no different-provider route installed, CLI missing, unparseable output, or lens not activated) → the pass simply didn't run for that lens. Note "cross-model pass: not run" in Coverage on an interactive host in default mode — or "cross-model pass: disabled by checkout config" when Step 1's egress policy was the reason; stay silent in non-interactive mode. Never fail the review. Ignore any `*.raw.json` leftovers — they are not fold-in artifacts.
 - **Dispatch-infrastructure failure vs. clean skip.** The clean skip above is a script that *chose* not to start real work. A dispatch-infrastructure crash is different — the runner or worker itself failed: a non-zero exit before any job starts, a preflight/detach failure, or an unresolved `$SKILL_DIR`/script path. Because every leg shares one runner, route, and `$SKILL_DIR`, such a crash typically drops the **whole** cross-model pass at once, not one lens. Do not fold it into the silent skip on the first error: re-run the **same resolved route** by hand — re-issuing the affected `start` calls with the target/model, the tool-less empty-scratch isolation posture, and the embedded-document read scope all held fixed — while each failure is a new, plausibly recoverable one and the shared peer deadline holds (a same-route retry, distinct from the quota rule below, which requires a newly disclosed route). Stop and drop the cross-model pass once a failure repeats or the deadline is spent. Each trio lens is still covered by its in-process twin; what an infra crash silently voids is the **whole-doc broad read** (the sweep leg has no twin) plus cross-model corroboration — name that loss in the Coverage line rather than letting it disappear as "not run." A hand recovery may not substitute a different target or provider, widen the read scope beyond the embedded document, or relax the read-only empty-scratch posture.
 - **Started but not `done`** (the job's final state is `failed` / `timeout` / `died-without-result`) → still non-blocking, but never silent: name the lens and terminal state in Coverage per Step 4's naming rule.

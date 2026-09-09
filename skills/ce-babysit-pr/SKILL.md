@@ -10,7 +10,7 @@ Keep an open PR moving toward merge by reacting to three streams as each arrives
 
 **Outcome:** the PR is left at an honest terminal, looks-ready, blocked, or budget state under the run's posture. **Done:** a Step 3 true stop reached, Step 4 report written. Settled ≠ merged.
 
-**Every tick's attention set and every mutation are driven by the bundled `pr-snapshot` output — never by prose, events you notice, or a coordinator's say-so** (readiness also applies `references/settle.md`'s review-signal judgment). Read `references/tick.md` before the first snapshot; `references/envelope.md` holds full boundaries.
+**Every tick's attention set and every mutation are driven by the bundled `pr-snapshot` output — never by prose, events you notice, or a coordinator's say-so** (readiness also applies `references/settle.md`'s review judgment, which reads live state this output does not model). Read `references/tick.md` before the first snapshot; `references/envelope.md` holds full boundaries.
 
 ## Posture (one value per run)
 
@@ -36,7 +36,7 @@ One PR named → `target` (ask once if a confirmed multi-layer stack exists); ow
 2. Resolve the PR from the argument or current branch (`references/setup.md`); none → report, stop.
 3. Chain classification comes from the snapshot, never the user; resolve posture before semantic work.
 4. **Checkout must be the PR's head branch with matching upstream** before any delegated mutation; default `gh pr checkout <ref>`; no push access or dirty checkout → stop, say so.
-5. **Sustain mode** (`references/watch-loop.md`): default is the self-sustaining in-session watch — background `pr-snapshot watch`, wait on its `BABYSIT_WAKE` sentinel with your harness's background-and-wake tool, one tick per wake; never collapse the loop into a script. **Checkpoint** only when no such capability exists: one tick, report, say monitoring is paused, print the resume invocation — default to `/ce-babysit-pr <url>` (+ non-target posture), `$ce-babysit-pr <url>` on Codex; render only the invocation as inline code, output one form only. **Pipeline** (`mode:pipeline`): bounded synchronous ticks, structured return (`references/pipeline.md`).
+5. **Sustain mode** (`references/watch-loop.md`): Keep monitoring in the current session until a stop condition is met. Use checkpoint mode only when the user requests it or the harness cannot keep the session active while waiting for the detector’s output. The default self-sustaining in-session watch uses `pr-snapshot watch` and runs one tick per `BABYSIT_WAKE`; never collapse the loop into a script. In checkpoint mode, run one tick and report paused monitoring with the resume invocation from `references/setup.md`. **Pipeline** (`mode:pipeline`): bounded synchronous ticks, structured return (`references/pipeline.md`).
 
 ## Step 2: One tick (ordering invariant)
 

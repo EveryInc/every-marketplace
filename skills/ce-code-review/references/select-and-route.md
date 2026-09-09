@@ -15,7 +15,7 @@ Reviewer personas are selected in layers. The persona catalog in `references/per
 - `testing-reviewer` — test files, test infrastructure, mocks, fixtures, or harness behavior changed; or the diff changes meaningful runtime behavior without corresponding test work. Behavioral triggers include new or changed branches, state mutation, API/control-flow behavior, and error handling. Production-file presence alone and non-behavioral edits do not select it.
 - `maintainability-reviewer` — a large or structural diff: substantial refactor, new abstractions, file moves, coupling/type-boundary changes, or at least 200 executable changed lines.
 - `agent-native-reviewer` — an agent-facing feature or surface changed (skills, agents, prompts, tools, MCP, commands, or a product capability expected to be accessible to agents).
-- `learnings-researcher` — `<root>/solutions/` exists and a cheap path/title search finds a plausible match for the changed modules or patterns. The existence of a corpus alone is not enough.
+- `learnings-researcher` — there is institutional knowledge to check the change against: `<root>/solutions/` exists and a cheap path/title search finds a plausible match for the changed modules or patterns (the existence of a corpus alone is not enough), or, in local scope, the repo's CE config declares Compound Packs (Stage 1b `declared_packs`). Declared packs need no pre-search; the persona matches their rules itself.
 
 **Cross-cutting conditional (per diff):**
 
@@ -41,7 +41,7 @@ Stack-specific reviewers fire only when the diff touches runtime behavior they s
 
 ### Stage 3: Select reviewers
 
-Read the diff and file list from Stage 1 and the helper JSON from Stage 1b. Correctness is automatic; project-standards is governed by the Stage 3b path result. Read `references/persona-catalog.md` from this skill's directory now; it owns every other spawn gate. Select generic reviewers before domain reviewers: testing for changed test/harness surfaces, or when meaningful runtime behavior changed without corresponding test work; maintainability only for large or structural work; agent-native only for agent-facing work; and learnings only after a cheap search finds plausible matches in an existing `<root>/solutions/` corpus. For the behavioral testing trigger, require concrete diff evidence such as new or changed branches, state mutation, API/control-flow behavior, or error handling. Do not select testing from production-file presence alone or for non-behavioral edits. For each remaining conditional, decide whether the diff warrants it. Helper signals are prompts to consider a persona, never automatic selection.
+Read the diff and file list from Stage 1 and the helper JSON from Stage 1b. Correctness is automatic; project-standards is governed by the Stage 3b path result. Read `references/persona-catalog.md` from this skill's directory now; it owns every other spawn gate. Select generic reviewers before domain reviewers: testing for changed test/harness surfaces, or when meaningful runtime behavior changed without corresponding test work; maintainability only for large or structural work; agent-native only for agent-facing work; and learnings when a cheap search finds plausible matches in an existing `<root>/solutions/` corpus or, in local scope, the repo declares Compound Packs (Stage 1b `declared_packs`). For the behavioral testing trigger, require concrete diff evidence such as new or changed branches, state mutation, API/control-flow behavior, or error handling. Do not select testing from production-file presence alone or for non-behavioral edits. For each remaining conditional, decide whether the diff warrants it. Diff-derived helper signals (`signals`, `test_files_changed`, `agent_surface`, `has_learnings_corpus`) are prompts to consider a persona, never automatic selection; `declared_packs` is a fact about the repo's config, and the learnings gate above says what that fact selects.
 
 **File-type awareness for conditional selection:** Instruction-prose files (Markdown skill definitions, JSON schemas, config files) are product code but do not benefit from runtime-focused reviewers. The adversarial reviewer's techniques (race conditions, cascade failures, abuse cases) target executable code behavior. For diffs that only change instruction-prose files, skip adversarial unless the prose describes auth, payment, or data-mutation behavior, or the change is itself a silent-pass verification mechanism (next paragraph — a CI/CD workflow is a config file but still gets the adversarial lens). Count only executable code lines toward line-count thresholds.
 
@@ -64,16 +64,19 @@ For `deployment-verification-agent`, use the same migration-artifact gate when t
 
 ### Stage 3b: Discover project standards paths
 
-Before spawning sub-agents, find the file paths (not contents) of all relevant standards files for the `project-standards` persona. Use the native file-search/glob tool to locate:
+**Goal:** the mapping that pairs each criteria file governing this change with the changed files it governs, for the `project-standards` persona. Paths, not contents.
 
-1. Use the native file-search tool (e.g., Glob in Claude Code) to find all `**/CLAUDE.md` and `**/AGENTS.md` in the repo.
-2. Filter to those whose directory is an ancestor of at least one changed file. A standards file governs all files below it (e.g., `AGENTS.md` at the repo root applies to the whole checkout, while `skills/AGENTS.md` would apply to everything under `skills/`).
+Enumerate the candidates from **the tree under review**, never from whichever tree happens to be checked out: the workspace only in `local-aligned` scope, and the reviewed head ref in `pr-remote` and `branch-remote` (Stage 1 resolved which). A criteria file that exists only in the reviewed tree must appear, and one deleted there must not, or the persona enforces criteria the change never had.
 
-Distinguish an empty successful search from a failed or unavailable search:
+Candidates are `CODING_STANDARDS.md`, `CLAUDE.md`, and `AGENTS.md` at any depth. Keep those whose directory is an ancestor of a changed file — a root-level file governs the whole checkout, `skills/AGENTS.md` only what is under `skills/`.
 
-- One or more applicable paths: select `project-standards` and pass the path list inside a `<standards-paths>` block in its Stage 4 context. The persona reads the files itself, targeting only relevant sections.
+`CODING_STANDARDS.md` is the designated criteria source, so an instruction file supplies criteria only for changed files that no `CODING_STANDARDS.md` governs, and no file is graded against both kinds. Every governing `CODING_STANDARDS.md` still applies together. Declared Compound Packs are not a criteria kind here: they select `learnings-researcher` in Stage 3 and are graded by it independently, so a line that violates a standards rule and a pack rule yields one finding per source. When the instruction-file fallback supplied the criteria for any changed file, name it as the fallback in Coverage.
+
+**Done** when no changed file could be graded against two kinds of criteria. A changed file that no criteria file governs is a complete result, not a gap. **On uncertainty, fail closed** — an error is never an empty result:
+
+- One or more applicable paths: select `project-standards` and pass the mapping inside a `<standards-paths>` block in its Stage 4 context. The persona applies the precedence you resolved rather than re-deriving it, and reads the files itself, targeting only relevant sections.
 - Empty successful search: do not dispatch `project-standards`; record `project standards: not run (no applicable standards files)` in Coverage.
-- Search failure or uncertain scope: fail closed by dispatching `project-standards` with the uncertainty stated; never treat an error as an empty result.
+- Search failure or uncertain scope: dispatch `project-standards` with the uncertainty stated.
 
 ### Stage 3c: Small-diff fast path (reduce the roster for trivial, low-risk diffs)
 
@@ -84,11 +87,11 @@ Distinguish an empty successful search from a failed or unavailable search:
 - Stage 1b returned `lite_eligible: true` (1-39 executable changed lines, zero uncounted files, and no path signals), AND
 - No content-based risk read from the diff in Stage 3 (auth, payments, data mutation, external API, secrets/permissions, deserialization, crypto, concurrency/background jobs, filesystem/process execution), AND
 - Stage 3b standards discovery completed successfully (with applicable paths or a confirmed empty result), AND
-- No conditional persona other than `project-standards` was selected in Stage 3.
+- No conditional persona was selected in Stage 3 from the diff's own content. Personas the repo's criteria sources select regardless of diff size — `project-standards` from Stage 3b paths, `learnings-researcher` from declared Compound Packs — ride the lite roster rather than disqualifying it: a pack rule is enforced on a three-line diff exactly as on a large one.
 
 `exec_lines: null`, `uncounted_files > 0`, a non-empty `signals` array, or helper failure are hard disqualifiers. A pure code diff that also touches one `.md` runs the full roster; that conservatism is the point.
 
-**Lite roster:** the inline fast pass (Stage 4) plus `correctness-reviewer`, and `project-standards-reviewer` only when Stage 3b found applicable paths. Announce the actual roster plainly and note it in Coverage.
+**Lite roster:** the inline fast pass (Stage 4) plus `correctness-reviewer`, `project-standards-reviewer` only when Stage 3b found applicable paths, and `learnings-researcher` only when declared packs selected it. Announce the actual roster plainly and note it in Coverage.
 
 **Do not collapse** when any gate condition fails — the gate keys on risk, not size alone (a 12-line auth change still needs the full roster). When in doubt, run the full roster.
 

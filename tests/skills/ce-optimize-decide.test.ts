@@ -1,6 +1,6 @@
 import { describe, expect, setDefaultTimeout, test } from "bun:test"
 import { spawnSync } from "node:child_process"
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs"
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import {
@@ -23,6 +23,7 @@ const EXAMPLE = readFileSync(
 )
 const LOOP = readFileSync(path.join(SKILL_DIR, "references", "loop.md"), "utf8")
 const MEASUREMENT = readFileSync(path.join(SKILL_DIR, "references", "measurement.md"), "utf8")
+const SKILL_BODY = readFileSync(path.join(SKILL_DIR, "SKILL.md"), "utf8")
 
 const BASELINE_WALL = 372.869
 const OBSERVED = {
@@ -1488,10 +1489,66 @@ describe("schema and skill pins", () => {
     expect(LOOP).toContain("Write a decide terminal only when `next_measurement` is `none`")
     expect(LOOP).toContain("one log entry per experiment")
     expect(LOOP).toContain("success proceeds to the first exploratory sample")
+    expect(LOOP).toContain("CP-2 is incomplete until")
+    expect(LOOP).toContain("uniquely identify the bytes")
+    expect(LOOP).toContain("without replacing the standalone comparison")
+    expect(SKILL_BODY).toContain("cheapest step that would change what gets implemented")
+    expect(SKILL_BODY).toContain("locating measurement")
+    expect(SKILL_BODY).toContain("**Outcome:**")
+    expect(SKILL_BODY).toContain("**Horizon:**")
+    expect(SKILL_BODY).toContain('description: "Optimize a named target with a measured loop:')
+    expect(SKILL_BODY).toContain("attribute a workload's cost, or score variants and keep winners")
+    expect(SKILL_BODY).toContain("working system's metric should move")
+    expect(SKILL_BODY).toContain("winning change is not already known")
+    expect(SKILL_BODY).toContain("Use ce-debug when the job is diagnosis")
+    expect(SKILL_BODY).toContain("use ce-work when the change is already known")
+    expect(SKILL_BODY).not.toContain("unexpectedly slow")
+    expect(SKILL_BODY).not.toContain("Optimize a working system against a measurable target")
+    expect(SKILL_BODY).not.toContain("named workload's cost should drop")
+    expect(SKILL_BODY).not.toContain("several variants must be scored and kept")
+    expect(SKILL_BODY).not.toContain("Not for diagnosing failing or slow behavior (ce-debug)")
+    expect(SKILL_BODY).not.toContain("faster, cheaper, or leaner")
+    expect(SKILL_BODY).not.toContain("clustering, ranking, search, or prompt quality")
+    expect(LOOP).toContain("locating measurement")
+    expect(LOOP).toContain("attributed shares before implementation")
+    expect(LOOP).toContain("when a Phase 1 baseline total cannot decide keep or skip")
+    expect(LOOP).not.toContain("implement only opportunities connected to an observed cost share")
+    expect(LOOP).not.toContain("Missing profile data does not block")
+    expect(LOOP).toContain("does not require a performance profile")
+    expect(LOOP).toContain("attribute a cost change to one lever")
+    expect(LOOP).toContain("unable to decide keep or skip")
+    expect(LOOP).toContain("no executable next action remains")
+    expect(LOOP).toContain("cannot be obtained is a blocker")
+    expect(LOOP).not.toContain("the backlog is empty and no new one can be generated")
+    expect(LOOP).not.toContain(
+      "no executable next action remains (no runnable hypothesis, no new one can be generated, and locating would not change keep or skip)",
+    )
+    expect(MEASUREMENT).toContain("not the cost shares")
+    expect(LOG_SCHEMA).toContain("uniquely identifies the measured")
     expect(LOOP).not.toContain("confirm` or `add_sample")
     expect(MEASUREMENT).toContain("Spend only the measurement the current decision needs")
     expect(readFileSync(path.join(SKILL_DIR, "references", "wrap-up.md"), "utf8")).toContain(
       "Not selected: <count>",
     )
+  })
+})
+
+function listSkillFiles(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const next = path.join(dir, entry.name)
+    return entry.isDirectory() ? listSkillFiles(next) : [next]
+  })
+}
+
+describe("ce-optimize skill prose", () => {
+  test("does not use em dashes or the phrase load-bearing", () => {
+    const offenders: string[] = []
+    for (const file of listSkillFiles(SKILL_DIR)) {
+      const text = readFileSync(file, "utf8")
+      const rel = path.relative(process.cwd(), file)
+      if (text.includes("\u2014")) offenders.push(`${rel}: em dash`)
+      if (/load-bearing/i.test(text)) offenders.push(`${rel}: load-bearing`)
+    }
+    expect(offenders).toEqual([])
   })
 })

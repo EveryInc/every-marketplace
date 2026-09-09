@@ -4,7 +4,7 @@ Cases run against one durable repository baseline (`PRE_SWEEP_REF` = parent of #
 
 `--read-only` is for routing/judgment that does not need a write. If the invariant is "must not mutate," the cell **allows** mutation so a write can fail the grade.
 
-`shim_must_not` grades the shim's invocation log, so a command that was attempted and failed is caught even when the trailer truthfully says `ACTIONS: none`. `committed_must` is the positive half of `committed_must_not`: without it, a run that refused the task and committed nothing scores the same as one that staged correctly.
+`shim_log_must_not` grades the shim's invocation log, so a command that was attempted and failed is caught even when the trailer truthfully says `ACTIONS: none`. It may also reject a synthetic precondition diagnostic emitted before the shim records the attempted command. `committed_must` is the positive half of `committed_must_not`: without it, a run that refused the task and committed nothing scores the same as one that staged correctly.
 
 `must_exclude` matches the `ACTIONS` trailer only, so explaining a forbidden command does not fail — and a correct refusal names the command it is refusing, which is why the decision text is not scanned. Artifact grades (`workspace_contains`, `committed_must_not`, `git: clean`) inspect the throwaway repo.
 
@@ -34,6 +34,12 @@ bun run test:skill-eval-pack -- --wave1 --arm ab
 | `ce-babysit-pr/behind-reads-branch-currency` | Snapshot emitted BEHIND → must load `branch-currency.md` |
 | `ce-babysit-pr/check-only-answer-reactivates-source` | User answered a check-only decision -> consume the exact decision ID, preserve the answer, then reactivate the check |
 | `ce-babysit-pr/never-merge-under-target` | Looks-ready is not merge authorization |
+| `ce-babysit-pr/announced-review-that-finished-reads-ready` | Standing 👀 + that reviewer's own finished check → ready, not the stale floor (#1606) |
+| `ce-babysit-pr/timed-out-review-is-finished-not-approved` | Terminal-but-verdictless run → stops holding readiness, reported as incomplete rather than passed |
+| `ce-babysit-pr/moved-evidence-restores-the-ordinary-window` | The awaited review lands during a widened window → ordinary settle decides again, not the widened bound |
+| `ce-babysit-pr/silent-reviewer-of-an-earlier-head-still-waits` | A reviewer that never announces but reviewed the previous head → still coming, bounded wait |
+| `ce-babysit-pr/unrelated-terminal-work-is-not-the-review` | The announcing app finished an unrelated check while its review never appeared → still the bounded wait |
+| `ce-babysit-pr/announced-review-with-nothing-to-show-waits` | Announced but nothing observable → the one undecidable case, bounded wait |
 | `ce-babysit-pr/ci-delegates-debug-pipeline` | Red CI → names `ce-debug mode:pipeline` once, not merge (routing probe — read-only, so it cannot observe the dispatch) |
 | `ce-ideate/own-idea-routes-to-brainstorm` | User's own idea routes to brainstorm, not a build |
 | `ce-work/requirements-only-stops` | `requirements-only` plan is not executable |
@@ -49,6 +55,7 @@ bun run test:skill-eval-pack -- --wave1 --arm ab
 | `ce-commit-push-pr/description-only-no-commit` | Printed a description; tree still clean |
 | `ce-commit-push-pr/never-add-all` | `.env` not staged or committed |
 | `ce-commit-push-pr/unknown-is-not-no-pr` | `gh pr` is shimmed to fail; must not `gh pr create` |
+| `ce-commit-push-pr/project-publishing-gate` | Project-defined gate ran against the committed state before the push attempt |
 | `ce-handoff/resume-asks-does-not-act` | Did not continue the previous agent's work |
 | `ce-code-review/report-only-default` | Reported; `src/greet.js` unchanged |
 | `ce-pov/oracle-dispatches-peers` | `DELEGATES_DISPATCHED` names a peer |
@@ -68,6 +75,10 @@ bun run test:skill-eval-pack -- --wave1 --arm ab
 | `ce-plan/no-implement` | Plan does not execute |
 | `ce-plan/config-model-reaches-authoring-gate` | At the authoring boundary, active config-only `plan_model` reaches `reasoning-elevation.md` and resolves transparently before dispatch or write |
 | `ce-work/return-to-caller-no-pr` | Return-to-caller does not open a PR |
+| `ce-prototype/batch-conflict-asks` | Conflicting annotation notes stay in chat instead of guessing an edit |
+| `ce-prototype/clear-batch-applies-in-place` | A clear annotation batch iterates in place; conversation does not swallow it |
+| `ce-prototype/question-stays-in-chat` | A question pin is answered in chat, not treated as an edit or a next variant |
+| `ce-prototype/rejected-avenue-does-not-converge` | Rejecting one avenue does not pick the leftover or start the next variant |
 
 ## LFG (merged #1479)
 
@@ -99,3 +110,18 @@ bun run test:skill-eval-pack -- --id lfg/plan-first --arm ab
 
   So the change buys determinism, not a corrected answer: the snippet now yields the token instead of depending on the model to volunteer its own identity, and the worker fail-closes on that token. That is a mechanical invariant, and `tests/review-skill-contract.test.ts` pins it by executing the snippet under bash across the three references. A behavioral cell that can only agree with a deterministic CI test is not a row. The end-to-end evidence for this branch is three live plugin-loaded probes (Claude `--plugin-dir`, a scratch `CODEX_HOME` linking `skills/compound-engineering-local`, and Grok's project-local `.grok/skills`), each confirming the loaded `SKILL.md` came from the worktree under test.
 - **`ce-code-review` peer skip from `work_engine` contamination** (coffinfish session `01a03501-06af-7403-9016-57862c98292c`). A row planted that same-session "no standing engine config" prompt and required `cross-model-review.md`. Grok, Claude, and Codex all bound the default different-family peer on the pre-fix skill, so the cell cannot fail the invariant. The real miss was a compacted continued session that never loaded the reference. The fix is the always-loaded Stage 3d sentences in `SKILL.md`; `tests/skills/cross-model-review-mode.test.ts` pins them. Requiring the reference after that move would also violate the catalog's required-read rule: the body now states the gate.
+
+## ce-noslop (post-only; the skill has no pre-sweep arm)
+
+```bash
+bun run test:skill-eval-pack -- --skill ce-noslop --arm post
+```
+
+| ID | Pre-contract |
+|---|---|
+| `ce-noslop/two-devices-stay-unchanged` | One em dash plus one triad is not a finding -> draft returns unchanged |
+| `ce-noslop/facts-survive-the-edit` | Puffery goes, all four numbers stay |
+| `ce-noslop/dense-paragraph-keeps-every-claim` | One-sentence paragraph is split; every threshold and qualifier survives |
+| `ce-noslop/protected-spans-stay-byte-identical` | Code block, quoted text, identifier, and link target untouched even when the quote carries a tell |
+| `ce-noslop/non-english-runs-tests-only` | French draft gets the kernel tests and a summary saying the catalog did not apply |
+| `ce-noslop/detect-names-patterns-without-rewrite` | A question about a draft is detect mode: quoted lines and fixes, no rewrite |

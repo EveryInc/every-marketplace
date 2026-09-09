@@ -38,14 +38,18 @@ A requirements-only unified plan is kept **light and standalone-readable**. It
 includes:
 
 - `## Goal Capsule` with objective, product authority, and open blockers. The
-  objective is always the outcome — what is true for users or operators
+  objective is the goal a reader who has not read the rest of the plan can
+  hold. Remaining-true constraints live on their owning R-IDs, not as extra
+  objective clauses — user-checkable is not a license to pack them onto the
+  objective. The objective is always the outcome — what is true for users or operators
   afterwards, phrased so it would still read as the goal under a different
   implementation. It sits outside the component being changed: if a reader
   who does not know that component's internals could not tell whether the
   objective was met, it is stated at the component's altitude and the real
   objective is whatever depended on it. When the seed supplies an approach ("move X to Y"), that is
   the **Means** (its own line) and the objective is the outcome it serves,
-  surfaced in the dialogue rather than assumed. When the coherent-work gate split a broader request, the objective
+  surfaced from the dialogue or the project's stated problem rather than
+  assumed. When the coherent-work gate split a broader request, the objective
   names the current area and product authority says the surrounding areas are
   not active scope.
 - `## Product Contract` containing the brainstorm sections below.
@@ -98,6 +102,8 @@ written loosely — the failure mode is a material section padded into a wall of
 text where contradictions hide and a downstream agent loses the thread. Length
 that earns its place is fine; wordiness around that length is not.
 
+Write every kept section through the `ce-noslop` skill.
+
 Hold every kept section to these:
 
 - **Lead with the decision or outcome.** Put the conclusion first, then the
@@ -105,17 +111,13 @@ Hold every kept section to these:
   bury the chosen scope, an open blocker, or a Key Decision beneath its
   rationale. This does not override section roles — Summary stays proposal-only,
   Problem Frame stays motivation-only and never restates the remedy.
-- **One idea per sentence.** A Summary is a handful of sentences, not one
-  sentence with five semicolons and four parentheticals. If a sentence needs a
-  second parenthetical to stay true, split it.
+- **A Summary is a handful of sentences**, not one sentence with five
+  semicolons and four parentheticals. If a sentence needs a second
+  parenthetical to stay true, split it.
 - **A requirement is one sentence of intent plus at most one qualifier.** When
   a requirement would specify two outcomes ("either A or B, planning decides"),
   state the intent and send the fork to Outstanding Questions — don't write both
   arms in full inside the requirement.
-- **Cut hedges and intensifiers.** "Critically", "deliberately", "explicitly",
-  "genuinely", "actually", "simply" carry nothing a downstream agent acts on.
-- **Prefer the verb to the nominalization.** "Demote the grid", not "the
-  demotion of the grid is the deliberate change in this brief".
 
 Precision is not padding: keep IDs, dates, actor names, domain terms,
 conditionals, and exact thresholds verbatim; when a concrete anchor is knowable
@@ -158,10 +160,12 @@ the Phase 4 handoff:
    or `data-ce-section="work-relationships"` on its wrapping `<section>` in HTML.
 2. **Consistent** — Goal Capsule, Requirements, Key Flows, Acceptance Examples,
    Scope Boundaries, and the `work-relationships` section do not contradict one
-   another. Could a reader find a contradiction in each section in one pass? A
-   sentence with more than one parenthetical or a requirement that specifies two
-   outcomes, or a rule stated in full in more than one section, fails this check
-   — split it, defer the fork, or replace the duplicate with its owning ID.
+   another. Could a reader find a contradiction in each section in one pass?
+   Could a colleague who was not in the session say what this work is after the
+   Objective alone? A sentence with more than one parenthetical or a requirement
+   that specifies two outcomes, or a rule stated in full in more than one section,
+   fails this check — split it, defer the fork, or replace the duplicate with
+   its owning ID.
 3. **Focused** — the Product Contract owns one coherent work unit. Surrounding
    work appears only as context, deferred work, or an explicit non-goal; it does
    not leak into active Requirements, Flows, or Acceptance Examples.

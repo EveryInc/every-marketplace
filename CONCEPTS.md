@@ -55,7 +55,10 @@ The chained progression of Skills that carries a piece of work from strategy and
 A disposable, display-only decision sketch used during brainstorming for one shape, layout, or relationship question. The user looks at it and answers in chat. It is not a prototype or a spec: a decision a rough sketch cannot settle — anything turning on real finish or motion — goes to an experience prototype instead.
 
 ### Experience prototype
-A throwaway prototype of the product, built so a human can experience it — by driving it, or by seeing it at real finish — and decide how something should work, feel, or read before that choice is encoded in a plan and code. Modality, fidelity, and medium all follow one rule: do not fake the dimension being tested. Throwaway means unmaintained and unshipped rather than discarded — a scratch prototype is left in place as a best-effort reference for what gets built next, alongside the decisions, though an in-app overlay run is undone and leaves nothing behind. Distinct from a visual probe (rough, one decision) and from polish (a feature that already works).
+A throwaway prototype of the product, built so a human can experience it — by driving it, or by seeing it at real finish — and decide how something should work, feel, or read before that choice is encoded in a plan and code. Modality, fidelity, and medium all follow one rule: do not fake the dimension being tested. Throwaway means unmaintained and unshipped rather than discarded — a scratch prototype is left in place as a best-effort reference for what gets built next, alongside the decisions, though an in-app overlay run is undone and leaves nothing behind. Distinct from a visual probe (rough, one decision) and from polish (a feature that already works). Isolated web runs may add live annotation; visual probes, overlays, and yielded media stay on chat.
+
+### Live annotation
+A browser-to-agent event path on an isolated web experience prototype: the explorer pins a comment on a live element, the skill-running agent receives it through the preview helper, and the current screen is revised in place. Distinct from chat feedback, which remains the fallback and the only path for visual probes, throwaway overlays, and yielded non-web media.
 
 ### Learning
 A documented solution to a past problem — a bug fix, a convention, or a workflow pattern — stored as the unit of compounded knowledge so future work can find and reuse it. Also called a solution doc. Carries structured metadata (category, tags, problem type) for retrieval; its creation date lives in the entry, not the filename.
@@ -79,7 +82,7 @@ A dense, visual teaching artifact written for the developer personally — expla
 An immutable continuity artifact that lets a fresh agent recover the objective, decisions, current state, and unfinished work without the prior session transcript. CE-created handoffs use managed temporary Markdown by default and point to authoritative project artifacts rather than replacing them. A receiving agent may also resume from any user-selected source with sufficient continuity context; selection supplies context but no authority to continue automatically.
 
 ### Check-in
-The active-recall step that can follow an explainer in the same session: the developer predicts or answers first and the explanation confirms or corrects — predict-then-reveal for changes, checked exercises for concepts. Skippable when the material does not warrant retention work.
+The active-recall section at the end of an explainer, headed `Check yourself`: two to four questions listed first, then their answers, all static text the developer works through alone. Included when the request asks for it or the material warrants retention work; the run never stops to quiz the developer in chat.
 
 ### Concept-teaching section
 A conditional section of a generated PR description, added by agent judgment when the change introduces a concept new to the codebase, that teaches the concept — what it is, why it was chosen here, and an example from the PR — so a reader can understand and re-explain the change without reading the diff. The passive, in-description counterpart of an Explainer.
@@ -133,6 +136,11 @@ An additive delegated run that sends the host workflow's review or judgment brie
 
 A peer result is usable only after the route reports a successful terminal outcome and the result satisfies that consumer's output contract. Provider-failure retry allowances belong to the route worker and remain inside the original route deadline; once a provider no-review outcome reaches the host, that peer is not restarted. POV position results additionally declare settledness in their output contract: a schema-shaped result not declared final is a placeholder, never a peer voice.
 
+### Clean skip
+A delegated run that reached its gate, judged the work did not apply, and ended without producing output — a terminal outcome of the workflow rather than a failure of it.
+
+Because it ends successfully and writes nothing, its evidence on disk is identical to that of a crash that also wrote nothing; only the runner reporting the two differently keeps them apart, and a consumer that reads absent output as failure turns the ordinary case into recurring noise. A clean skip is silent in a coverage report, where a run that started and then failed must instead be named with its terminal state.
+
 ### Terminalize
 The host-owned step that turns a finished external worker's working tree into one inspectable Transport commit, without requiring the worker to stage or commit.
 
@@ -140,6 +148,11 @@ The snapshot includes committed, uncommitted, and untracked output. The worker m
 
 ### Transport commit
 A synthetic, base-parented commit the host builds from an external worker's complete final tree so the host can inspect and fold the result. It is intermediate evidence, not the canonical checkout commit, and it is never the worker's own tip.
+
+### Wave contract
+The condition set under which parallel implementation workers may write one shared working directory: a committed baseline before dispatch, exclusive per-worker ownership of every write surface including hidden ones (lockfiles, generated artifacts, snapshots, manifests), no worker Git operations, verification and commits held by the orchestrator, and an abort, on any write outside every owned set, that rolls back only worker-attributable changes and preserves anything it cannot attribute.
+
+It replaces workspace isolation as the entry requirement for concurrency: isolation is the escalation for a worker that must commit, must run its own authoritative verification, or whose write surfaces cannot be audited, not the fee every parallel wave pays. A unit that cannot meet the contract serializes or takes isolation.
 
 ### Warm checkout
 A checkout whose git-ignored inventory already contains what the project's verification command needs to run: installed dependencies, virtualenvs, build caches. It is the normal state of a developer's canonical checkout, and it is the opposite of a fresh clone or newly added worktree, where verification cannot run until something installs those artifacts.
@@ -150,7 +163,7 @@ Ignored state in a warm checkout is large, symlink-heavy, and owned by tooling t
 The serving backend's own report of which model actually handled a delegated run, recorded alongside the requested model so the two can disagree visibly. A run's model identity is verified only by such a receipt — never by the request parameters or the model's own text — and outputs without one are labeled as requested-but-unverified; logic that weights cross-model agreement follows the receipt, not the request.
 
 ### Handoff seam
-The point in a calling Skill where completed work triggers a follow-on Skill in the same run — distinct from a Session handoff, which carries continuity to a fresh session. A seam that states only intent ("auto-invoke X") invites the caller's agent to reproduce the callee's mechanics from memory; a hardened seam pins the invocation mechanism (the platform's skill-invocation primitive, so the callee's instructions actually load) and, when the callee runs a stateful protocol, explicitly forbids starting that protocol's mechanics directly.
+The point in a calling Skill where completed work triggers a follow-on Skill in the same run — distinct from a Session handoff, which carries continuity to a fresh session. A seam that states only intent ("auto-invoke X") invites the caller's agent to reproduce the callee's mechanics from memory; a hardened seam pins the invocation mechanism (the platform's skill-invocation primitive, so the callee's instructions actually load) and, when the callee runs a stateful protocol, explicitly forbids starting that protocol's mechanics directly. The callee itself must stay model-invokable: an opt-out flag such as `disable-model-invocation` blocks a sibling's invocation on every host, so restraint belongs in the callee's description condition.
 
 ### Engine carrier
 A structured implementation binding — mode, target, model, source — that an orchestrating Skill serializes into the invocation string it hands the implementing Skill, so the route decision travels as data beside the request rather than as prose woven into the plan. The callee validates the carrier before any workspace action and rejects a malformed, duplicated, or out-of-order one instead of interpreting it; the resolved binding then appears in the return envelope so the caller can compare the route it asked for with the route that actually served.
@@ -163,13 +176,37 @@ A concrete failing instance kept in a skill's prose underneath the condition tha
 
 It exists because a condition is an abstraction, and the most literal host a skill ships to may fail to instantiate it — the shape is insurance for that reader rather than decoration for a capable one. Removing one is a behavior change and is verifiable only by running the skill on that host, never by re-reading the block. A shape can sit after the exclusion it illustrates without weakening it, because it rules on nothing; what does weaken an exclusion is a later clause that decides something, since that gives the reader somewhere else to land.
 
+### Proxy rule
+A rule that states its condition correctly and then enforces it with an absolute about form, order, or placement — where text may sit, what a section may contain — so that the absolute, rather than the condition, is what later readers apply. It differs from a case list in looking complete: the condition is present, and the absolute agrees with it on every case the author had in mind.
+
+A proxy holds only while the condition's usual case is its only case, and it forbids the input for which the condition demands the opposite form. Replication is how the defect spreads rather than an aggravating detail — a copy placed at a site that does not own the decision gets rewritten for that site's local job, which compresses the condition into whatever that job can act on, and the compression then contradicts the owner. The characteristic failure is an audit built on the proxy: it does not merely fail to catch bad work, it instructs a reader to degrade correct work. A proxy also reads differently across hosts, since a literal reader obeys the absolute where a permissive one treats it as style, so a single-host evaluation can pass one.
+
+### Case accretion
+A block that grows one entry per review round — a word added to a trigger list, a clause added to a rule — because each round finds a case the block missed, while the condition those cases have in common is never stated. It differs from a Proxy rule in having no condition to begin with: a proxy states its condition and then enforces a stand-in for it, where accretion offers only the cases.
+*Avoid:* accretion loop, case list
+
+The list looks like it is converging and is not, because a reviewer can always produce one more valid case against an enumeration, and each entry dilutes what the block was meant to express. The signal to stop is a second round of "also handle this" against the same block, not a threshold count. The answer is to state the rule that decides membership, then ask whether that rule can decide without the cases: where it can, they go; where the distinction is lexical and has no structural tell, they stay as the rule's implementation and the stated rule is the fix. Deleting cases that were carrying real knowledge produces the mirror defect rather than a repair. When the rounds keep coming because the block is being asked to decide something it cannot decide at that layer, neither keeping nor deleting the cases helps: split the outcome by confidence so a miss costs a tier instead of a wrong answer, and leave the judgment to whoever reads the output. Two reviewers who did not see each other's findings landing on one block, each with a different case, is the same signal reached from outside: agreement on the location while disagreeing about the case says the block is misrepresented rather than incomplete. Accretion happens in code as readily as in prose — a lexicon gating a branch is the same defect as a case list qualifying a rule.
+
 ### Context-absent agent
 An agent performing a Skill-shaped action without that Skill's instructions loaded in context — typically reconstructing a half-remembered command, recognizable by parameter values that drift from the Skill's documented defaults. Prose in the unloaded Skill cannot reach it; the only channels that do are the seam it entered through and the output of the tools it runs, which is why fail-closed refusals in bundled CLIs carry their own recovery path.
+
+### Attention set
+The items a watching run must act on this tick — unresolved review threads, unclassified non-thread feedback, failing checks on the current head, and any pending work to bring the branch current — recomputed from remote truth on every observation rather than accumulated in the agent's memory.
+
+Observing an item never marks it handled. An item leaves the set only when the run confirms it acted or remote truth removes it, so a crashed or superseded pass leaves its items present for the next tick.
+
+### Feedback candidate
+A non-thread message on a pull request — a top-level comment or a review submission body — surfaced for classification without any determination that it requires work. The deterministic layer excludes only empty bodies, declining on purpose to judge by author, bot identity, or surface, so the resolving Skill decides whether a candidate is real feedback and may legitimately drop one as noise.
+
+Because every non-empty body becomes a candidate, treating a candidate-only state as immediately actionable spends a full resolver pass to classify routine automation chatter as nothing. Waiting for the candidate set to stop changing merges a burst into a single pass and lets genuine work claim the same tick, without any candidate leaving the Attention set.
 
 ## Review and workflow vocabulary
 
 ### Reviewer persona
 A single-lens reviewer role that evaluates work from one specific perspective — security, correctness, scope, design, and so on. Review Skills dispatch a panel of personas as subagents and merge their findings.
+
+### Detection condition
+The stated, observable circumstance under which a Reviewer persona check fires — what must be visible in the work under review, not a topic to opine on. When a check carries a canonical framework name from the design or security literature, the name supplies shared vocabulary for the finding while the detection condition alone decides whether the finding exists; a check may also attach an evidence guard, a requirement to quote the occurrences that satisfy the condition before claiming a high Confidence anchor.
 
 ### Confidence anchor
 A discrete, self-scored confidence value on a fixed small scale, each level tied to a behavioral criterion the model can honestly apply, used to gate and rank review findings instead of a continuous score that invites false precision. Each review Skill sets its own actionable threshold; corroboration across personas promotes a finding by one level, but only when those personas meet the bar in Independence.
@@ -214,6 +251,16 @@ Recorded before any edit so later phases can scope to them: the commit takes fix
 Whichever tracker or monitor item the user supplied as a bug's entry point, treated as that bug's canonical record regardless of which system it lives in — an error-monitor issue counts the same as a tracker ticket.
 
 Later phases link it rather than opening a second record for the same bug elsewhere, and never ask whether to. Discovering the project's own tracker serves reading prior work, not establishing a new home. An input carrying no such reference simply has none, which is an ordinary state rather than a gap to fill.
+
+### Settle window
+The quiet period a watch loop requires before it will call a pull request ready — evidence the work stopped moving, never a guarantee nothing further is coming. Any observable movement on the pull request restarts it.
+
+Because clearing it only shows that things stopped changing, a run that clears it reports the result as a judgment for the user rather than as authorization to merge.
+
+### Liveness marker
+A signal a third party sets to announce it has begun work — a reaction, a label, a status flag. It is evidence the work started and never evidence it is still running, because nothing obliges the party to clear it when done.
+
+Liveness is therefore read from that party's own observable output on the current unit of work, never from the marker's continued presence, and the wait is bounded when no such output exists. Judging whether the announced work actually landed belongs to the reasoning layer rather than to a deterministic detector: the question is semantic, so a component that answers it mechanically is wrong in exactly the cases that matter.
 
 ### Residual
 A review finding a run accepted or deferred rather than fixed, which must reach a durable sink before the run reports itself done — a section in the pull request body, or a ticket in the project's tracker. A finding that lives only in the session is lost when the session ends, so an accepted residual blocks a merge-ready claim until it is recorded somewhere a human will find it.

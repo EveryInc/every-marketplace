@@ -10,9 +10,9 @@ If the project's active instructions name a process that owns that handoff — a
 
 ## Step 8 — what LFG threads into the default
 
-Thread the recorded plan path from step 1 into the `ce-commit-push-pr` invocation, along with any proceeded-and-flagged `settled_decision_conflicts` entries from step 2, so the PR body's settled-decisions provenance line and its proceed-under-flag clause can fire.
+Thread the recorded plan path from step 1 into the `ce-commit-push-pr` invocation, along with any proceeded-and-flagged `settled_decision_conflicts` entries from step 2, so the PR body's settled-decisions provenance line and its proceed-under-flag clause can fire. Also thread step 6's `## Unapplied review findings` section, when one exists, as PR-description context to be rendered as a dedicated section verbatim — it is the residual record, and a run that opened a PR without it has dropped its residuals.
 
-This commits any remaining changes, pushes the branch, and opens a pull request — non-interactively, per the mode token. If it prints a `New concepts:` trailer after the PR URL, record the concept name(s) for step 10. Once the PR URL is known, back-fill it into any residual tickets filed in step 6 (the `filed` list) so each ticket links to the PR carrying the finding — best-effort, and never block DONE on a failed ticket update. If a PR already exists for the branch (check with `gh pr view --json number,url,state 2>/dev/null`), skip PR creation but still commit and push any uncommitted changes.
+This commits any remaining changes, pushes the branch, and opens a pull request — non-interactively, per the mode token. If it prints a `New concepts:` trailer after the PR URL, record the concept name(s) for step 10. If a PR already exists for the branch (check with `gh pr view --json number,url,state 2>/dev/null`), skip PR creation but still commit and push any uncommitted changes.
 
 **Per the shipping precondition, when no remote is configured, do NOT invoke `ce-commit-push-pr` or a project-defined shipping process** — the default's commit step pushes unconditionally (`git push -u origin HEAD`), so a literal invocation would still hit the impossible push. Instead commit any remaining changes locally yourself (`git add -A && git commit`) and skip the push and PR creation entirely.
 
@@ -28,7 +28,7 @@ If step 8's `ce-commit-push-pr` completed a stack-mode submit and handed off `ce
 
 ## Step 9 — the default babysit
 
-Otherwise invoke `ce-babysit-pr mode:pipeline <pr-url>` on the current open PR. It runs the bounded pipeline loop: watches CI, repairs real (convergent) failures via `ce-debug mode:pipeline` — never weakening, skipping, or mocking an assertion — resolves any review comments that arrived via `ce-resolve-pr-feedback mode:pipeline`, and stops when CI is decided or its budget (default 3 fix rounds) is hit. This replaces LFG's former hand-rolled CI loop; do not reimplement CI-watching here. Invoke it unconditionally whenever an open PR exists **and** step 8 did not already hand off stack babysit — a run whose CI looks likely-clean is not a reason to skip babysit and poll `gh pr checks` yourself. Green CI at one instant is not this step's goal: babysit also resolves review comments across the PR's life, so a passing check while advisory checks (e.g. Bugbot) are still pending or comments are unhandled is not "done" and never substitutes for the invocation.
+Otherwise invoke `ce-babysit-pr mode:pipeline <pr-url>` on the current open PR. It runs the bounded pipeline loop: watches CI, repairs real (convergent) failures via `ce-debug mode:pipeline` — never weakening, skipping, or mocking an assertion — resolves any review comments that arrived via `ce-resolve-pr-feedback mode:pipeline`, and stops when CI is decided or its budget (default 3 fix rounds) is hit. This replaces LFG's former hand-rolled CI loop; do not reimplement CI-watching here. Invoke it unconditionally whenever an open PR exists **and** step 8 did not already hand off stack babysit — including under a standing `auto_babysit: false`, which opts out of the open-ended watch handed off after a PR is opened, not of this bounded loop that produces the pipeline's "CI decided" result — a run whose CI looks likely-clean is not a reason to skip babysit and poll `gh pr checks` yourself. Green CI at one instant is not this step's goal: babysit also resolves review comments across the PR's life, so a passing check while advisory checks (e.g. Bugbot) are still pending or comments are unhandled is not "done" and never substitutes for the invocation.
 
 Collect its structured result (`{ status, fixes_applied, residuals }`).
 
@@ -38,7 +38,7 @@ Whichever handoff produced the result, preserve its canonical typed `needs-human
 
 ## Step 10 — close out
 
-Everything below happens before LFG outputs `<promise>DONE</promise>`.
+Everything below happens before LFG outputs `<promise>DONE</promise>`. Write the close-out, the `## Needs your decision` framing, and any progress you narrate to the user through the `ce-noslop` skill; the residual payloads render verbatim.
 
 ### Rendering the user-runnable invocations
 

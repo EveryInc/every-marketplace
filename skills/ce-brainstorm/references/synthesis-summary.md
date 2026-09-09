@@ -140,7 +140,7 @@ Each anti-pattern below produces a bullet that fails its section's keep test, or
 
 This is directional guidance — adjust phrasing to fit dialogue context. Open-ended feedback per Interaction Rule 5(a) (an option menu would unintentionally influence the user toward the parts the menu lists, away from anything else they might want to change).
 
-**Prose discipline for "What we're building" (required):** forward-looking (what *will* be in the doc), not retrospective (what's been discussed). Lead with the actual thing being built in plain words. No qualifiers ("comprehensive," "thoughtful," "substantive"). No re-stating dialogue context the user just lived through. If the work can't be said in 1–3 sentences without filler, the synthesis isn't ready yet.
+**Prose discipline for "What we're building" (required):** forward-looking (what *will* be in the doc), not retrospective (what's been discussed). Write it through the `ce-noslop` skill. Lead with the actual thing being built. No re-stating dialogue context the user just lived through. If the work can't be said in 1–3 sentences without filler, the synthesis isn't ready yet.
 
 ### Path B template (questions were asked)
 

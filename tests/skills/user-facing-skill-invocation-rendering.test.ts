@@ -16,7 +16,7 @@ const modelVisibleRendererCases = [
     unnecessaryOmp: ["/skill:ce-explain <name>", "/skill:ce-babysit-pr <pr-url>"],
   },
   {
-    file: "skills/ce-babysit-pr/SKILL.md",
+    file: "skills/ce-babysit-pr/references/setup.md",
     defaults: ["/ce-babysit-pr <url>"],
     codex: ["$ce-babysit-pr <url>"],
     unnecessaryOmp: ["/skill:ce-babysit-pr <url>"],
@@ -84,15 +84,6 @@ const modelVisibleRendererCases = [
 ] as const
 
 const explicitOnlyRendererCases = [
-  {
-    // The rendering rule travels with the seam that prints the invocation: the
-    // ce-polish handoff now lives in the Phase 6 required-read reference.
-    file: "skills/ce-explain/references/destinations.md",
-    defaults: ["/ce-polish"],
-    codex: ["$ce-polish"],
-    omp: ["/skill:ce-polish"],
-    targets: ["ce-polish"],
-  },
   {
     file: "skills/ce-setup/SKILL.md",
     defaults: ["/ce-setup"],

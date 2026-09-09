@@ -49,6 +49,24 @@ function lastTrailer(text: string, name: string): string {
 }
 
 /** Read a standalone labeled field while ignoring Markdown heading/bold decoration. */
+// A marker opens the block only at the end of a line and closes it only at the start
+// of one: the summary after the block may mention RESULT-START and RESULT-END by name
+// mid-sentence, and a substring search would select that mention instead of the
+// result. Grok narrates on the same line as the opening marker, so the line need not
+// be the marker alone. The first complete pair wins.
+function resultBlock(text: string): string | null {
+  const lines = text.split("\n")
+  const opens = (line: string) => line.trim().endsWith("RESULT-START")
+  const closes = (line: string) => line.trim().startsWith("RESULT-END")
+  for (let i = 0; i < lines.length; i++) {
+    if (!opens(lines[i])) continue
+    const end = lines.findIndex((line, j) => j > i && closes(line))
+    if (end < 0) return null
+    return lines.slice(i + 1, end).join("\n")
+  }
+  return null
+}
+
 function lastField(text: string, name: string): string {
   const prefix = `${name}:`
   for (const line of text.split("\n").reverse()) {
@@ -177,9 +195,25 @@ export function gradeHost(opts: {
   // and fails when the run declared none, so a run cannot pass by staying quiet.
   // must_include reads that trailer when present and the whole answer otherwise.
   const team = lastTrailer(decision, "TEAM")
-  const textScope = team || decision
-  for (const needle of opts.grade.must_include ?? []) {
+  // must_include_field scopes the needles to one delimited field of the answer. The
+  // trailers wrapPrompt mandates are part of stdout, so an unscoped needle can be
+  // satisfied by a read path or a branch name instead of the text under test. A run
+  // that emitted no such field fails rather than passing on the trailers.
+  const scopeField = opts.grade.must_include_field
+  const scopedText = scopeField ? lastField(stdout, scopeField).toLowerCase() : ""
+  if (scopeField && !scopedText) reasons.push(`missing ${scopeField} field`)
+  const textScope = scopeField ? scopedText : team || decision
+  for (const needle of scopeField && !scopedText ? [] : opts.grade.must_include ?? []) {
     if (!textScope.includes(needle.toLowerCase())) reasons.push(`missing required text: ${needle}`)
+  }
+  if (opts.grade.result_must_not_include?.length) {
+    const block = resultBlock(stdout)
+    if (block === null) reasons.push("missing RESULT-START/RESULT-END block")
+    for (const needle of block === null ? [] : opts.grade.result_must_not_include) {
+      if (block.toLowerCase().includes(needle.toLowerCase())) {
+        reasons.push(`source phrase survived in RESULT block: ${needle}`)
+      }
+    }
   }
   if (opts.grade.must_not_include?.length && !team) reasons.push("missing TEAM trailer")
   for (const needle of team ? opts.grade.must_not_include ?? [] : []) {
@@ -231,11 +265,11 @@ export function gradeHost(opts: {
       reasons.push(`${check.path} does not contain ${JSON.stringify(check.needle)}`)
     }
   }
-  for (const needle of opts.grade.shim_must_not ?? []) {
+  for (const needle of opts.grade.shim_log_must_not ?? []) {
     // The attempt, not the model's account of it: a shimmed command fails, so a
     // skill can truthfully report ACTIONS: none and still have made the call.
     const log = readText(path.join(opts.hostDir, ".bin", SHIM_LOG))
-    if (log.includes(needle)) reasons.push(`forbidden command reached the shim: ${needle}`)
+    if (log.includes(needle)) reasons.push(`forbidden text reached shim log: ${needle}`)
   }
   if (opts.grade.committed_must) {
     const head = readText(path.join(opts.hostDir, "git-head-files.txt"))

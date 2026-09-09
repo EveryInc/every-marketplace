@@ -69,11 +69,13 @@ describe("skill-eval-cell catalog", () => {
     expect(WAVE1.filter((id) => !ids.has(id))).toEqual([])
   })
 
-  test("every scenario skill exists at PRE_SWEEP_REF and POST_SWEEP_REF", () => {
+  test("every scenario skill exists at its runnable arm refs", () => {
     const missing: string[] = []
     for (const scenario of SCENARIOS) {
-      if (!gitShowExists(PRE_SWEEP_REF, scenario.skill)) {
-        missing.push(`${scenario.skill} missing at ${PRE_SWEEP_REF}`)
+      // A post-only row for a skill that did not exist at the sweep baseline has no pre arm to resolve.
+      const preRef = scenario.baseline_ref ?? PRE_SWEEP_REF
+      if (!scenario.post_only && !gitShowExists(preRef, scenario.skill)) {
+        missing.push(`${scenario.skill} missing at ${preRef}`)
       }
       if (!gitShowExists(POST_SWEEP_REF, scenario.skill)) {
         missing.push(`${scenario.skill} missing at ${POST_SWEEP_REF}`)
@@ -137,10 +139,13 @@ describe("skill-eval-cell catalog", () => {
         "ce-babysit-pr/pipeline-returns-canonical-human-decision:references/report.md",
         "ce-brainstorm/lightweight-ends-in-chat:references/phase-0.md",
         "ce-brainstorm/lookup-not-ask:references/interaction-rules.md",
+        "ce-brainstorm/requested-bakeoff-confirmation:references/approaches.md",
+        "ce-brainstorm/requested-bakeoff-confirmation:references/bakeoff.md",
         "ce-brainstorm/standard-scope-routes-to-file:references/phase-0.md",
         "ce-brainstorm/verdict-routes-to-pov:references/phase-0.md",
         "ce-brainstorm/write-plan-reads-plan-write:references/plan-write.md",
         "ce-commit-push-pr/description-only-no-commit:references/pr-description-writing.md",
+        "ce-compound-refresh/confirmed-worth-lens-deletes-only-with-quoted-artifact:references/worth-audit.md",
         "ce-commit-push-pr/babysit-off-preserves-human-decision:references/apply-and-handoff.md",
         "ce-debug/pipeline-convergent-fix:references/pipeline-mode.md",
         "ce-doc-review/routine-fix-no-product-lens:references/persona-selection.md",
@@ -150,16 +155,28 @@ describe("skill-eval-cell catalog", () => {
         "ce-debug/pipeline-divergent-defer:references/pipeline-mode.md",
         "ce-handoff/resume-asks-does-not-act:references/resume.md",
         "ce-ideate/unidentified-subject-reads-scope-gates:references/scope-gates.md",
+        "ce-optimize/cost-attribution-before-search:references/loop.md",
+        "ce-optimize/legacy-qualitative-report:references/wrap-up.md",
+        "ce-optimize/opportunity-estimates:references/loop.md",
+        "ce-optimize/result-accounting:references/wrap-up.md",
+        "ce-optimize/variant-search-without-profile:references/loop.md",
         "ce-plan/chat-brief-small-no-file:references/output-contracts.md",
         "ce-plan/config-model-reaches-authoring-gate:references/reasoning-elevation.md",
+        "ce-plan/requested-bakeoff-boundary:references/research.md",
+        "ce-plan/requested-bakeoff-boundary:references/bakeoff.md",
         "ce-plan/direct-trivial-stays-in-chat:references/output-contracts.md",
         "ce-plan/no-implement:references/output-mode.md",
         "ce-plan/no-implement:references/resume.md",
         "ce-plan/objective-above-the-changed-component:references/plan-sections.md",
+        "ce-plan/objective-holdable-without-the-rest-of-the-plan:references/plan-sections.md",
       "ce-polish/https-server-uses-actual-url:references/run.md",
         "ce-polish/start-server-reads-run:references/run.md",
         "ce-pov/oracle-dispatches-peers:references/cross-model-panel.md",
         "ce-pov/stay-read-only:references/method.md",
+        "ce-prototype/batch-conflict-asks:references/annotation-loop.md",
+        "ce-prototype/clear-batch-applies-in-place:references/annotation-loop.md",
+        "ce-prototype/question-stays-in-chat:references/annotation-loop.md",
+        "ce-prototype/rejected-avenue-does-not-converge:references/annotation-loop.md",
         "ce-riffrec-feedback-analysis/quick-notes:references/analyzer.md",
         "ce-riffrec-feedback-analysis/quick-notes:references/quick-bug-report.md",
         "ce-riffrec-feedback-analysis/setup-before-recording:references/install-riffrec.md",
@@ -183,13 +200,47 @@ describe("skill-eval-cell catalog", () => {
 
   test("feature-only decision rows are explicitly post-only", () => {
     expect(SCENARIOS.filter((s) => s.post_only).map((s) => s.id).sort()).toEqual([
+      "ce-babysit-pr/announced-review-that-finished-reads-ready",
+      "ce-babysit-pr/announced-review-with-nothing-to-show-waits",
       "ce-babysit-pr/check-only-answer-reactivates-source",
+      "ce-babysit-pr/moved-evidence-restores-the-ordinary-window",
       "ce-babysit-pr/pipeline-returns-canonical-human-decision",
+      "ce-babysit-pr/silent-reviewer-of-an-earlier-head-still-waits",
+      "ce-babysit-pr/timed-out-review-is-finished-not-approved",
+      "ce-babysit-pr/unrelated-terminal-work-is-not-the-review",
+      "ce-bakeoff/default-pov-judge",
+      "ce-bakeoff/final-synthesis-correctness",
+      "ce-bakeoff/nondecisive-unknown-allows-selection",
+      "ce-bakeoff/progress-communication",
+      "ce-bakeoff/settled-decision-restraint",
+      "ce-bakeoff/shared-brief-preserves-unknowns",
+      "ce-bakeoff/timing-evidence",
+      "ce-bakeoff/unavailable-independence",
+      "ce-bakeoff/unverified-guarantee-blocks-selection",
+      "ce-brainstorm/requested-bakeoff-confirmation",
       "ce-commit-push-pr/babysit-off-preserves-human-decision",
+      "ce-commit-push-pr/project-publishing-gate",
+      "ce-compound-refresh/confirmed-worth-lens-deletes-only-with-quoted-artifact",
       "ce-compound-refresh/guidance-survives-implementation-conflict",
+      "ce-compound-refresh/plain-refresh-keeps-redundant-accurate-doc",
+      "ce-compound-refresh/worth-lens-intent-confirms-before-loading",
       "ce-debug/pipeline-divergent-defer",
+      "ce-noslop/dense-paragraph-keeps-every-claim",
+      "ce-noslop/detect-names-patterns-without-rewrite",
+      "ce-noslop/facts-survive-the-edit",
+      "ce-noslop/non-english-runs-tests-only",
+      "ce-noslop/protected-spans-stay-byte-identical",
+      "ce-noslop/two-devices-stay-unchanged",
       "ce-plan/config-model-reaches-authoring-gate",
+      "ce-plan/requested-bakeoff-boundary",
+      "ce-pov/rough-options-need-development",
+      "ce-prototype/batch-conflict-asks",
+      "ce-prototype/clear-batch-applies-in-place",
+      "ce-prototype/question-stays-in-chat",
+      "ce-prototype/rejected-avenue-does-not-converge",
       "ce-resolve-pr-feedback/pipeline-returns-complete-human-decision",
+      "ce-setup/instruction-file-covered-offers-nothing",
+      "ce-setup/instruction-file-gap-offers-store-and-directive",
     ])
   })
 
@@ -226,5 +277,25 @@ describe("skill-eval-cell catalog", () => {
       if (!ok) bad.push(`${s.id}: preview_ref ${s.preview_ref} does not resolve`)
     }
     expect(bad).toEqual([])
+  })
+
+  test("ce-optimize eval needles are not satisfied by parroting the task or refusing the path", () => {
+    const accounting = SCENARIOS.find((s) => s.id === "ce-optimize/result-accounting")
+    expect(accounting?.grade.must_include).toContain("50 ms")
+    expect(accounting?.grade.must_include).toContain("integrated")
+    expect(accounting?.task.toLowerCase().includes("50 ms")).toBe(false)
+    expect(accounting?.task.toLowerCase().includes("integrated")).toBe(false)
+
+    const attribution = SCENARIOS.find((s) => s.id === "ce-optimize/cost-attribution-before-search")
+    const skipLocating = "No locating measurement is necessary; proceed with batching."
+    for (const needle of attribution?.grade.must_include ?? []) {
+      expect(skipLocating.toLowerCase().includes(needle.toLowerCase())).toBe(false)
+    }
+
+    const variants = SCENARIOS.find((s) => s.id === "ce-optimize/variant-search-without-profile")
+    const blocked = "Without a profile, HDBSCAN and boilerplate stripping are blocked"
+    expect(
+      variants?.grade.must_include?.some((needle) => !blocked.toLowerCase().includes(needle.toLowerCase())),
+    ).toBe(true)
   })
 })

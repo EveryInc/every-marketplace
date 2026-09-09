@@ -60,6 +60,10 @@ GIT_LOCAL_ENV_VARS = frozenset({
     "GIT_GRAFT_FILE",
     "GIT_IMPLICIT_WORK_TREE",
     "GIT_INDEX_FILE",
+    # Listed by `git rev-parse --local-env-vars` on git < 2.41 (e.g. Debian
+    # bookworm's 2.39); dropped from the list by newer git. Scrub it so an
+    # inherited value cannot leak into unit verification on old git.
+    "GIT_INTERNAL_SUPER_PREFIX",
     "GIT_NO_REPLACE_OBJECTS",
     "GIT_OBJECT_DIRECTORY",
     "GIT_PREFIX",
@@ -625,6 +629,7 @@ ROUTE_CONTRACTS = {
     "cursor": {"target": "cursor", "harness": "cursor-agent", "intermediaries": [], "default_model": "auto", "restriction_posture": "adapter-enforced"},
     "composer": {"target": "composer", "harness": "cursor-agent", "intermediaries": ["cursor"], "default_model": "composer-2.5-fast", "restriction_posture": "adapter-enforced"},
     "grok-cursor": {"target": "grok", "harness": "cursor-agent", "intermediaries": ["cursor"], "default_model": "cursor-grok-4.6-high", "restriction_posture": "adapter-enforced"},
+    "opencode": {"target": "opencode", "harness": "opencode", "intermediaries": [], "default_model": "auto", "restriction_posture": "cooperative"},
 }
 
 
@@ -645,6 +650,8 @@ def route_model_allowed(route: str, model: str) -> bool:
         return bool(re.fullmatch(r"composer-[A-Za-z0-9._-]+", model))
     if route == "grok-cursor":
         return bool(re.fullmatch(r"cursor-grok-[A-Za-z0-9._-]+", model))
+    if route == "opencode":
+        return model == "auto" or bool(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9._-]+", model))
     return False
 
 

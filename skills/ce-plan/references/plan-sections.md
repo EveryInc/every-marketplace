@@ -122,7 +122,13 @@ present. They carry the contracts downstream consumers depend on.
 - **Goal Capsule** — objective, means (only when an approach is fixed),
   authority hierarchy, stop conditions, execution profile, and tail
   ownership. This is the fastest way for an executor to avoid drifting from
-  the plan. The **Objective** is always the outcome: what is true for users
+  the plan. A reader who has not read the rest of the plan must be able to
+  hold the Objective as the goal. Remaining-true constraints live on their
+  owning R-IDs, not as extra Objective clauses — user-checkable is not a
+  license to pack them onto the Objective. An Objective that is only
+  understandable after later sections is not yet the Objective, even when a
+  user could check the outcome and a different implementation would still
+  serve it. The **Objective** is always the outcome: what is true for users
   or operators afterwards, phrased so it would still read as the goal under
   a different implementation. It sits outside the component being changed,
   which is a question of who can check it rather than of which nouns it
@@ -146,7 +152,8 @@ present. They carry the contracts downstream consumers depend on.
   altitude, and the Objective is whatever depended on that component. When a
   request supplies only its approach ("move X out of A into B"), that is the
   Means; the Objective is the outcome it serves, derived from the request's
-  motivation or asked for — never the approach restated.
+  motivation, the project's stated problem, or asked for — never the approach
+  restated.
 - **Product Contract** — product scope and behavior. Contains Summary, Problem
   Frame, Requirements with stable R-IDs, and any material Actors, Flows,
   Acceptance Examples, Success Criteria, Scope Boundaries, Dependencies,
@@ -326,6 +333,8 @@ contradictions hide and the implementing agent loses the thread. A deep plan
 earns length through coverage (more units, more traced requirements, real
 risks), never through wordiness around that coverage.
 
+Write every kept section through the `ce-noslop` skill.
+
 Hold every kept section to these:
 
 - **Lead with the decision or outcome.** Put the conclusion first, then the
@@ -334,22 +343,13 @@ Hold every kept section to these:
   goal beneath its rationale. This does not override section roles — Summary
   stays proposal-only, Problem Frame stays motivation-only and never restates
   the remedy.
-- **Use an ASD-STE100 Simplified Technical English (STE)-inspired style for
-  technical plan content.** Write short, direct sentences. Keep one decision,
-  action, or condition per sentence, and use one consistent term for each
-  concept. Preserve exact identifiers, paths, commands, protocol names, and
-  domain terms. Shorten sentences, not content: preserve every distinct
-  requirement, qualification, and test scenario. A Summary is a handful of
-  sentences, not one sentence with five semicolons and four parentheticals. A
-  KTD's rationale is the load-bearing reason, not every reason.
+- **A Summary is a handful of sentences**, not one sentence with five
+  semicolons and four parentheticals. A KTD's rationale is the load-bearing
+  reason, not every reason.
 - **A requirement or unit is one sentence of intent plus at most one
   qualifier.** When it would specify two outcomes ("either A or B, the
   implementer decides"), state the intent and send the fork to Open Questions —
   don't write both arms in full inside the item.
-- **Cut hedges and intensifiers.** "Critically", "deliberately", "explicitly",
-  "genuinely", "actually", "simply" carry nothing the implementer acts on.
-- **Prefer the verb to the nominalization.** "Demote the grid", not "the
-  demotion of the grid is the deliberate change in this plan".
 
 Precision is not padding: keep file paths, IDs, dates, domain terms,
 conditionals, and exact thresholds verbatim; when a concrete anchor is knowable
@@ -384,9 +384,10 @@ multi-sentence summary of the cited document is restatement of an owner that
 lives outside the doc.
 
 **Named test, run before the plan is declared written:** could the implementer
-find a contradiction in each section in one pass? A sentence carrying more than
-one parenthetical, a sentence chaining more than two semicolons, an item
-specifying two outcomes, or a rule stated in full in more than one section
+find a contradiction in each section in one pass? Could a colleague who was
+not in the session say what this work is after the Objective alone? A sentence
+carrying more than one parenthetical, a sentence chaining more than two
+semicolons, an item specifying two outcomes, or a rule stated in full in more than one section
 fails the test — split it (a semicolon chain becomes a list), defer it, or
 replace the duplicate with its owning ID.
 

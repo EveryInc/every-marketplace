@@ -102,6 +102,11 @@ describe("ce-work native characterization", () => {
     expect(engines).not.toContain("inline/subagent flow in `SKILL.md`")
     expect(strategy).toMatch(/\*\*Inline\*\* \| Trivial work/)
     expect(strategy).toContain("native workers")
+    // Worktree-isolated dispatch must verify snapshot fidelity: a harness-cut
+    // worktree can be based on the primary checkout's default branch, not the
+    // session's tree (skills/ce-code-review/references/dispatch-reviewers.md).
+    expect(strategy).toContain("intended base commit SHA")
+    expect(strategy).toContain("`HEAD` equals that SHA")
     expect(engineGate).toContain("cross-model execution")
   })
 
@@ -160,11 +165,13 @@ describe("ce-work native characterization", () => {
     expect(dispatch).toContain("never receive a different unit")
     expect(dispatch).toContain("never retask it or retain idle implementation workers for reuse")
     expect(dispatch).toContain("Inline execution creates no worker context or handle, so it has nothing to retire")
-    expect(dispatch).toMatch(/After each serial inline\/subagent unit:.*If the unit used a native subagent worker, retire its handle.*dispatch the next subagent unit in a new worker context/s)
-    expect(dispatch).toMatch(/After each serial inline\/subagent unit:.*closing\/releasing it only when the harness exposes that operation and assigns that lifecycle action to the caller/s)
+    // #1336's scar is retire-per-unit at each action site; the close/release
+    // conditional is stated once, in the fresh worker invariant, and the
+    // after-sites point back to it rather than restating it.
+    expect(dispatch).toMatch(/Invoke an explicit close\/release operation only when the active harness exposes one and assigns that lifecycle action to the caller/)
+    expect(dispatch).toMatch(/After each serial inline\/subagent unit:.*If the unit used a native subagent worker, retire its handle per the fresh worker invariant.*dispatch the next subagent unit in a new worker context/s)
     expect(dispatch).toContain("An inline unit has no worker handle to retire; start the next unit directly")
-    expect(dispatch).toMatch(/After a parallel inline\/subagent batch.*create its canonical commit, then immediately retire that unit's worker before considering the next/s)
-    expect(dispatch).toMatch(/After a parallel inline\/subagent batch.*Invoke an explicit close\/release operation only when the harness exposes it and assigns that lifecycle action to the caller/s)
+    expect(dispatch).toMatch(/After a parallel inline\/subagent batch.*create its canonical commit, then immediately retire that unit's worker per the fresh worker invariant before considering the next/s)
     expect(dispatch).toContain("never infer manual cleanup commands from the provider name")
   })
 
@@ -362,7 +369,7 @@ describe("ce-work cross-model engine contract", () => {
     expect(protocol).toContain("claude")
     expect(protocol).toContain("grok")
     expect(protocol).toContain("Fixed controller route tokens")
-    expect(protocol).toContain("`codex`, `claude`, `grok-cli`, `cursor`, `composer`, or `grok-cursor`")
+    expect(protocol).toContain("`codex`, `claude`, `grok-cli`, `cursor`, `composer`, `grok-cursor`, or `opencode`")
   })
 
   test("defines prefer, require, fixed-recipient sanction, and restriction failure", async () => {
@@ -736,7 +743,7 @@ describe("ce-work right-sized routes", () => {
   test("a mechanical diff passes babysit:off to the shipping skill, and the docs say the same", async () => {
     const shipping = await readRepoFile("skills/ce-work/references/shipping-workflow.md")
     expect(shipping).toMatch(/Code review: skipped \(mechanical diff\)`, also pass `babysit:off`/)
-    const docs = await readRepoFile("skills/guides/ce-work.md")
+    const docs = await readRepoFile("docs/guides/ce-work.md")
     expect(docs).toMatch(/purely mechanical diff[^.]*ships without a post-PR watch/)
     expect(docs).not.toMatch(/Trivial route skips the task list and the post-PR watch/)
   })
@@ -746,5 +753,18 @@ describe("ce-work right-sized routes", () => {
     expect(triage).toMatch(/an in-conversation brief from `ce-plan`/)
     const intake = await readRepoFile("skills/ce-work/references/work-intake.md")
     expect(intake).toMatch(/Unless `ce-plan` already sized this prompt in this session/)
+  })
+})
+
+describe("ce-work out-of-repo unit completion (#1574)", () => {
+  test("implementation loop does not treat a clean tree as not-started for external deliverables", async () => {
+    const loop = await readRepoFile("skills/ce-work/references/implementation-loop.md")
+    expect(loop).toContain("out-of-repo state")
+    expect(loop).toContain("no git-derived completion signal")
+    expect(loop.indexOf("out-of-repo state")).toBeLessThan(
+      loop.indexOf("If the unit's entire completion signal is repository-derived"),
+    )
+    const docs = await readRepoFile("docs/guides/ce-work.md")
+    expect(docs).toContain("no git-derived completion signal")
   })
 })

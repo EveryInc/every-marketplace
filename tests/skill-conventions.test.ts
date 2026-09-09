@@ -207,6 +207,7 @@ const REQUIRED_MODEL_INVOKED_CALLEES = new Set([
   "ce-debug",
   "ce-doc-review",
   "ce-ideate",
+  "ce-noslop",
   "ce-optimize",
   "ce-plan",
   "ce-proof",
