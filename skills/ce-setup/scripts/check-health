@@ -683,6 +683,11 @@ for r in roots:
                     line += " -- cached resolution is behind upstream"
         except Exception:
             pass  # offline or slow remote: silently skip the drift note
+    # Subdirectories are storage, so rule-shaped files there are a note on the
+    # OK line, never a warning: the author may keep drafts and evidence with frontmatter.
+    nested = r.get("nested_rule_shaped", 0)
+    if nested:
+        line += " -- " + str(nested) + " rule-shaped file(s) in subfolders kept as storage"
     print(line)
 for w in warns:
     print("WARN\t" + w)

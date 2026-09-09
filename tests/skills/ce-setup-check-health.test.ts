@@ -911,29 +911,58 @@ describe("ce-setup check-health Compound Packs section", () => {
     }
   })
 
-  // Resolver warnings relay into the report, so a rule filed one level too deep
-  // is visible from /ce-setup rather than only at the start of a planning run.
-  test("relays the resolver's nested-rule warning for a pack with rule files in a subdirectory", async () => {
+  // Subdirectories are storage. A pack with a top-level rule may keep rule-shaped
+  // drafts and evidence below it; the report counts them on the OK line and never
+  // counts them as a project issue.
+  test("notes rule-shaped files kept in subfolders on the pack's OK line, not as a warning or issue", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "ce-setup-health-"))
     try {
       await initGitRepo(root)
       await mkdir(path.join(root, ".compound-engineering"), { recursive: true })
       await copyFile(configTemplate, path.join(root, ".compound-engineering", "config.example.yaml"))
       const pack = path.join(root, "packs", "house-rules")
-      await mkdir(path.join(pack, "research"), { recursive: true })
+      await mkdir(path.join(pack, "research", "observations"), { recursive: true })
       await writeFile(path.join(pack, "rule.md"), knowledgeFile("House rule"))
-      await writeFile(path.join(pack, "README.md"), "# House rules\n")
-      await writeFile(path.join(pack, "research", "adr-001.md"), knowledgeFile("Decision 1"))
+      await writeFile(path.join(pack, "README.md"), knowledgeFile("About this pack"))
+      await writeFile(path.join(pack, "research", "obs-001.md"), knowledgeFile("Observation 1"))
+      await writeFile(path.join(pack, "research", "obs-002.md"), knowledgeFile("Observation 2"))
+      await writeFile(path.join(pack, "research", "observations", "obs-003.md"), knowledgeFile("Two levels down"))
       await writeFile(path.join(root, ".compound-engineering", "config.yaml"), "packs:\n  - source: packs/house-rules\n")
 
       const result = await runCheckHealth(root, process.env.PATH ?? "/usr/bin:/bin")
 
       expect(result.exitCode).toBe(0)
-      expect(result.stdout).toContain("pack house-rules")
-      expect(result.stdout).toContain(
-        "pack `house-rules` has 1 rule-shaped file(s) under `research/` that discovery never reads",
-      )
+      expect(result.stdout).toContain("  🟢  pack house-rules -- 2 rule-shaped file(s) in subfolders kept as storage")
+      expect(result.stdout).not.toContain("that discovery never reads")
       expect(result.stdout).not.toContain("skipped pack file")
+      expect(result.stdout).not.toContain("Pack config error:")
+      expect(result.stdout).toContain("Project config healthy")
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  // Resolver warnings relay into the report, so a pack that registers but can
+  // never be discovered is visible from /ce-setup, not only at planning time.
+  test("relays the resolver's nested-rule warning when a pack directory has rules only in a subdirectory", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "ce-setup-health-"))
+    try {
+      await initGitRepo(root)
+      await mkdir(path.join(root, ".compound-engineering"), { recursive: true })
+      await copyFile(configTemplate, path.join(root, ".compound-engineering", "config.example.yaml"))
+      const pack = path.join(root, "compound-packs", "house-rules")
+      await mkdir(path.join(pack, "research"), { recursive: true })
+      await writeFile(path.join(pack, "README.md"), "# House rules\n\nSee research/.\n")
+      await writeFile(path.join(pack, "research", "adr-001.md"), knowledgeFile("Decision 1"))
+      await writeFile(path.join(root, ".compound-engineering", "config.yaml"), "packs:\n  - source: compound-packs\n")
+
+      const result = await runCheckHealth(root, process.env.PATH ?? "/usr/bin:/bin")
+
+      expect(result.exitCode).toBe(0)
+      expect(result.stdout).toContain("publishes no packs")
+      expect(result.stdout).toContain(
+        "  🟡  config.yaml:2: pack `house-rules` has 1 rule-shaped file(s) under `research/` that discovery never reads",
+      )
       expect(result.stdout).not.toContain("Pack config error:")
     } finally {
       await rm(root, { recursive: true, force: true })

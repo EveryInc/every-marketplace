@@ -6,8 +6,12 @@ and `config.local.yaml` (both layers concatenate; local adds, never replaces),
 validates each entry, resolves path and git sources, enumerates the packs each
 source publishes, applies selection, and prints one JSON object to stdout:
 
-    {"roots": [{"id": "...", "dir": "/abs/path"}], "warnings": [...], "errors": [...],
-     "entries": <number of parsed packs entries>}
+    {"roots": [{"id": "...", "dir": "/abs/path", "nested_rule_shaped": 0}],
+     "warnings": [...], "errors": [...], "entries": <number of parsed packs entries>}
+
+`nested_rule_shaped` counts the rule-shaped `.md` files one level below the
+pack's top level. Discovery never reads them (subdirectories are storage), so
+the count is informational and is reported by the health check, not warned.
 
 Exit 0 whenever resolution ran (per-entry failures are data in `errors` /
 `warnings`); non-zero only when the resolver itself cannot run. Consumers treat
@@ -345,8 +349,8 @@ def resolve_git_source(url: str, ref: str, warnings: list, label: str) -> str | 
 
 _FRONTMATTER_KEYS = ("title:", "applies_when:")
 _FRONTMATTER_CAP = 64 * 1024  # frontmatter must close within this many characters
-# A pack's top-level README is its description, not a rule: it needs no
-# frontmatter and is never reported as a skipped pack file.
+# A pack's README is its description, never a rule, whatever frontmatter it
+# carries: it is not published, not reported as skipped, and not counted.
 _README = "readme.md"
 
 
@@ -372,16 +376,17 @@ def _is_knowledge_file(path: str) -> bool:
 
 
 def _contained_md_files(directory: str, boundary: str, escaped: list) -> list:
-    """Paths of the `.md` entries directly under `directory` whose real path stays
-    within `boundary` (a realpath). An entry that links outside it is appended to
-    `escaped` and never opened, so a pack cannot read files off the user's machine."""
+    """Paths of the `.md` entries directly under `directory`, minus its README,
+    whose real path stays within `boundary` (a realpath). An entry that links
+    outside it is appended to `escaped` and never opened, so a pack cannot read
+    files off the user's machine."""
     try:
         names = sorted(os.listdir(directory))
     except OSError:
         return []
     files = []
     for name in names:
-        if not name.endswith(".md"):
+        if not name.endswith(".md") or name.lower() == _README:
             continue
         child = os.path.join(directory, name)
         if _within(os.path.realpath(child), boundary):
@@ -433,21 +438,32 @@ def enumerate_packs(source_root: str, boundary: str, escaped: list, self_name: s
     }
 
 
-def nested_rules_warning(pack_id: str, pack_dir: str, boundary: str) -> str | None:
-    """One line naming the immediate subdirectories of `pack_dir` that hold
-    rule-shaped files, which discovery never reads; None when there are none.
-    Scans one level down only, inside `boundary`, so a misplaced rule is named
-    without walking the pack's data."""
+def nested_rule_shaped(pack_dir: str, boundary: str) -> tuple:
+    """`(total, subdirs)`: how many rule-shaped files sit in the immediate
+    subdirectories of `pack_dir`, and which subdirectories hold them. Scans one
+    level down only, inside `boundary`, so the pack's data is never walked.
+    Subdirectories are storage, so these files are counted, never published."""
     hits, total = [], 0
     for name, child in _contained_child_dirs(pack_dir, boundary, []):
         count = sum(1 for f in _contained_md_files(child, boundary, []) if _is_knowledge_file(f))
         if count:
-            hits.append(f"`{name}/`")
+            hits.append(name)
             total += count
+    return total, hits
+
+
+def nested_rules_warning(pack_id: str, pack_dir: str, boundary: str) -> str | None:
+    """The warning for a pack directory with no rule at its top level whose
+    subdirectories hold rule-shaped files: it registers, yet nothing can ever be
+    discovered. None when the subdirectories hold none. The caller establishes
+    that the top level is empty of rules; a pack with top-level rules keeps its
+    nested files as storage and gets `nested_rule_shaped` instead."""
+    total, hits = nested_rule_shaped(pack_dir, boundary)
     if not hits:
         return None
+    where = ", ".join(f"`{name}/`" for name in hits)
     return (
-        f"pack `{pack_id}` has {total} rule-shaped file(s) under {', '.join(hits)} that discovery"
+        f"pack `{pack_id}` has {total} rule-shaped file(s) under {where} that discovery"
         " never reads -- move rules to the pack's top level (see docs/guides/packs.md, Pack layout)"
     )
 
@@ -551,8 +567,9 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
         )
     if not published:
         warnings.append(f"{label}: source `{source}` publishes no packs (no directories with valid knowledge files)")
-        # Each child directory is a would-be pack; say when its rules sit one
-        # level too deep, so the author learns why nothing published.
+        # Each child directory is a would-be pack with no top-level rule (one
+        # with a rule would have published); say when its rules sit one level
+        # too deep, so the author learns why nothing published.
         for name, child in _contained_child_dirs(source_root, boundary, []):
             nested = nested_rules_warning(name, child, boundary)
             if nested:
@@ -587,14 +604,14 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
         # Escaping links were already reported during enumeration.
         for child in _contained_md_files(pack_dir, boundary, []):
             name = os.path.basename(child)
-            if os.path.isfile(child) and not _is_knowledge_file(child) and name.lower() != _README:
+            if os.path.isfile(child) and not _is_knowledge_file(child):
                 warnings.append(
                     f"{label}: skipped pack file `{pack_id}/{name}` (missing `title`/`applies_when` frontmatter)"
                 )
-        nested = nested_rules_warning(pack_id, pack_dir, boundary)
-        if nested:
-            warnings.append(f"{label}: {nested}")
-        root = {"id": pack_id, "dir": pack_dir, "_label": label}
+        # A published pack has a rule at its top level, so rule-shaped files in
+        # its subdirectories are storage: counted for the health report, not warned.
+        nested_total, _ = nested_rule_shaped(pack_dir, boundary)
+        root = {"id": pack_id, "dir": pack_dir, "nested_rule_shaped": nested_total, "_label": label}
         if git_meta:
             root.update(git_meta)
         roots.append(root)

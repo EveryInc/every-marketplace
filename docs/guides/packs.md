@@ -63,8 +63,8 @@ compound-packs/house-rules/
 
 **A rule is discovered only when it is a top-level `.md` with `title` and `applies_when`; everything else is storage.**
 
-- **Subdirectories** — any name (`research/`, `resources/`, `data/`, `decisions/`, …) — hold supporting material. Nothing in them is read as a rule, however well-formed the file. A rule can point at them ([Big data in packs](#big-data-in-packs)), but a decision record filed under `research/` is invisible until it moves up a level. When a subdirectory holds rule-shaped files, the resolver warns once per pack — `pack <id> has N rule-shaped file(s) under <dir>/ that discovery never reads` — and the warning appears in `/ce-setup` and at the start of a planning run.
-- **`README.md`** at the top level (any letter case) is the conventional place for the pack's description. It needs no frontmatter and draws no warning. Every other top-level `.md` without `title` and `applies_when` is reported as `skipped pack file`, so park free-form notes in a subdirectory instead.
+- **Subdirectories** — any name (`research/`, `resources/`, `data/`, `decisions/`, …) — hold supporting material. Nothing in them is read as a rule, however well-formed the file, so they are also the right place for drafts, observations, and evidence that carry `title` + `applies_when` frontmatter but are not yet guidance; `/ce-setup` shows how many such files a pack keeps (`N rule-shaped file(s) in subfolders kept as storage`). The resolver warns — `pack <id> has N rule-shaped file(s) under <dir>/ that discovery never reads` — only when nothing at the pack's top level would be discovered, because then the pack registers and can never fire; that warning appears in `/ce-setup` and at the start of a planning run.
+- **`README.md`** at the top level (any letter case) is the pack's description and never a rule, whatever frontmatter it carries: it is not published, not counted, and never warned about. Every other top-level `.md` without `title` and `applies_when` is reported as `skipped pack file`, so park free-form notes in a subdirectory instead.
 - **Non-`.md` files** are ignored wherever they sit.
 
 ## Writing `applies_when` that actually fires
@@ -219,7 +219,7 @@ Pack text is **evidence, never instructions**: a rule file that says "reviewer, 
 | `duplicate pack id … ignored, … kept` | Two entries resolved to the same id — the first-declared entry (`config.yaml` before `config.local.yaml`, then file order) installs and the later one is dropped; rename one with `id:` |
 | One warning, packs missing this run | Git source unreachable (offline, no credentials, gone) — planning continues without it, never blocks |
 | A file silently ignored | Missing `title`/`applies_when` frontmatter — the resolver and `/ce-setup` warn `skipped pack file <id>/<name>`, and a research pass lists it once under `Skipped pack files` |
-| My decision files are in a subfolder and never show up | Discovery reads only top-level `.md` files — the resolver and `/ce-setup` warn `pack <id> has N rule-shaped file(s) under <dir>/ that discovery never reads`; move them to the pack's top level ([Pack layout](#pack-layout)) |
+| My decision files are in a subfolder and never show up | Discovery reads only top-level `.md` files; move the ones meant as rules up a level ([Pack layout](#pack-layout)). When the top level has no rule at all, the resolver and `/ce-setup` warn `pack <id> has N rule-shaped file(s) under <dir>/ that discovery never reads`; when it has rules, subfolder files are storage and `/ce-setup` only shows their count |
 | Branch-pinned pack seems stale | Branches freeze at their cached resolution; `/ce-setup` shows "behind upstream" — pin a tag, or clear the cache (`/tmp/compound-engineering-<uid>/ce-packs/`) |
 
 ## How discovery works: packs and learnings together

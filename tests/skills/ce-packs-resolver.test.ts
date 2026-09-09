@@ -326,20 +326,48 @@ describe("rule file detection", () => {
 // records under `research/` with a top-level README and nothing was ever
 // discovered, with no signal why. The resolver now names the misplaced files
 // once per pack, and a description-only README stops drawing a skip warning.
-describe("pack layout warnings", () => {
-  test("a rule-shaped file in a subdirectory is not published and draws one warning naming the subdirectory", () => {
+describe("pack layout", () => {
+  test("a pack with a top-level rule keeps nested rule-shaped files as storage: published from the top level, no warning, counted on the root", () => {
     const local = tempDir("nested-rules")
     const pack = path.join(local, "house-rules")
     writeKnowledgeFile(pack, "top-rule.md", "top rule")
-    writeKnowledgeFile(path.join(pack, "research"), "adr-001.md", "decision 1")
-    writeKnowledgeFile(path.join(pack, "research"), "adr-002.md", "decision 2")
+    writeKnowledgeFile(path.join(pack, "research"), "observation-001.md", "an unresolved observation")
+    writeKnowledgeFile(path.join(local, "plain"), "r.md", "rule")
+    const out = resolve(makeProject(`packs:\n  - source: ${local}/house-rules\n  - source: ${local}/plain\n`))
+    expect(ids(out)).toEqual(["house-rules", "plain"])
+    const house = out.roots.find((r: any) => r.id === "house-rules")
+    expect(house.dir).toBe(realpathSync(pack))
+    expect(house.nested_rule_shaped).toBe(1)
+    expect(out.roots.find((r: any) => r.id === "plain").nested_rule_shaped).toBe(0)
+    expect(out.errors).toEqual([])
+    expect(out.warnings).toEqual([])
+  })
+
+  test("the nested count scans one level down only and never counts a README", () => {
+    const local = tempDir("nested-depth")
+    const pack = path.join(local, "house-rules")
+    writeKnowledgeFile(pack, "top-rule.md", "top rule")
+    writeKnowledgeFile(path.join(pack, "research"), "obs-001.md", "counted")
+    writeKnowledgeFile(path.join(pack, "research"), "README.md", "a README is documentation wherever it sits")
+    writeKnowledgeFile(path.join(pack, "research", "deeper"), "obs-002.md", "two levels down is not scanned")
+    writeKnowledgeFile(path.join(pack, ".hidden"), "obs-003.md", "hidden directories are not scanned")
     const out = resolve(makeProject(`packs:\n  - source: ${local}/house-rules\n`))
-    expect(ids(out)).toEqual(["house-rules"])
-    expect(out.roots[0].dir).toBe(realpathSync(pack))
+    expect(out.roots[0].nested_rule_shaped).toBe(1)
+    expect(out.warnings).toEqual([])
+  })
+
+  test("a README.md is documentation, never a rule: excluded from publication whatever its frontmatter, never warned", () => {
+    const local = tempDir("readme-rule-shaped")
+    writeKnowledgeFile(path.join(local, "design"), "spacing.md", "spacing rule")
+    writeKnowledgeFile(path.join(local, "design"), "README.md", "About this pack")
+    // A source whose only .md is a frontmatter'd README publishes nothing.
+    writeKnowledgeFile(path.join(local, "only-readme"), "ReadMe.md", "About this pack")
+    const out = resolve(makeProject(`packs:\n  - source: ${local}/design\n  - source: ${local}/only-readme\n`))
+    expect(ids(out)).toEqual(["design"])
     expect(out.errors).toEqual([])
     expect(out.warnings.length).toBe(1)
-    expect(out.warnings[0]).toContain("config.yaml:2: pack `house-rules` has 2 rule-shaped file(s) under `research/` that discovery never reads")
-    expect(out.warnings[0]).toContain("move rules to the pack's top level (see docs/guides/packs.md, Pack layout)")
+    expect(out.warnings[0]).toContain("`" + local + "/only-readme` publishes no packs")
+    expect(out.warnings.join(" ")).not.toMatch(/skipped pack file/)
   })
 
   test("a top-level README.md without frontmatter is not a skipped pack file; any other frontmatter-less .md still is", () => {
