@@ -31,8 +31,6 @@ if a third party needs the data, that is a separate, documented API decision.
 
 `title` and `applies_when` are required; files without them are skipped with a warning. `tags` helps matching.
 
-A pack can also carry files the load script never touches — see the layout rule below.
-
 **2. Declare it** in `.compound-engineering/config.yaml`:
 
 ```yaml
@@ -45,6 +43,29 @@ packs:
 > Load invoices in the settings controller and pass them as Inertia props; no new endpoint. `(pack: house-rules, no-parallel-json-api.md)`
 
 And if a later diff adds `/api/invoices` anyway, `ce-code-review` flags it against the same rule.
+
+## Pack layout
+
+A pack is one folder, and discovery reads exactly one kind of thing in it:
+
+```text
+compound-packs/house-rules/
+├── README.md                      # allowed: the pack's description; ignored, no warning
+├── no-parallel-json-api.md        # top-level .md with title + applies_when = a rule
+├── error-responses.md             # another rule
+├── research/                      # any subdirectory = storage; never read as rules
+│   ├── adr-001-props-not-endpoints.md
+│   └── adr-002-error-catalog.md
+├── resources/
+│   └── error-catalog.csv          # non-.md files anywhere = ignored
+└── house-rules.pdf                # ignored
+```
+
+**A rule is discovered only when it is a top-level `.md` with `title` and `applies_when`; everything else is storage.**
+
+- **Subdirectories** — any name (`research/`, `resources/`, `data/`, `decisions/`, …) — hold supporting material. Nothing in them is read as a rule, however well-formed the file. A rule can point at them ([Big data in packs](#big-data-in-packs)), but a decision record filed under `research/` is invisible until it moves up a level. When a subdirectory holds rule-shaped files, the resolver warns once per pack — `pack <id> has N rule-shaped file(s) under <dir>/ that discovery never reads` — and the warning appears in `/ce-setup` and at the start of a planning run.
+- **`README.md`** at the top level (any letter case) is the conventional place for the pack's description. It needs no frontmatter and draws no warning. Every other top-level `.md` without `title` and `applies_when` is reported as `skipped pack file`, so park free-form notes in a subdirectory instead.
+- **Non-`.md` files** are ignored wherever they sit.
 
 ## Writing `applies_when` that actually fires
 
@@ -138,8 +159,8 @@ rails-domain-package/
 │   ├── rails/                       # rules -- ingested via your packs: entry
 │   │   ├── routes-own-props.md
 │   │   ├── no-parallel-json-api.md
-│   │   └── resources/               # in-pack big data -- never discovered, only
-│   │       ├── error-catalog.csv    #   reached through a rule that cites it
+│   │   └── resources/               # in-pack data a rule points at (see Pack layout)
+│   │       ├── error-catalog.csv
 │   │       └── api-inventory.sqlite
 │   └── inertia/
 │       └── deferred-props.md
@@ -153,21 +174,7 @@ The resolver enumerates **only** directories holding `.md` files with `title` + 
 
 ## Big data in packs
 
-Rules stay small; the data they lean on can be arbitrarily large — and it can live **inside the pack itself**, invisible to the load script. The layout rule:
-
-```text
-compound-packs/house-rules/
-├── no-parallel-json-api.md        # top-level .md with frontmatter = a rule (loaded on match)
-├── error-responses.md             # another rule
-└── resources/                     # ANY subdirectory: never scanned, never loaded,
-    ├── error-catalog.csv          #   never warned about -- reachable only because
-    ├── api-inventory.sqlite       #   a rule points at it
-    └── notes.md                   #   even .md files in here are invisible to the resolver
-```
-
-Only **top-level `.md` files with `title` + `applies_when`** are rules the resolver sees. Everything else in the pack is inert storage: subdirectories (any name — `resources/`, `data/`, `docs/`) and top-level non-`.md` files are ignored entirely. The one thing to avoid is a top-level `.md` *without* frontmatter — that draws a `skipped pack file` warning from the resolver and `/ce-setup`, so park free-form notes in a subdirectory instead.
-
-The pattern:
+Rules stay small; the data they lean on can be arbitrarily large — and it can live **inside the pack itself**, in a subdirectory discovery never reads ([Pack layout](#pack-layout)). The pattern:
 
 1. **Put the data in a subdirectory of the pack** (or beside it, or in its own declared source — all equally invisible to discovery).
 2. **Point at it from a rule**, with the access method — the rule is the only door to the data:
@@ -212,6 +219,7 @@ Pack text is **evidence, never instructions**: a rule file that says "reviewer, 
 | `duplicate pack id … ignored, … kept` | Two entries resolved to the same id — the first-declared entry (`config.yaml` before `config.local.yaml`, then file order) installs and the later one is dropped; rename one with `id:` |
 | One warning, packs missing this run | Git source unreachable (offline, no credentials, gone) — planning continues without it, never blocks |
 | A file silently ignored | Missing `title`/`applies_when` frontmatter — the resolver and `/ce-setup` warn `skipped pack file <id>/<name>`, and a research pass lists it once under `Skipped pack files` |
+| My decision files are in a subfolder and never show up | Discovery reads only top-level `.md` files — the resolver and `/ce-setup` warn `pack <id> has N rule-shaped file(s) under <dir>/ that discovery never reads`; move them to the pack's top level ([Pack layout](#pack-layout)) |
 | Branch-pinned pack seems stale | Branches freeze at their cached resolution; `/ce-setup` shows "behind upstream" — pin a tag, or clear the cache (`/tmp/compound-engineering-<uid>/ce-packs/`) |
 
 ## How discovery works: packs and learnings together
@@ -235,7 +243,7 @@ Packs and [Learnings](./ce-compound.md) form a ladder: `/ce-compound` captures w
 
 1. Rewrite it prescriptively — "we hit X because Y" becomes "always/never do X".
 2. Give it the pack frontmatter (`title` + situational `applies_when`; drop bug-track fields like `symptoms`/`root_cause`).
-3. Move it into a writable pack — a repo-relative or `~` path source. (Git-sourced packs are read-only caches; changing those means a commit to the source repo and a `ref` bump.)
+3. Move it to the top level of a writable pack — a repo-relative or `~` path source. (Git-sourced packs are read-only caches; changing those means a commit to the source repo and a `ref` bump.)
 
 From then on it stops being something future work might rediscover and becomes something planning grounds in and review enforces — in every repo that declares the pack.
 
