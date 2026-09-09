@@ -47,7 +47,7 @@ jobs:
         env:
           JEKYLL_ENV: production
 
-      # Internal links only: R4 promises every in-site link resolves. External
+      # Internal links only: every in-site link is expected to resolve. External
       # link rot is not this job's concern and would make the build flaky.
       - name: Check internal links
         run: bundle exec htmlproofer _site --disable-external --allow-missing-href --no-enforce-https

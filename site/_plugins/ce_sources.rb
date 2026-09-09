@@ -155,8 +155,29 @@ module CeSources
   module Git
     module_function
 
-    def last_updated_at(repo_root, relative_path, git: "git")
-      commit_time(repo_root, relative_path, git: git) || File.mtime(File.join(repo_root, relative_path))
+    def last_updated_at(repo_root, relative_path, git: "git", dates: nil)
+      time = dates ? dates[relative_path] : commit_time(repo_root, relative_path, git: git)
+      time || File.mtime(File.join(repo_root, relative_path))
+    end
+
+    # One history walk for every path under +pathspecs+, newest commit first, so
+    # a build spawns one git process instead of one per adopted source.
+    def commit_times(repo_root, pathspecs, git: "git")
+      out, status = Open3.capture2(git, "log", "--format=%x00%cI", "--name-only", "--", *pathspecs, chdir: repo_root, err: File::NULL)
+      return {} unless status.success?
+
+      dates = {}
+      current = nil
+      out.each_line(chomp: true) do |line|
+        if line.start_with?("\0")
+          current = Time.iso8601(line.delete_prefix("\0"))
+        elsif !line.empty? && current
+          dates[line] ||= current
+        end
+      end
+      dates
+    rescue SystemCallError, ArgumentError
+      {}
     end
 
     def commit_time(repo_root, relative_path, git: "git")
@@ -200,15 +221,20 @@ module CeSources
       adopt_root_pages
       groups = Catalog.parse(catalog_text(collection))
       synthesize_groups(collection, groups)
-      arrange(collection, groups)
+      by_name = collection.docs.to_h { |doc| [doc.basename_without_ext, doc] }
+      arrange(collection, groups, by_name)
       collection.docs.sort_by! { |doc| [doc.data["nav_order"].to_f, doc.path] }
       describe(collection)
-      publish_data(collection, groups)
+      publish_data(collection, groups, by_name)
     end
 
     private
 
     # --- adoption ---------------------------------------------------------
+
+    def commit_dates
+      @commit_dates ||= Git.commit_times(repo_root, [source_path(File.join(site.source, "_#{GUIDES_COLLECTION}")), *ROOT_PAGES.keys.map { |name| source_path(File.join(site.source, name)) }])
+    end
 
     def adopt_guides(collection)
       collection.files.select { |file| file.extname == ".md" }.each do |file|
@@ -226,7 +252,7 @@ module CeSources
 
       source = source_path(doc.path)
       doc.data["ce_source_path"] ||= source
-      doc.data["last_updated_at"] ||= Git.last_updated_at(repo_root, source)
+      doc.data["last_updated_at"] ||= Git.last_updated_at(repo_root, source, dates: commit_dates)
       doc.data["layout"] ||= "default"
 
       if doc.basename == CATALOG_BASENAME
@@ -249,7 +275,7 @@ module CeSources
         page.data["layout"] = "default"
         source = source_path(File.join(site.source, name))
         page.data["ce_source_path"] = source
-        page.data["last_updated_at"] = Git.last_updated_at(repo_root, source)
+        page.data["last_updated_at"] = Git.last_updated_at(repo_root, source, dates: commit_dates)
         site.pages << page
         site.static_files.delete(file)
       end
@@ -287,8 +313,7 @@ module CeSources
 
     # nav_order runs 1-based across the collection: catalog, then each group
     # followed by its guides in row order, then uncatalogued guides by name.
-    def arrange(collection, groups)
-      by_name = collection.docs.to_h { |doc| [doc.basename_without_ext, doc] }
+    def arrange(collection, groups, by_name)
       order = 0
       assign = ->(doc, data) { doc.data.merge!("nav_order" => (order += 1), **data) unless doc.data.key?("nav_order") }
 
@@ -325,8 +350,7 @@ module CeSources
 
     # --- site data --------------------------------------------------------
 
-    def publish_data(collection, groups)
-      by_name = collection.docs.to_h { |doc| [doc.basename_without_ext, doc] }
+    def publish_data(collection, groups, by_name)
       version = Manifest.version(repo_root)
 
       site.data["ce"] = {
@@ -367,7 +391,7 @@ module CeSources
     end
 
     def front_matter?(doc)
-      File.file?(doc.path) && Jekyll::Utils.has_yaml_header?(doc.path)
+      Jekyll::Utils.has_yaml_header?(doc.path)
     end
   end
 

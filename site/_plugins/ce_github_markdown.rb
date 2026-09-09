@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require "pathname"
+
 # Translates GitHub-flavoured markdown written for the repo into the site's terms
 # at pre-render time, so README.md, docs/install/upgrading.md, and the guides render
-# without being edited (KTD3):
+# without being edited:
 #
 # - `> [!NOTE]`-style alerts become kramdown callouts the theme styles
 #   (marker line dropped, `{: .note }` appended after the blockquote).
@@ -126,15 +128,10 @@ module CeGithubMarkdown
   # repo-relative path; nil when it escapes the repo root.
   def resolve(path, source_path)
     base = File.dirname(source_path)
-    parts = []
-    (base == "." ? [] : base.split("/")).concat(path.split("/")).each do |part|
-      case part
-      when "", "." then next
-      when ".." then return nil if parts.pop.nil?
-      else parts << part
-      end
-    end
-    parts.join("/")
+    cleaned = Pathname.new(base == "." ? path : File.join(base, path)).cleanpath.to_s
+    return nil if cleaned == ".." || cleaned.start_with?("../")
+
+    cleaned
   end
 
   def map_path(path, repo_root)
