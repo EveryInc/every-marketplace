@@ -7,12 +7,12 @@ hero:
   name: Compound Engineering
   text: Each unit of work easier than the last.
   tagline: A plugin of skills for AI coding agents. Brainstorm, plan, build, review, then capture what you learned where the next change can read it.
-  logo:
+  image:
     light: /assets/logo.png
     dark: /assets/logo.png
     alt: Compound Engineering logo
-    width: 120
-    height: 120
+    width: 320
+    height: 320
   actions:
     - theme: brand
       text: Get started

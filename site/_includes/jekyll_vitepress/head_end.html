@@ -6,11 +6,15 @@
   .ce-demo figure { margin: 24px 0 0; }
   .ce-demo img { border: 1px solid var(--vp-c-divider); border-radius: 12px; display: block; height: auto; width: 100%; }
   .ce-demo figcaption { color: var(--vp-c-text-2); font-size: 14px; margin-top: 8px; text-align: center; }
+  .vp-doc ul.ce-host-list { list-style: none; padding-left: 0; }
+  .vp-doc .ce-host-list li { padding-left: 0; margin: 0; }
+  .vp-doc .ce-host-list li::marker { content: ""; }
   .ce-host-list { display: flex; flex-wrap: wrap; gap: 8px 10px; list-style: none; margin: 16px 0 0; padding: 0; }
   .ce-host-list li { background: var(--vp-c-bg-soft); border: 1px solid var(--vp-c-divider); border-radius: 999px; font-size: 14px; padding: 6px 14px; }
   .ce-skills h3 { margin-top: 32px; }
   .ce-skills h3 a { color: inherit; text-decoration: none; }
   .ce-skill-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); margin-top: 12px; }
+  .vp-doc a.ce-skill-card, .vp-doc a.ce-skill-card span, .vp-doc .ce-skills h3 a { text-decoration: none; }
   .ce-skill-card { background: var(--vp-c-bg-soft); border: 1px solid var(--vp-c-divider); border-radius: 12px; color: inherit; display: flex; flex-direction: column; gap: 6px; padding: 16px; text-decoration: none; transition: border-color 0.2s, transform 0.2s; }
   .ce-skill-card:hover, .ce-skill-card:focus-visible { border-color: var(--vp-c-brand-1); outline: none; transform: translateY(-2px); }
   .ce-skill-card:focus-visible { box-shadow: 0 0 0 2px var(--vp-c-brand-soft); }
