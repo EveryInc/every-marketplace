@@ -105,6 +105,12 @@ class TestCeGithubMarkdown < Minitest::Test
     assert_equal "<p align=\"center\" markdown=\"1\">\n", rewrite("<p align=\"center\">\n")
   end
 
+  def test_details_block_gains_markdown_attribute
+    input = "<details>\n<summary>Other install paths</summary>\n\n`omp install` pins a snapshot.\n\n</details>\n"
+    expected = "<details markdown=\"1\">\n<summary>Other install paths</summary>\n\n`omp install` pins a snapshot.\n\n</details>\n"
+    assert_equal expected, rewrite(input)
+  end
+
   def test_div_already_carrying_markdown_is_unchanged
     input = "<div align=\"center\" markdown=\"1\">\n"
     assert_equal input, rewrite(input)

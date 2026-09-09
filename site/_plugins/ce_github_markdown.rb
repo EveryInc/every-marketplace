@@ -8,7 +8,7 @@ require "pathname"
 #
 # - `> [!NOTE]`-style alerts become kramdown callouts the theme styles
 #   (marker line dropped, `{: .note }` appended after the blockquote).
-# - Block-level `<div ...>` / `<p align=...>` wrappers gain `markdown="1"` so the
+# - Block-level `<div ...>` / `<p align=...>` / `<details>` wrappers gain `markdown="1"` so the
 #   markdown inside them renders with `parse_block_html` left off site-wide.
 # - Repo-relative links and asset paths resolve to site pages, site assets, or
 #   the file on GitHub; a target that does not exist in the repo is left alone so
@@ -23,7 +23,7 @@ module CeGithubMarkdown
 
   ALERT_MARKER = /\A>\s*\[!(#{ALERT_TYPES.join("|")})\]\s*\z/i
   FENCE = /\A\s{0,3}(`{3,}|~{3,})/
-  WRAPPER_TAG = /\A<(div|p)(\s[^>]*)?>\s*\z/i
+  WRAPPER_TAG = /\A<(div|p|details)(\s[^>]*)?>\s*\z/i
   MD_LINK = /(!?\[(?:[^\[\]]|\[[^\[\]]*\])*\])\(([^()\s<>]+)\)/
   HTML_ATTR = /\b(href|src)=(["'])([^"']*)\2/
   SKIP_TARGET = %r{\A(?:[a-z][a-z0-9+.-]*:|//|#|/)}i
