@@ -1,4 +1,4 @@
-import { lstatSync, readFileSync, readlinkSync, readdirSync } from "fs"
+import { existsSync, lstatSync, readFileSync, readlinkSync, readdirSync } from "fs"
 import path from "path"
 import { describe, expect, test } from "bun:test"
 
@@ -30,8 +30,11 @@ describe("docs site scaffold", () => {
     }
   })
 
-  test("CNAME is exactly the custom domain", () => {
-    expect(read("site/CNAME")).toBe("compound.engineer\n")
+  test("site is built for the every.to path, with no custom-domain CNAME", () => {
+    const config = read("site/_config.yml")
+    expect(config).toMatch(/^url: https:\/\/every\.to$/m)
+    expect(config).toMatch(/^baseurl: \/compound-engineering$/m)
+    expect(existsSync(path.join(site, "CNAME"))).toBe(false)
   })
 
   test("site config loads no analytics and no Google Fonts", () => {

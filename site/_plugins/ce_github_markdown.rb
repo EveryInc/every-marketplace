@@ -30,7 +30,9 @@ module CeGithubMarkdown
 
   module_function
 
-  def rewrite(content, source_path:, repo_root:)
+  # +base_url+ is the site's baseurl ("" at a domain root, "/compound-engineering"
+  # under every.to); it prefixes every in-site path the rewrite produces.
+  def rewrite(content, source_path:, repo_root:, base_url: "")
     content = content.dup.force_encoding(Encoding::UTF_8) unless content.encoding == Encoding::UTF_8
     lines = content.split(/(?<=\n)/)
     out = []
@@ -49,43 +51,43 @@ module CeGithubMarkdown
         start = i + 1
         i = start
         i += 1 while i < lines.size && lines[i].start_with?(">")
-        quote = lines[start...i].map { |l| rewrite_links(l, source_path, repo_root) }
+        quote = lines[start...i].map { |l| rewrite_links(l, source_path, repo_root, base_url) }
         out.concat(quote)
         last = quote.last || line
         out << "{: .#{type} }#{last.end_with?("\n") ? "\n" : ""}"
         next
       else
-        out << rewrite_line(line, source_path, repo_root)
+        out << rewrite_line(line, source_path, repo_root, base_url)
       end
       i += 1
     end
     out.join
   end
 
-  def rewrite_line(line, source_path, repo_root)
+  def rewrite_line(line, source_path, repo_root, base_url = "")
     if (m = line.match(WRAPPER_TAG)) && m[2].to_s !~ /\bmarkdown=/i
       return line.sub(/>(\s*)\z/) { " markdown=\"1\">#{Regexp.last_match(1)}" }
     end
-    rewrite_links(line, source_path, repo_root)
+    rewrite_links(line, source_path, repo_root, base_url)
   end
 
   # Rewrites link targets whose position falls outside inline code spans. Link
   # text may itself contain code (`` [`ce-plan`](./ce-plan.md) ``), so the check is
   # on the target's offset, not on the whole match.
-  def rewrite_links(line, source_path, repo_root)
+  def rewrite_links(line, source_path, repo_root, base_url = "")
     spans = code_spans(line)
     line = line.gsub(MD_LINK) do
       m = Regexp.last_match
       next m[0] if spans.any? { |r| r.cover?(m.begin(2)) }
 
-      "#{m[1]}(#{map_target(m[2], source_path, repo_root)})"
+      "#{m[1]}(#{map_target(m[2], source_path, repo_root, base_url)})"
     end
     spans = code_spans(line)
     line.gsub(HTML_ATTR) do
       m = Regexp.last_match
       next m[0] if spans.any? { |r| r.cover?(m.begin(3)) }
 
-      "#{m[1]}=#{m[2]}#{map_target(m[3], source_path, repo_root)}#{m[2]}"
+      "#{m[1]}=#{m[2]}#{map_target(m[3], source_path, repo_root, base_url)}#{m[2]}"
     end
   end
 
@@ -108,7 +110,7 @@ module CeGithubMarkdown
     ranges
   end
 
-  def map_target(target, source_path, repo_root)
+  def map_target(target, source_path, repo_root, base_url = "")
     return target if target.empty? || target =~ SKIP_TARGET
 
     path, fragment = target.split("#", 2)
@@ -116,7 +118,7 @@ module CeGithubMarkdown
     resolved = resolve(path, source_path)
     return target if resolved.nil?
 
-    mapped = map_path(resolved, repo_root)
+    mapped = map_path(resolved, repo_root, base_url)
     return target if mapped.nil?
 
     mapped += "?#{query}" if query
@@ -134,7 +136,21 @@ module CeGithubMarkdown
     cleaned
   end
 
-  def map_path(path, repo_root)
+  def map_path(path, repo_root, base_url = "")
+    site = site_path(path)
+    return "#{base_url}#{site}" if site
+
+    full = File.join(repo_root, path)
+    return "#{base_url}/#{path}" if path.start_with?("assets/") && File.file?(full) && !path.end_with?(".md")
+    return "#{GITHUB_REPO}/tree/main/#{path}" if File.directory?(full)
+    return "#{GITHUB_REPO}/blob/main/#{path}" if File.file?(full)
+
+    nil
+  end
+
+  # The site path a published source renders at, without the baseurl; nil for
+  # anything that is not a published page.
+  def site_path(path)
     return "/install/" if path == "README.md"
     return "/upgrading/" if path == "docs/install/upgrading.md"
 
@@ -145,11 +161,6 @@ module CeGithubMarkdown
       return "/guides/" if rest == "README.md"
       return "/guides/#{rest.delete_suffix(".md")}/" if rest.end_with?(".md") && !rest.include?("/")
     end
-
-    full = File.join(repo_root, path)
-    return "/#{path}" if path.start_with?("assets/") && File.file?(full) && !path.end_with?(".md")
-    return "#{GITHUB_REPO}/tree/main/#{path}" if File.directory?(full)
-    return "#{GITHUB_REPO}/blob/main/#{path}" if File.file?(full)
 
     nil
   end

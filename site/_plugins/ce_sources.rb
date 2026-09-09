@@ -292,7 +292,7 @@ module CeSources
         source = item.data["ce_source_path"]
         next unless source
 
-        item.content = CeGithubMarkdown.rewrite(item.content, source_path: source, repo_root: repo_root)
+        item.content = CeGithubMarkdown.rewrite(item.content, source_path: source, repo_root: repo_root, base_url: site.baseurl.to_s)
       end
     end
 

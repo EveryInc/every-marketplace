@@ -16,13 +16,13 @@ hero:
 ---
 
 <section class="ce-section ce-demo">
-  <img src="/assets/demo/compound-loop.gif" alt="Terminal recording of the compound engineering loop running in a coding agent: plan, work, review, compound" width="1200" height="675">
+  <img src="{{ '/assets/demo/compound-loop.gif' | relative_url }}" alt="Terminal recording of the compound engineering loop running in a coding agent: plan, work, review, compound" width="1200" height="675">
   <p class="ce-muted ce-caption">A learning gets captured after a fix. Eighteen days later a plan for a different feature reads it back before writing a line.</p>
 </section>
 
 <section class="ce-section ce-install">
   <h2 id="install">Install</h2>
-  <p>In Claude Code, two commands. Other hosts are on the <a href="/install/">install page</a>.</p>
+  <p>In Claude Code, two commands. Other hosts are on the <a href="{{ '/install/' | relative_url }}">install page</a>.</p>
   <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/plugin marketplace add EveryInc/compound-engineering-plugin
 /plugin install compound-engineering</code></pre></div></div>
   {% include ce/hosts.html %}

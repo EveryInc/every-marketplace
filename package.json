@@ -32,7 +32,7 @@
     "site:build": "cd site && bundle exec jekyll build --strict_front_matter",
     "site:serve": "cd site && bundle exec jekyll serve --livereload",
     "site:test": "cd site && bundle exec rake test",
-    "site:check": "cd site && LC_ALL=C.UTF-8 bundle exec htmlproofer _site --disable-external --allow-missing-href --no-enforce-https"
+    "site:check": "cd site && LC_ALL=C.UTF-8 bundle exec htmlproofer _site --disable-external --allow-missing-href --no-enforce-https --swap-urls '^/compound-engineering/:/'"
   },
   "dependencies": {
     "citty": "^0.1.6",

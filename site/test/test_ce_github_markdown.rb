@@ -42,6 +42,18 @@ class TestCeGithubMarkdown < Minitest::Test
 
   # --- alerts -------------------------------------------------------------
 
+  def test_base_url_prefixes_every_in_site_path_but_not_external_ones
+    out = CeGithubMarkdown.rewrite(
+      "[a](docs/guides/ce-plan.md) [b](README.md#install) <img src=\"assets/logo.png\"> [c](docs/specs/omp.md) [d](https://x.test/)",
+      source_path: "README.md", repo_root: @repo_root, base_url: "/compound-engineering"
+    )
+    assert_includes out, "[a](/compound-engineering/guides/ce-plan/)"
+    assert_includes out, "[b](/compound-engineering/install/#install)"
+    assert_includes out, 'src="/compound-engineering/assets/logo.png"'
+    assert_includes out, "[c](https://github.com/EveryInc/compound-engineering-plugin/blob/main/docs/specs/omp.md)"
+    assert_includes out, "[d](https://x.test/)"
+  end
+
   def test_important_alert_becomes_kramdown_callout
     input = <<~MD
       intro

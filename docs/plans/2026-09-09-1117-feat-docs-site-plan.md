@@ -14,7 +14,7 @@ deepened: 2026-09-09
 
 ## Goal Capsule
 
-- **Objective:** A developer evaluating or using Compound Engineering can read the install instructions, the skill catalog, and every skill guide on a fast, searchable website at `compound.engineer`, and what they read there is never behind what the repo says.
+- **Objective:** A developer evaluating or using Compound Engineering can read the install instructions, the skill catalog, and every skill guide on a fast, searchable website at `every.to/compound-engineering`, and what they read there is never behind what the repo says.
 - **Means:** A Jekyll site under `site/` using the `jekyll-vitepress-theme` gem, adopting the repo's existing markdown through symlinks and a site-local plugin, deployed to GitHub Pages by a workflow on every merge to `main` (KTD1, KTD2, KTD5).
 - **Product authority:** This plan owns the public docs site only. The plugin, the CLI, and the contributor docs are context, not scope. Product behavior is owned by the R-IDs below; implementation mechanism by the KTDs.
 - **Execution profile:** Standard depth, six units, one PR. Config and packaging work; prefer build and rendered-output smoke checks over unit coverage except for the two Ruby plugin files, which get unit tests.
@@ -29,17 +29,17 @@ deepened: 2026-09-09
 
 ### Summary
 
-Ship a public documentation site at `compound.engineer` with the look of rubyllm.com: a hero homepage with the install snippet, the core-loop demo, the supported hosts, and a skill grid, plus docs pages rendered from the README, the skill guides, configuration, packs, and upgrading pages exactly where they live in the repo today. The site builds and deploys automatically on every merge to `main` as a single, unversioned site.
+Ship a public documentation site at `every.to/compound-engineering` with the look of rubyllm.com: a hero homepage with the install snippet, the core-loop demo, the supported hosts, and a skill grid, plus docs pages rendered from the README, the skill guides, configuration, packs, and upgrading pages exactly where they live in the repo today. The site builds and deploys automatically on every merge to `main` as a single, unversioned site.
 
 ### Problem Frame
 
-The plugin's documentation is good but lives only as GitHub-rendered markdown: a long README, a 36-page guides folder, and an install page two directories deep. A developer landing from the every.to article or a marketplace listing gets a repository, not a product page, with no search, no sidebar, and no way to skim the 33 skills. GitHub Pages is already switched on for the repo and serves a 404, which is worse than nothing. The domain `compound.engineer` is owned and parked.
+The plugin's documentation is good but lives only as GitHub-rendered markdown: a long README, a 36-page guides folder, and an install page two directories deep. A developer landing from the every.to article or a marketplace listing gets a repository, not a product page, with no search, no sidebar, and no way to skim the 33 skills. GitHub Pages is already switched on for the repo and serves a 404, which is worse than nothing. The every.to guide already lives on that domain, and its edge proxy can reserve a path for the site.
 
 ### Key Decisions
 
 - **End-user docs only at launch: install, catalog, guides, configuration, packs, upgrading.** Contributor docs, solutions, and host specs stay on GitHub. (session-settled: user-approved — chosen over publishing everything under docs/: solutions are written for agents and would double the maintenance surface.) Governs R1, R2.
 - **The site is a build layer over the existing files; nothing is copied or moved.** (session-settled: user-approved — chosen over moving the guides into a site folder or syncing a generated copy: the README and guides are already the single home for skill descriptions and tests pin them there.) Governs R3, R4, R5.
-- **Custom domain `compound.engineer` on GitHub Pages.** (session-settled: user-directed — chosen over the default everyinc.github.io project URL: the domain is already owned.) Governs R10, R11.
+- **Served at `every.to/compound-engineering` through every.to's edge proxy, built on GitHub Pages.** (session-settled: user-directed — chosen over the custom domain compound.engineer after the site was built: every.to's proxy reserves the path prefix, and the guide already lives on every.to.) Governs R10, R11.
 - **Theme used as-is with brand tokens; homepage authored in rubyllm's funnel shape.** (session-settled: user-approved — chosen over a custom design layer: upgrades stay cheap and the theme already delivers the look.) Governs R6, R7, R8.
 - **Single unversioned site tracking `main`.** (session-settled: user-approved — chosen over a stable/next switcher: the plugin releases continuously from main with no long-lived version branches.) Governs R9.
 - **No analytics or telemetry on the site.** Consistent with the strategy's no-telemetry boundary; the theme's GitHub star counter is the only outside call. Governs R13.
@@ -50,7 +50,7 @@ flowchart TB
   B[docs/guides/*.md] --> S
   C[docs/install/upgrading.md] --> S
   D[Homepage content, authored] --> S
-  S --> H[compound.engineer]
+  S --> H[every.to/compound-engineering]
   A --> G[GitHub repo view]
   B --> G
 ```
@@ -78,7 +78,7 @@ flowchart TB
 **Build, deploy, and domain**
 
 - R10. Every merge to `main` rebuilds and deploys the site; a pull request that breaks the site build fails CI before merge.
-- R11. The site is served at `https://compound.engineer` with HTTPS enforced, and the default GitHub Pages URL redirects there.
+- R11. The site is served at `https://every.to/compound-engineering/`, with every link, asset, sitemap entry, and llms.txt entry carrying that prefix; the GitHub Pages build is the origin behind every.to's proxy.
 - R12. A maintainer adds a skill guide by adding the markdown file; the site picks it up without a site-specific registration step.
 - R13. The site loads no analytics, tracking, or third-party script beyond what the theme ships for search and the GitHub star count.
 
@@ -117,15 +117,15 @@ flowchart TB
 
 ### Deferred to Follow-Up Work
 
-- Adding a "Documentation" link to `compound.engineer` in the root README and in the guides catalog, once the domain resolves. Kept out of this PR so the README diff stays empty (AE3).
+- Adding a "Documentation" link to `every.to/compound-engineering` in the root README and in the guides catalog, once the proxy is live. Kept out of this PR so the README diff stays empty (AE3).
 - A heading-sliced Install page that renders only the README's install sections, if the full README reads poorly as the Install page (KTD4 renders it whole).
 - A lighter hero asset than the 1.1 MB core-loop GIF (KTD6 lazy-loads it).
 - Excluding `site/` from plugin installs, if the install copiers or install size make that worthwhile.
 
 ### Dependencies / Assumptions
 
-- DNS for `compound.engineer` is managed at Namecheap and currently points at a parking page; a maintainer must add the GitHub Pages records (four apex `A` records plus a `www` CNAME to `everyinc.github.io`). Prerequisite, not a repo task; the runbook lives in U6.
-- The repository's GitHub Pages source is the legacy `main:/docs` branch build; a maintainer must switch it to "GitHub Actions" in repository settings, set the custom domain, and tick "Enforce HTTPS". Prerequisite, not a repo task; the workflow in U5 deploys nothing until this is done.
+- every.to's edge proxy must forward `/compound-engineering/*` to the GitHub Pages origin, mapping the prefix to `/compound-engineering-plugin/`; the site is built with `baseurl: /compound-engineering` so no response rewriting is needed. Prerequisite outside this repo; the runbook lives in U6.
+- The repository's GitHub Pages source is the legacy `main:/docs` branch build; a maintainer must switch it to "GitHub Actions" with no custom domain. Prerequisite, not a repo task; the workflow in U5 deploys nothing until this is done.
 - Making the site build a merge blocker (R10) needs the new workflow's build job added to the `main` branch protection's required checks alongside `test`. Maintainer setting; the runbook in U6 names it.
 - Assumption: the theme's `edit_link`, `last_updated`, and `github_star` features work on documents adopted by the U2 plugin exactly as on native documents; the adopted documents carry the same `relative_path` and data keys.
 
@@ -190,7 +190,7 @@ flowchart TB
   B --> O[_site/]
   O --> HP[htmlproofer]
   HP --> D[deploy-pages on main]
-  D --> H[compound.engineer]
+  D --> H[every.to/compound-engineering]
 ```
 
 Build-time sequence: Jekyll reads the site and fires `:site, :post_read`; the plugin's high-priority hook promotes static markdown into documents and pages and publishes `site.data.ce` and `site.data.versions` before the theme's own post-read hook builds the sidebar, search index, sitemap, and llms files from them (KTD2); at render time the pre-render hook rewrites each adopted source's markdown just before Liquid and kramdown run (KTD3), and the theme renders. Nothing writes back to the repo.
@@ -219,9 +219,9 @@ U1 first, then U2 and U3 in parallel (both are plugin files against the U1 scaff
 - **Files:** `site/Gemfile`, `site/_config.yml`, `site/_data/navigation.yml`, `site/_data/sidebar.yml`, `site/_data/social_links.yml`, `site/CNAME`, `site/.gitignore`, symlinks `site/_guides`, `site/assets`, `site/install.md`, `site/upgrading.md`, `.gitignore` (root additions), `package.json` (`site:build`, `site:serve` scripts).
 - **Approach:**
   1. Gemfile pins `jekyll` 4.x, `jekyll-vitepress-theme` at the current 1.9 line, `webrick`, and `html-proofer`.
-  2. `_config.yml`: `theme` and `plugins` entries for the theme; `url: https://compound.engineer`; `collections.guides` with `output: true` and `permalink: "/guides/:name/"`; `defaults` giving every page and guide `layout: default`; `jekyll_vitepress.branding` with the logo from `/assets/logo.png` and site title "Compound Engineering"; `tokens.light` / `tokens.dark` for a black-on-white brand; `syntax` themes; `edit_link.enabled: false` (U2 renders its own per KTD8); `last_updated` and `github_star` on; `google_fonts_url: false`; `exclude` for `Gemfile*`, `vendor`, `README.md`, `test`, `Rakefile`.
+  2. `_config.yml`: `theme` and `plugins` entries for the theme; `url: https://every.to` and `baseurl: /compound-engineering`; `collections.guides` with `output: true` and `permalink: "/guides/:name/"`; `defaults` giving every page and guide `layout: default`; `jekyll_vitepress.branding` with the logo from `/assets/logo.png` and site title "Compound Engineering"; `tokens.light` / `tokens.dark` for a black-on-white brand; `syntax` themes; `edit_link.enabled: false` (U2 renders its own per KTD8); `last_updated` and `github_star` on; `google_fonts_url: false`; `exclude` for `Gemfile*`, `vendor`, `README.md`, `test`, `Rakefile`.
   3. `_data/navigation.yml`: Guides, Install, GitHub. `_data/sidebar.yml`: one group for the `guides` collection. `_data/social_links.yml`: GitHub.
-  4. `CNAME` containing `compound.engineer`. `site/.gitignore` for `_site`, `.jekyll-cache`, `vendor`; mirror those under `site/` in the root `.gitignore`.
+  4. No `CNAME` (the site has no custom domain). `site/.gitignore` for `_site`, `.jekyll-cache`, `vendor`; mirror those under `site/` in the root `.gitignore`.
   5. `package.json` scripts wrap `bundle exec jekyll build` and `serve` from `site/` so contributors use one command.
 - **Execution note:** Packaging and config; prove it with a local `bundle exec jekyll build` that succeeds and a served homepage that shows the theme shell, before writing tests.
 - **Patterns to follow:** the theme's getting-started config shape; rubyllm's `docs/_config.yml` for brand tokens and feature toggles; existing repo symlinks (`CLAUDE.md`, `.claude/skills`).
@@ -309,7 +309,7 @@ U1 first, then U2 and U3 in parallel (both are plugin files against the U1 scaff
 - **Files:** `.github/workflows/pages.yml`, `tests/site-scaffold.test.ts`.
 - **Approach:**
   1. `pages.yml` triggers on `pull_request`, `push` to `main`, and `workflow_dispatch`. Job `build`: checkout with `fetch-depth: 0` so KTD8's git dates resolve, `ruby/setup-ruby` with `bundler-cache` and `working-directory: site`, `bundle exec rake test`, `bundle exec jekyll build --strict_front_matter`, `bundle exec htmlproofer _site --disable-external --allow-missing-href`, upload with `actions/upload-pages-artifact`. Job `deploy`: needs `build`, runs only when the event is a push to `main`, `permissions: pages: write, id-token: write`, `environment: github-pages`, `actions/deploy-pages`. A concurrency group cancels superseded deploys.
-  2. `tests/site-scaffold.test.ts`: the four symlinks point at the expected repo paths; `site/CNAME` is exactly `compound.engineer`; `site/_config.yml` contains no `google_analytics`, `gtag`, or `plausible` keys and sets `google_fonts_url: false`; `site/index.md` names no skill or host literally; every skill directory has a guide (already covered elsewhere, so cite rather than duplicate).
+  2. `tests/site-scaffold.test.ts`: the four symlinks point at the expected repo paths; `_config.yml` sets `url: https://every.to` and `baseurl: /compound-engineering` and no `CNAME` exists; `site/_config.yml` contains no `google_analytics`, `gtag`, or `plausible` keys and sets `google_fonts_url: false`; `site/index.md` names no skill or host literally; every skill directory has a guide (already covered elsewhere, so cite rather than duplicate).
 - **Execution note:** Prove the workflow on the PR itself; the deploy job is expected to skip on the PR and to fail on `main` until the maintainer switches the Pages source (Dependencies), which is acceptable and documented in U6.
 - **Patterns to follow:** `ci.yml` step comments style; GitHub's starter Jekyll workflow for the artifact and deploy actions; `tests/release-metadata.test.ts` for reading repo files in tests.
 - **Test scenarios:**
@@ -326,7 +326,7 @@ U1 first, then U2 and U3 in parallel (both are plugin files against the U1 scaff
 - **Files:** `docs/development.md`, `AGENTS.md` (Repo Surfaces list).
 - **Approach:**
   1. `docs/development.md` gains a "Docs site" section: prerequisites (Ruby 3.3+, Bundler), `bun run site:build` and `bun run site:serve`, where sources come from, the rule that published sources are never edited for the site's sake, and how the plugin adopts them.
-  2. The same section carries the go-live runbook: Pages source to "GitHub Actions", custom domain `compound.engineer`, enforce HTTPS, the DNS records at Namecheap, and adding the `build` check to branch protection.
+  2. The same section carries the go-live runbook: Pages source to "GitHub Actions" with no custom domain, the every.to proxy rule that maps `/compound-engineering/*` to the Pages origin, and adding the `build` check to branch protection.
   3. `AGENTS.md` Repo Surfaces gains one line for `site/` and `.github/workflows/pages.yml` so agents know the docs site is a surface; `CLAUDE.md` stays a symlink.
 - **Patterns to follow:** existing `docs/development.md` sections; AGENTS.md list style.
 - **Test scenarios:** Test expectation: none -- documentation.

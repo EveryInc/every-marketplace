@@ -4,7 +4,8 @@
 
 title: Compound Engineering
 description: AI skills that make each unit of engineering work easier than the last.
-url: https://compound.engineer
+url: https://every.to
+baseurl: /compound-engineering
 lang: en-US
 logo: /assets/logo.png
 
@@ -46,7 +47,7 @@ jekyll_vitepress:
       width: 28
       height: 28
   typography:
-    google_fonts_url: /css/fonts.css
+    google_fonts_url: /compound-engineering/css/fonts.css
     body_font_family: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
     code_font_family: "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace"
   tokens:
