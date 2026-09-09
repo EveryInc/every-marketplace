@@ -56,7 +56,6 @@ Use the shared anchored rubric (see `subagent-template.md` — Confidence rubric
 
 - **`100` — Absolutely certain:** Provable from text — can quote two passages that contradict each other. Document text leaves no room for interpretation.
 - **`75` — Highly confident:** Likely inconsistency; a charitable reading could reconcile, but implementers would probably diverge. You double-checked and the issue will be hit in practice.
-- **`50` — Advisory (routes to FYI):** Minor asymmetry or drift with no downstream consequence (parallel names that don't need to match, phrasing that's inconsistent but unambiguous). Still requires an evidence quote. Surfaces as observation without forcing a decision.
 - **Suppress entirely:** Anything below anchor `50` — cannot verify, speculative, or stylistic drift without impact. Do not emit; anchors `0` and `25` exist in the enum only so synthesis can track drops.
 
 ## What you don't flag

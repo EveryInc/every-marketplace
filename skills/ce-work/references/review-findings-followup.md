@@ -84,7 +84,7 @@ Otherwise dispatch a subagent — even for a single finding. When unsure, dispat
 
 ### Summary (required)
 
-Report: batches dispatched, `#` applied vs skipped (with reasons from subagents), artifact path, tests run.
+Report the batches dispatched, `#` applied vs skipped, artifact path, verification results, and justified work still unresolved. Save the reasons for rejected claims with the review evidence. A skipped low-value suggestion is not a deferred concern to repeat in the handoff.
 
 ## Handoff to Residual Work Gate
 

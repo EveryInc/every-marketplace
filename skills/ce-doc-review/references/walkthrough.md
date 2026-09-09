@@ -8,7 +8,7 @@ Interactive mode only.
 
 ## Grouped confirmation (fires before routing)
 
-Step 3.7 sends here the specific fixes the agent has chosen within existing permission. These include changes to meet requirements already stated in the document and eligible findings raised only by another model. The reader sees and approves the edits before they are applied. Choices that still need the user are not part of this group.
+Step 3.7 sends here specific fixes the agent has chosen that still need edit approval. These include changes to meet requirements already stated in the document and eligible findings raised only by another model. The reader sees and approves the edits before they are applied. Choices that still need the user are not part of this group.
 
 **This fires after the applied changes and before the routing question, and it is the only place the batch is applied.** The routing question covers the decision surface only. Skip this step when the batch is empty.
 

@@ -414,8 +414,9 @@ describe("ce-code-review contract", () => {
     expect(template).toMatch(/lint.ignore|lint disable|eslint-disable/i)
     expect(template).toMatch(/suppress unless the suppression itself violates/i)
 
-    // Advisory routing rule preserved
-    expect(template).toMatch(/Advisory observations.*route to advisory/i)
+    // Live review leaked rejected concerns through advisory output; all buckets need admission.
+    expect(template).toMatch(/Advisory observations need a demonstrated benefit/i)
+    expect(template).toMatch(/same admission rule.*residual_risks.*testing_gaps/i)
 
     // Personas never produce anchors 0 or 25 (suppress silently)
     expect(template).toMatch(/personas never produce/i)
@@ -558,10 +559,10 @@ describe("ce-code-review contract", () => {
     expect(content).toMatch(/compact JSON.*in[- ]band/i)
     expect(content).toMatch(/launch receipt.*not.*reviewer return/i)
     expect(content).toMatch(/launch receipt.*uncollected/i)
-    expect(content).toMatch(/blocking collection/i)
+    expect(content).toMatch(/waiting and result delivery may be separate capabilities/i)
     expect(content).toMatch(/until every.*successful.*launch.*terminal outcome/i)
     expect(content).toMatch(/terminal.*tool error.*malformed.*failed reviewer/i)
-    expect(content).toMatch(/no reliable blocking collection/i)
+    expect(content).toMatch(/no reliable collection path.*terminal state and result/i)
     expect(content).toMatch(/["`]status["`]\s*:\s*["`]failed["`]/i)
     expect(skill).toMatch(/persisted peer.*cleanup.*before.*failure result/i)
     expect(content).toMatch(/persisted peer.*owning cleanup.*before.*failure/i)
@@ -627,7 +628,7 @@ describe("ce-code-review contract", () => {
     expect(content).toMatch(/compact.*verdict.*in[- ]band/i)
     expect(content).toMatch(/launch receipt.*not.*validator return/i)
     expect(content).toMatch(/launch receipt.*uncollected/i)
-    expect(content).toMatch(/blocking collection/i)
+    expect(content).toMatch(/waiting and result delivery may be separate capabilities/i)
     expect(content).toMatch(/terminal outcome/i)
     expect(content).toMatch(/malformed output.*validator infrastructure failure/i)
     expect(content).toMatch(/validator infrastructure failure/i)

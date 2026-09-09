@@ -6,6 +6,10 @@
 
 The plan is a decision artifact: authoritative for scope, decisions, units, and tests. `ce-work` figures out the actual implementation itself. This is the HOW phase that `ce-plan` deliberately does not pre-write.
 
+After code review, the host resolves verified fixes within the requested work and checks the result. The handoff reports changes, verification, and worthwhile unresolved work. Reasons for rejecting review suggestions stay with the review evidence; they do not become a new list of concerns for the user.
+
+Project simplification thresholds override the default. Deployment guidance belongs in the shipping handoff and must distinguish expected behavior changes from regressions.
+
 It is the fourth step in the compound-engineering ideation chain:
 
 ```text

@@ -315,7 +315,7 @@ Stable cross-skill fields, enums, and return statuses are protocols. Version or 
 
 A review agent is biased toward producing changes. Counter that bias directly.
 
-The agent using a review must check each finding against the requested outcome. Confidence and reviewer agreement can strengthen evidence; they do not prove that a change is worthwhile or grant permission to edit. Apply the same standard to every output field so rejected suggestions do not return as risks or open questions. The agent should choose technical fixes from project evidence within the permission already granted. Several workable approaches do not by themselves require a user decision. Keep choosing a fix separate from permission to apply it. When an assessment skill lacks essential context, it returns what is missing and why it matters to the calling agent instead of starting its own interview.
+The agent using a review must check each finding against the requested outcome. Confidence and reviewer agreement can strengthen evidence; they do not prove that a change is worthwhile or grant permission to edit. Apply the same standard to every output field so rejected suggestions do not return as risks or open questions. Reviewer personas and schema descriptions must use that same standard; a local rubric must not require concerns that synthesis is expected to discard. The agent should choose technical fixes from project evidence within the agreed outcome and constraints; permission governs whether it may apply them. Several workable approaches or newly specified details do not by themselves require a user decision. A calling workflow still owns its deliverable after review: preserve readable findings without treating the reviewer's wording, classifications, or counts as binding. When an assessment skill lacks essential context, it returns what is missing and why it matters to the calling agent instead of starting its own interview.
 
 ### Suspected defects
 
@@ -368,7 +368,7 @@ Prioritize:
 
 Do not imply a full model-by-harness suite for every edit. Choose fixtures tied to the biggest gotchas in the change.
 
-Use fresh context for behavioral prose evaluation. Some harnesses cache skill content at session start, so invoking the edited skill in the authoring session may test stale content.
+Use fresh context for behavioral prose evaluation. Verify that every callable copy of each workflow skill matches the frozen source in the actual host workspace, including sibling skills reached through native invocation. Record the resolved paths and content hashes. A fresh session can still load an older project-local copy after reading an updated bundle; some harnesses also cache skills at session start. Keep historical source being reviewed separate from the workflow skills executing the review.
 
 For side-effecting skills, evaluate in layers:
 

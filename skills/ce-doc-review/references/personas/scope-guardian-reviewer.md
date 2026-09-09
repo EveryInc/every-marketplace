@@ -61,7 +61,6 @@ Use the shared anchored rubric (see `subagent-template.md` — Confidence rubric
 
 - **`100` — Absolutely certain:** Can quote both the goal statement and the scope item showing the mismatch. Evidence directly confirms the misalignment.
 - **`75` — Highly confident:** Misalignment likely to derail the work, but fully confirming it would require context not in the document (strategic priorities, prior decisions). You double-checked and the issue will hit implementers.
-- **`50` — Advisory (routes to FYI):** Organizational preference without a concrete cost (unit ordering, section placement alternatives that read equally well, "this could also be split" observations without real impact). Still requires an evidence quote. Surfaces as observation without forcing a decision.
 - **Suppress entirely:** Anything below anchor `50` — speculative concern or stylistic preference. Do not emit; anchors `0` and `25` exist in the enum only so synthesis can track drops.
 
 ## What you don't flag

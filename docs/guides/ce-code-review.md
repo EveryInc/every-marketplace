@@ -12,7 +12,7 @@ It is not a verdict on a document (`ce-pov`), not findings on a planning doc (`c
 
 `ce-work` invokes it as the portable review path before shipping. `ce-optimize` and `ce-debug` also call it on the diffs they produce. You can invoke it directly any time.
 
-The agent leading the review checks each finding against the code. It keeps findings that identify a real problem or make maintenance easier enough to justify the change. Agreement between reviewers does not make a minor issue important. Rejected suggestions do not reappear as risks or requests for more tests.
+The agent leading the review checks each finding against the code. It keeps findings that identify a real problem or make maintenance easier enough to justify the change. Agreement between reviewers does not make a minor issue important. Rejected suggestions do not reappear as risks or requests for more tests. Advisory observations need a demonstrated benefit too; uncertainty by itself does not justify passing a concern to the user.
 
 ---
 

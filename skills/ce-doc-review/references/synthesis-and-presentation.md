@@ -16,9 +16,11 @@ Check each agent's returned JSON against the findings schema:
 
 ### 3.1b Admit Findings by Consequence
 
-Check reviewer claims against the document's purpose and the work it is meant to guide before assigning confidence. Keep a finding only if the evidence shows a specific problem with correctness or execution, or an improvement worth the disruption. Look up facts available within the review scope instead of asking the author for them.
+Establish what, if anything, prevents the document from guiding the agreed work. Retain a concern when its instructions cannot jointly satisfy the agreed contract, or when following the document, its references, and active project conventions would cause a demonstrated wrong outcome or worthwhile avoidable work. Judge an omission against what a competent implementer can already derive. A missing restatement, finer threshold, or additional procedure is not a defect when the existing instructions suffice.
 
-Drop preferences, possible problems without evidence, and demands for more detail that offer no worthwhile benefit. If an existing rule already covers the case, asking for more explicit wording does not establish a defect. Every retained item, including FYI, needs a current reason to matter. An earlier label, recommendation, high confidence score, or reviewer agreement is not enough. Rejected findings must not return as open questions. Zero findings is valid. Improvements to maintenance or clarity can qualify without a runtime bug, but explain their actual benefit.
+Investigate available facts before accepting a reviewer's claim. Establish the problem independently of its suggested fix: a useful-looking addition does not prove anything is missing. Keep the smallest supported correction that addresses the actual consequence. Verification changes must test the required outcome, not merely produce a passing check.
+
+Only concerns that meet this condition enter confidence scoring, recommendations, or output. This includes FYIs and deferred questions. Drop rejected claims from the working set; they require neither a user decision nor an automatic edit. Zero findings is valid.
 
 ### 3.2 Confidence Gate (Anchor-Based)
 
@@ -36,7 +38,6 @@ Gate findings by their `confidence` anchor value. Anchors are discrete integers 
 - **FYI-subsection** (anchor `50`): surface in the presentation layer's FYI subsection regardless of `autofix_class`. These do not enter the walk-through or any bulk action — observational value without forcing a decision. Only useful advisory observations that passed 3.1b land here; FYI is not a destination for rejected nits.
 - **Actionable** (anchors `75` and `100`): enter the classification pipeline. Route by `autofix_class` (see 3.7).
 
-**Why the surfacing floor sits at `50` while the actionable floor stays at `75`:** a planning document has no linter behind it, so this review is its only automated check, and premise-level concerns (product-lens, adversarial) cap at 50-75 because "is the motivation valid?" cannot be verified against the document. A `50` costs the reader one line in an observational subsection and never becomes a question, while missed-and-shipped derails implementation. That asymmetry justifies filtering low (`≥ 50`), and it holds **only** because `50` stays out of the pipeline — not because a menu makes dismissal cheap. The cost of a surfaced finding is the reader holding one more open question, not the keystroke that dismisses it; nothing downstream absorbs volume on its behalf.
 
 ### 3.3 Merge Duplicate Findings
 
@@ -73,25 +74,25 @@ Record any justified promotion in the Reviewer column as `(+1 anchor)`, naming t
 
 Check conflicting claims against the document, project evidence, and requested outcome before asking the user to decide. Drop a disproven claim or a preference with no significant benefit. Disagreement alone does not prove a defect. Record the reason internally so the rejected claim does not return when findings are combined or actions are chosen.
 
-If several fixes remain possible and choosing one needs an unresolved user preference, a scope decision, or permission, keep one combined `manual` finding. Include both views and the decision needed. Set `finding_type` from the document's actual defect, not the disagreement. Keep opposing fixes together even when they affect different sections; never schedule both as separate edits.
+If several fixes remain possible and choosing one needs an unresolved user preference or scope decision, keep one combined `manual` finding. Include both views and the decision needed. Set `finding_type` from the document's actual defect, not the disagreement. Keep opposing fixes together even when they affect different sections; never schedule both as separate edits.
 
 ### 3.5b Lead Recommended Action
 
-Give every retained finding one `recommended_action`: Apply, Defer, or Skip. The lead agent chooses it using the verified problem, benefit of the fix, agreed scope, and existing decisions. Reviewer votes and classifications inform this choice but do not decide it.
+Remove rejected claims from the retained review set and record why internally. A rejection is a completed judgment, not a recommendation for the user to confirm. Only surviving problems receive a `recommended_action` for presentation.
 
-Recommend Apply for a justified, concrete fix. Recommend Defer when essential evidence or a user decision is missing, or no specific edit can yet be made. Skip a claim that fails review; do not keep it as an FYI or open question just because a reviewer raised it. Recommendations do not change the permission rules in 3.7: changes to meaning still need approval as a group, and unresolved choices for the user remain `manual`.
+Choose that action from the verified problem, benefit of the correction, agreed scope, and existing decisions. Recommend Apply when the correction is justified and concrete. Recommend Defer when a worthwhile problem cannot yet be resolved. A recommendation to Skip a proposed remedy belongs in the user-facing review only when a consequential unresolved choice still requires the user; explain that choice rather than asking them to ratify your rejection.
 
-When reviewers recommended different actions, keep one line explaining the lead agent's choice and its evidence. The walk-through and bulk preview use that `recommended_action` without recalculating it. After 3.6 and 3.7, check that each Apply still has a specific edit in `suggested_fix`; otherwise recommend Defer.
+When reviewers recommended different actions, keep one line explaining the lead agent's choice and its evidence. The walk-through and bulk preview use that `recommended_action` without recalculating it. Recommendations do not grant edit permission. After 3.6 and 3.7, check that each Apply still has a specific edit in `suggested_fix`; otherwise recommend Defer.
 
 ### 3.6 Resolve Who Can Choose the Fix
 
-Check each retained finding against the document, project evidence, and permission already granted. Choose technical fixes within that permission, even when several approaches would work. Recommend the smallest fix that solves the problem and state the supporting evidence. A reviewer's `manual` label, uncertainty, or missing suggested fix does not replace this investigation.
+Each retained problem leaves this step with a correction the agent can choose or a specific unanswered question only the user can settle. Determine that from the current document, evidence, and user decisions. A reviewer's classification or a previous review's section heading is not a user decision and does not carry forward as the answer.
 
-Use project evidence to decide how to implement or verify the agreed outcome. Adding detail or changing a method does not by itself create a new commitment for the user. Keep `manual` only when a fix needs the user to decide the outcome or its constraints, permission beyond the existing request, or essential information you cannot obtain. State what is missing and how different answers would change the result. Calling something a product decision or tradeoff is not enough. Preserve agreed decisions. If evidence shows a chosen method cannot work, choose a replacement within scope unless the user reserved that choice.
+Use `manual` only when you can state the missing input or consequential choice, why the agreed outcome and constraints leave it unresolved, and how the user's answer changes the work. A description of a technical fix does not establish such a question. When the document already determines the outcome, choose the smallest supported correction within its constraints; the existence of other workable methods does not transfer that choice to the user.
 
-Use `gated_auto` for a chosen fix that changes the document's meaning. Only a mechanical correction with one right answer qualifies for `safe_auto`. If another workable correction exists, do not apply it silently. Choosing a fix does not give permission to apply it.
+Use `safe_auto` for a mechanical correction with one right answer and `gated_auto` for a chosen correction that changes meaning. Step 3.7 determines whether the correction may be applied. Keep prior user decisions and actual applied changes; reclassify the remaining reviewer proposals from their evidence.
 
-**Fixes found only by another model.** These never qualify for `safe_auto`. The lead agent may change a `manual` finding to `gated_auto` after verifying the evidence and choosing a fix within existing permission. Keep the original reviewer attribution: the lead agent's investigation is not another independent review. Silent application still requires an in-process reviewer to have independently raised the same issue (R18), along with the normal confidence and mechanical-correction requirements.
+**Fixes found only by another model.** These never qualify for `safe_auto`. The lead may choose a supported `gated_auto` correction within the agreed outcome and constraints, but its own investigation is not independent review. When missing local corroboration is the only obstacle to an otherwise authorized, worthwhile correction, obtain the limited independent check described in `references/document-intake.md` before returning it for approval. Keep the original attribution and record any new review separately. Silent application requires that local reviewer to independently identify the same issue (R18), plus the confidence and edit-authority requirements in 3.7. Missing, failed, or disagreeing local evidence leaves the peer-only restriction in place.
 
 ### 3.7 Route by Autofix Class
 
@@ -101,25 +102,31 @@ Use `gated_auto` for a chosen fix that changes the document's meaning. Only a me
 
 Findings reaching 3.7 have already been gated to anchors `50`, `75`, or `100` by 3.2 (anchors `0` and `25` were dropped).
 
-**Check obligations before autofix routing.** A finding is an **obligation** when the question that resolves it is already answered elsewhere in the document under review. The document made the decision; the finding reports only that some part of the document has not caught up. Entailed contradictions, a missing owner for behavior the document already requires, and a callsite implied by the document's own decision are obligations.
+**Check obligations before autofix routing.** An **obligation** is a retained defect whose remedy follows from a decision the document already made. This classifies findings that passed 3.1b; it does not create findings because a unit is less detailed than the contract it follows.
 
-A finding is **not** an obligation if its fix adds a commitment the document has not made. A technical fix independently justified by project evidence may still enter **Proposed fixes** after 3.6; do not describe it as already required by the document. If the user must decide a new commitment, keep it `manual`.
+A finding is **not** an obligation merely because its fix would improve the document. Project evidence may justify a technical correction without making it an existing requirement. Step 3.6 decides who can choose the correction; grouping it here does not reopen that judgment.
 
 An obligation that changes meaning uses `gated_auto` and must include a specific `suggested_fix`. A mechanical `safe_auto` correction keeps its class, subject to the restriction on findings raised only by another model. If investigation still leaves no specific edit to apply, exclude it from the group and return the missing information to the calling agent.
 
 This is a per-finding test against one document. It needs no comparison to other findings and is independent of the merging in 3.3.
 
-Route the obligations carrying a fix to the part of the document they affect instead of the per-finding walk-through: the implementation unit when the document has units, the owning section when it does not — a requirements-shaped document has none, and an obligation can arise there just as easily. They render as one grouped list under that unit or section and are confirmed together, so the user makes a single decision about work the document already settled. **Render the group in full before the confirmation fires** — a batch confirmation with nothing visible above it is a rubber stamp, not a decision.
+Group obligations still needing approval under the implementation unit or owning section they affect. They belong in one approval batch, not the per-finding decision walk-through. **Render the group in full before the confirmation fires.**
 
-Obligation grouping governs what the user is asked about, never what applies silently. An obligation at anchor `100` with `autofix_class: safe_auto` still applies silently under the table below.
+Obligation grouping governs presentation, not edit authority. Route authorized corrections to Apply before constructing the approval batch.
 
 **Evidence, choosing a fix, and permission to edit are separate checks.** Confidence describes support for the finding. Step 3.6 decides whether the agent can choose the fix. This step decides whether and how the reader must approve the edit.
 
-Show the concrete fixes the agent has chosen together for one approval. Ask separate questions only for essential missing information or choices the user still needs to make. If permission remains unclear after investigation, keep `manual` and explain what is missing. Another reasonable implementation is not, by itself, missing permission.
+**Establish edit authority from the request and the document's settled decisions.** Explicit read-only, report-only, or narrower edit restrictions take precedence. By default, this review may correct a proven defect in the reviewed document when the correction is necessary to implement a concrete decision already made there. Name that decision and how the defect prevents it from being carried out. Broad goals such as quality, safety, or clarity do not establish a particular correction. The correction must preserve user commitments and require no unresolved user input; choosing among equivalent technical methods does not itself create a user decision.
+
+Apply such a correction at anchor `100` when a local reviewer supports the finding and a specific `suggested_fix` is ready. This may be `safe_auto` or `gated_auto`: changing wording or meaning to fulfill an existing decision is different from making a new decision. Findings raised only by another model retain the R18 restriction, and session-settled annotations remain protected.
+
+An explicit user or caller grant may cover additional technical corrections at anchor `75` or `100` within its named scope and established contract. It does not authorize changing product outcomes, constraints, or user-reserved choices unless the grant expressly includes them. Confidence, reviewer agreement, and non-interactive mode never supply edit authority.
+
+For findings not covered by the authority above, use the routes below. Show the chosen fixes together for one approval. Ask separate questions only for essential information or choices the user still needs to supply. Another reasonable implementation does not, by itself, create a user decision.
 
 | Anchor | Autofix Class | Route |
 |--------|---------------|-------|
-| `100`  | `safe_auto`   | Apply. Report in the change list. Mechanical corrections only — evidence directly confirms and there is one right answer. Requires `suggested_fix`; demote to `gated_auto` if missing. |
+| `100`  | `safe_auto`   | Apply when the request permits default editing. Report in the change list. Mechanical corrections only — evidence directly confirms and there is one right answer. Requires `suggested_fix`; demote to `gated_auto` if missing. |
 | `100`  | `gated_auto`  | Grouped confirmation. A concrete fix that touches meaning, so the reader sees it before it lands — but batched, not asked one at a time. Requires `suggested_fix`; demote to `manual` if missing. |
 | `100`  | `manual`      | A decision — the reader chooses, never a question about whether to proceed with something already settled. Ask **which remedy** only when the finding carries competing ones; see below. |
 | `75`   | `safe_auto`   | Grouped confirmation. Unattended apply stays reserved for anchor `100`, where the evidence directly confirms the fix. Requires `suggested_fix`; demote to `manual` if missing. |
@@ -127,19 +134,19 @@ Show the concrete fixes the agent has chosen together for one approval. Ask sepa
 | `75`   | `manual`      | A decision. Same treatment. |
 | `50`   | any           | Surface in the FYI subsection regardless of `autofix_class`. Do not enter the decision surface or any batch action. These are observations. |
 
-**Nothing that touches document meaning applies unattended.** Only `safe_auto` at anchor `100` applies without the reader seeing it first. Other actionable findings with a concrete, resolved remedy go to the grouped confirmation: one question covering the whole batch, rendered in full before it fires.
+**A useful improvement is not automatically an entailed correction.** When no concrete settled decision requires the change and no edit grant covers it, retain a worthwhile, chosen remedy in the grouped confirmation. Keep choices the user must still make in Decisions.
 
-This is a deliberate retreat from a stricter rule, and the reason is measured. Routing `gated_auto` straight to Apply was evaluated across four rounds on a real review. It reported far more corrections — 7 to 9 of 9, against 2 to 4 when Apply was gated harder — but it also applied a genuine product fork in most runs, because the model cannot reliably tell which findings carry a real choice. Asking it to route its own uncertainty to a safer bucket did not help: it never used that route, since it does not experience the uncertainty as uncertainty. It simply decides, and is sometimes wrong.
+Earlier blanket application of `gated_auto` corrections selected genuine product forks (#1373). The boundary above therefore requires a concrete prior decision or an explicit edit grant; classifying a fix as technical or inevitable cannot establish either.
 
-So the volume problem and the authority problem get separated. **The grouped confirmation solves volume** — one question for a batch is not eleven prompts, which is the complaint this work started from. **Attended review solves authority** — a wrong classification costs the reader a glance rather than an unrequested change to their document. What `autofix_class` still decides is *how* the reader meets a finding: batched with everything else settled, or as a fork with its own question.
+Present three groups: **applied** corrections, **proposed fixes** still needing approval, and **decisions** that the user must still make. Proposed fixes include entailed corrections that still lack sufficient confidence or independent reviewer support, and worthwhile improvements outside current edit authority. Follow the shared rendering rules so the reader can distinguish these groups.
 
-Present three groups: **applied** mechanical corrections, **proposed fixes** shown together for approval, and **decisions** that the user must still make. Proposed fixes include requirements already decided elsewhere in the document and eligible findings raised only by another model. Follow the shared rendering rules so the reader can distinguish these groups.
-
-**Where competing remedies come from — and where they do not.** The reviewer contract commits `suggested_fix` to a single recommendation and forbids alternative menus (`references/subagent-template.md`), so an ordinary `manual` finding reaches the decision surface with one fix or none. It has no menu to offer, and the walk-through gives it the regular four-option question. The case that genuinely carries two is 3.5's contradiction resolution: two personas disagreeing on the same section become one combined finding holding both perspectives, framed as a tradeoff. Ask which-remedy there. Do not invent a second option elsewhere to make the fork appear — the finding is still a decision when it carries one remedy; the reader is choosing whether that remedy is what they want, which is not the same as being asked to rubber-stamp something settled.
+**Present the unresolved choice, when one remains.** Step 3.6 decides whether the user must choose; the number of proposed remedies does not. The reviewer contract supplies one recommendation, so use the regular walk-through question for a genuine decision with one remedy. When contradiction resolution in 3.5 preserves competing remedies, present both views and ask which remedy. Do not invent alternatives to create a choice.
 
 **No silent fixes from another model alone.** Findings raised only by another model never go directly to Apply, regardless of confidence or class (R18). Show a verified, chosen fix for approval with the others. Keep `manual` when a user decision or essential information is still missing. The source of a finding limits silent application, not the lead agent's ability to investigate and recommend.
 
-**Check the proposed edit before applying it.** A concrete `suggested_fix` does not grant permission. Confirm that each fix preserves agreed commitments and does not decide something reserved for the user. Keep an unresolved user choice as `manual`. A `safe_auto` fix that changes meaning or has more than one correct answer can become `gated_auto` only after the agent has resolved the choice. Mechanical corrections must follow directly from the document's authoritative content. A visual aid may be updated to fix an inconsistency, but not deleted merely because it repeats prose.
+**Check the correction against the problem.** Before applying or recommending an edit, establish that it resolves the retained problem and preserves the agreed outcome with no unnecessary new requirements. Verify prescribed mechanisms against the actual project interfaces and behavior; where implementation can choose the mechanism, state the result it must achieve. A fix that merely looks more explicit is not ready to apply.
+
+Check edit authority separately. A concrete `suggested_fix` does not grant permission, and a choice reserved for the user remains `manual`. A `safe_auto` fix that changes meaning or has more than one correct answer can become `gated_auto` only after the agent has resolved the choice. Mechanical corrections must follow directly from the document's authoritative content. A visual aid may be updated to fix an inconsistency, but not deleted merely because it repeats prose.
 
 ### 3.8 Sort
 
@@ -167,7 +174,7 @@ a weaker per-surface rule; the floor is authoritative.
 
 ### Apply the findings 3.7 routed to Apply
 
-Apply, in a single pass, every finding 3.7 routed to Apply — **anchor `100` with `safe_auto`, and nothing else**. Evidence directly confirms the problem and there is one right answer, so the reader loses nothing by seeing it as a reported change rather than a question. Everything else with a concrete fix goes to the grouped confirmation, where the reader sees it before it lands.
+Apply, in a single pass, every finding 3.7 routed to Apply. Verify that each edit resolves its finding and preserves the governing contract. Report what changed and which settled decision or supplied edit scope authorized it. Findings outside Apply remain unapplied.
 
 Apply each edit in the document's native format and preserve its existing structure. Never insert markdown syntax into HTML, and for an ID-bearing HTML item mirror the nearest sibling's structure, preserving both its anchor convention and its visible ID text.
 
@@ -208,7 +215,7 @@ not acceptable rendered output.
 
 **Non-interactive mode:** Do not use interactive question tools. Output all findings as a structured text envelope the caller can parse. Internal enum values (`safe_auto`, `gated_auto`, `manual`, `FYI`) stay in the schema and synthesis prose; the envelope below uses user-facing vocabulary — "fixes", "Proposed fixes", "Decisions", "FYI observations" — so non-interactive output reads the same way interactive output does.
 
-Two things about the template that follows. **Nothing in the batch has been confirmed here** — this mode asks no questions, so the obligations and proposed fixes are returned *awaiting* a confirmation the caller must obtain. Wording that reports them as already confirmed invites a caller, or a user reading over its shoulder, to treat unapplied and unapproved changes as accepted. And **the fence is the output**: on a document with no implementation units, title the obligations section "Entailed corrections" and use the section name as each group heading — do not emit that instruction, or any other bracketed note, into the envelope the caller parses.
+Two things about the template that follows. **Nothing left in the batch has been confirmed here** — these edits were not covered by existing authority and this mode asks no questions, so they are returned *awaiting* confirmation. Already-authorized corrections that landed belong only in Applied. Wording that reports them as already confirmed invites a caller, or a user reading over its shoulder, to treat unapplied and unapproved changes as accepted. And **the fence is the output**: on a document with no implementation units, title the obligations section "Entailed corrections" and use the section name as each group heading — do not emit that instruction, or any other bracketed note, into the envelope the caller parses.
 
 ```
 Document review complete (non-interactive mode).
@@ -261,7 +268,7 @@ Review complete
 
 Omit any section with zero items. The bucket names are the user-facing vocabulary for the routes 3.7 assigned: "Applied N fixes" reports what already changed, the obligations block and "Proposed fixes" together render the grouped confirmation (obligations first, then the rest of the batch, each shaped by the floor's "Presenting a batch" rule — the caller re-narrates this envelope to a reader who has seen none of it, so a flat list here becomes a flat list there), "Decisions" carries the decision surface, and "FYI observations" carries anchor `50`. End with "Review complete" as the terminal signal so callers can detect completion.
 
-**Obligations count as proposed fixes.** They render as a group rather than item by item — grouping changes presentation, not the count. So obligations are included in the proposed-fixes count a caller parses, and the caller's actionable-items gate keeps its meaning. Do **not** export a separate obligation count: a review whose findings are all obligations must still report actionable items, or a caller gating on that sum would hide the confirmation step and the user would never see work the review found.
+**Count findings by their final route.** Obligations still awaiting grouped confirmation count as proposed fixes; grouping changes presentation, not the count. Obligations already applied count only as applied fixes. Do not export a separate obligation count: the caller uses the proposed-fixes count to detect pending approval, so it must include every pending edit and exclude edits that already landed.
 
 **Compact rendering for FYI observations, residual concerns, and deferred questions (high-count mode).** When the combined count of these three buckets is 5 or more, collapse each to a one-line count followed by a tight bullet list — FYI observations use their consequence line, residual concerns and deferred questions their concern or question text — with no per-item elaboration. Actionable buckets (Proposed fixes / Decisions) remain fully rendered regardless. This mirrors the interactive-mode rule in `references/review-output-template.md` so both modes produce the same shape.
 

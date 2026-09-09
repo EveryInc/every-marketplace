@@ -46,12 +46,12 @@
           "autofix_class": {
             "type": "string",
             "enum": ["safe_auto", "gated_auto", "manual"],
-            "description": "How to handle the finding. safe_auto = a mechanical correction with one right answer that follows directly from authoritative content. gated_auto = a concrete fix chosen within existing permission that needs approval with the other proposed edits. Several workable technical approaches do not by themselves require a user decision. manual = an unresolved user choice or essential information investigation cannot obtain. Confidence and reviewer independence impose separate limits on what can apply."
+            "description": "How to handle the finding. safe_auto = a mechanical correction with one right answer that follows directly from authoritative content. gated_auto = a concrete correction to document meaning for the agreed outcome. Synthesis applies it only with sufficient edit authority; otherwise it needs approval with the other proposed edits. Several workable technical approaches do not by themselves require a user decision. manual = an unresolved user choice or essential information investigation cannot obtain. Confidence and reviewer independence impose separate limits on what can apply."
           },
           "finding_type": {
             "type": "string",
             "enum": ["error", "omission"],
-            "description": "Whether the finding is a mistake in what the document says (error) or something the document forgot to say (omission). Errors are design tensions, contradictions, or incorrect statements. Omissions are missing mechanical steps, forgotten list entries, or absent details."
+            "description": "Whether the admitted defect is incorrect or incompatible instructions (error), or a necessary decision or constraint not supplied by the document, its references, or existing conventions (omission). Missing repetition or optional detail is not an omission."
           },
           "suggested_fix": {
             "type": ["string", "null"],
@@ -73,12 +73,12 @@
     },
     "residual_risks": {
       "type": "array",
-      "description": "Risks the reviewer noticed but could not confirm as findings (below confidence threshold)",
+      "description": "Distinct uncertainty with evidence of a material consequence for the agreed outcome. Apply the same admission standard as findings; omit rejected claims, preferences, and successful verifications.",
       "items": { "type": "string" }
     },
     "deferred_questions": {
       "type": "array",
-      "description": "Questions that should be resolved in a later workflow stage (planning, implementation)",
+      "description": "Essential information or decisions a later stage must resolve to deliver the agreed outcome. Omit questions already answered by the contract or discoverable project evidence.",
       "items": { "type": "string" }
     }
   }

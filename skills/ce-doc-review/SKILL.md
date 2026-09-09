@@ -6,10 +6,11 @@ argument-hint: "[mode:non-interactive] [path/to/document.{md,html}]"
 
 # Document Review
 
-Review a requirements or plan document with a team of reviewer personas. Dispatch generic subagents, each seeded with a skill-local reviewer prompt. Synthesis sorts the findings: apply and report the ones it routes to Apply, in the document's native format, and route the rest to the user.
+Help the author finish a sound document they can use to carry out the agreed work. Find problems that would change that work's outcome or materially hinder execution, and resolve them within the authority already given. Judge the document by whether it guides correct work, not by how much detail it contains. Serious consequences warrant attention even when the defect is small. An adequate document needs no changes.
 
-**Done when:** every assigned reviewer has returned or is named as failed in Coverage, every fix assigned to Apply has been made and reported, and every retained unresolved finding has been presented using the required approval or decision process (interactive) or returned as structured text with its classification preserved (non-interactive).
+Reviewer personas supply evidence; you own the judgment. Investigate their claims against the whole document, project facts, and settled decisions. Correct proven errors that prevent an existing decision from being carried out, within the edit authority and reviewer requirements in synthesis. Return only worthwhile improvements still needing permission, consequential choices or essential information only the user can supply, and useful observations.
 
+**Done when:** every assigned reviewer has returned or is named as failed in Coverage, retained findings have a verified consequence for the agreed work, and every authorized correction assigned to Apply has been made and checked. Report that final state through the interactive approval or decision process, or return it as structured text in non-interactive mode.
 
 ## Interactive mode rules
 

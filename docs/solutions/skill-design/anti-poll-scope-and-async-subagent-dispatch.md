@@ -45,14 +45,14 @@ Conflating the two is what made #1159 serialize local reviewer dispatch one-at-a
 A portable rule classifies what dispatch actually returned:
 
 - **Terminal outcome:** the launch is collected. Consume a valid compact result; classify a terminal tool error or malformed output under the workflow's failed/degraded rules.
-- **Launch identifier or asynchronous receipt:** a launch receipt means the reviewer is uncollected. Use the host's blocking collection capability until the launch reaches a terminal outcome.
-- **No reliable blocking collector:** stop the launched work and take the workflow's failure or degraded path. Fail closed only after discharging lifecycle obligations for detached work already started. Never wait for a notification, emit progress-only output, or synthesize a partial roster.
+- **Launch identifier or asynchronous receipt:** a launch receipt means the reviewer is uncollected. Use the host's native waiting and result delivery until the launch reaches a terminal outcome and its result is consumed or classified as failed.
+- **No reliable collection path:** stop the launched work and take the workflow's failure or degraded path. Fail closed only after discharging lifecycle obligations for detached work already started. Never substitute a notification, progress-only output, or a partial roster for completion.
 
-The same classification governs both reviewer batches and later validator batches. A foreground request is an intent, not evidence that a result arrived. A host-specific collector is acceptable only when its live contract shows that it accepts the launch identifier, blocks until terminal, and returns the terminal outcome; a plausible tool name is not enough.
+The same classification governs both reviewer batches and later validator batches. A foreground request is an intent, not evidence that a result arrived. Waiting and result delivery may be separate host capabilities. The live contract must establish both terminal state and the result; it need not expose one tool that waits and returns the result. A notification alone is not completion, while a delivered terminal result can complete collection. Requiring one collector caused a live Codex review to fail before dispatch despite native waiting and terminal-message delivery being available.
 
 For an asynchronous primitive, the rule still needs three explicit clauses:
 
-- **Collect the complete roster.** Blocking collection waits continue until every successful launch reaches a terminal outcome. These harness-managed waits are not the forbidden detached-delegate poll loop.
+- **Collect the complete roster.** Native collection continues until every successful launch reaches a terminal outcome. These harness-managed waits are not the forbidden detached-delegate poll loop.
 - **Release collected agents when the primitive retains slots.** A completed agent can keep occupying its concurrency slot until explicitly closed; release it before refilling and before the validator stage.
 - **Guard the transition.** Synthesis cannot begin on launch receipts or a partial roster. If complete collection is unavailable, return the mode-appropriate failure instead.
 
@@ -62,7 +62,7 @@ On a harness that does not run same-message calls concurrently, this identical d
 
 Codex review of PR #1214 caught a partial-roster gap and a slot-cleanup gap in its asynchronous primitive. The resulting host-name split still assumed Claude Code supplied an all-return barrier. Issue #1523 falsified that assumption: Claude `-p` recorded local reviewers as background work despite foreground requests, then hit its print-mode background ceiling without returning final review JSON.
 
-The deeper lesson is that a harness label describes neither every version nor every execution mode. When a rule encodes concurrency or pool/refill semantics, the observable result is the contract: a terminal outcome means collected and ready for validation; a receipt means collection remains; no blocking collector means fail closed.
+The deeper lesson is that a harness label describes neither every version nor every execution mode. When a rule encodes concurrency or pool/refill semantics, the observable result is the contract: a terminal outcome means collected and ready for validation; a receipt means collection remains; no reliable collection path means fail closed.
 
 ## When to Apply
 

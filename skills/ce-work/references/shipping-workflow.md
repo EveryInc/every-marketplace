@@ -18,7 +18,7 @@ This file contains the shipping workflow (Phase 3-4). It is loaded when all Phas
 
 2. **Simplify** (conditional — separate from code review)
 
-   Before code review, invoke **`ce-simplify-code`** when the diff has enough substantive code to benefit (default: **>=30 substantive changed code lines** — count human-authored code, not total diff lines). Skip when the diff is purely mechanical (formatting, dependency bumps, lint-only fixes, generated artifacts) or when substantive code stays under the floor even though the total diff is larger.
+   Before code review, apply the project’s simplification threshold when one is specified. Otherwise invoke **`ce-simplify-code`** at **>=30 substantive changed code lines**. Count human-authored code, not total diff lines. Skip when the diff is purely mechanical (formatting, dependency bumps, lint-only fixes, generated artifacts) or when substantive code stays under the floor even though the total diff is larger.
 
    This step refines reuse, quality, and efficiency on the **current diff** so any later review sees cleaner code. It is not a substitute for code review.
 
@@ -61,14 +61,10 @@ This file contains the shipping workflow (Phase 3-4). It is loaded when all Phas
    - If any `Deferred to Implementation` questions were noted, confirm they were resolved during execution
 
 6. **Prepare Operational Validation Plan** (REQUIRED)
-   - Add a `## Post-Deploy Monitoring & Validation` section to the PR description for every change.
-   - Include concrete:
-     - Log queries/search terms
-     - Metrics or dashboards to watch
-     - Expected healthy signals
-     - Failure signals and rollback/mitigation trigger
-     - Validation window and owner
-   - If there is truly no production/runtime impact, still include the section with: `No additional operational monitoring required` and a one-line reason.
+
+   The PR description's `## Post-Deploy Monitoring & Validation` section must let a maintainer distinguish the intended behavior change from a regression. Base its log queries, metrics, expected signals, failure/mitigation triggers, validation window, and owner on the available project evidence. State material unknowns rather than inventing operational facts. A rollback trigger needs evidence of unintended harm; a change in behavior the task explicitly requires is not that evidence.
+
+   If there is no production/runtime impact, use `No additional operational monitoring required` with a one-line reason. Prepare this material for the shipping handoff; do not turn it into extra advice in a local-completion reply when shipping is outside the requested work.
 
 ## Phase 4: Ship It
 
@@ -120,7 +116,7 @@ Before creating PR, verify:
 - [ ] Validation/evidence context passed to `ce-commit-push-pr` when the change has observable behavior
 - [ ] Commit messages follow conventional format
 - [ ] PR description includes Post-Deploy Monitoring & Validation section (or explicit no-impact rationale)
-- [ ] Simplify: `ce-simplify-code` when the diff has >=30 substantive changed code lines (or skipped with reason)
+- [ ] Simplify: `ce-simplify-code` under the threshold selected in Phase 3 (or skipped with reason)
 - [ ] Code review completion gate: completed receipt (`status: complete` + `artifact_path`/`run_id` or markdown Actionable/Coverage/Verdict) **or** exact phrase (`Code review: skipped (mechanical diff)` / `Code review: skipped (ce-code-review unavailable)` / `Code review: harness-native fallback`); residuals handled via the Residual Work Gate
 - [ ] Ship-handoff gate passed before `ce-commit-push-pr` / `ce-commit` (completed receipt or exact phrase in shipping context)
 - [ ] PR description includes summary, testing notes, and evidence when captured
