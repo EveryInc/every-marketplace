@@ -70,7 +70,7 @@ Enumerate the candidates from **the tree under review**, never from whichever tr
 
 Candidates are `CODING_STANDARDS.md`, `CLAUDE.md`, and `AGENTS.md` at any depth. Keep those whose directory is an ancestor of a changed file — a root-level file governs the whole checkout, `skills/AGENTS.md` only what is under `skills/`.
 
-`CODING_STANDARDS.md` is the designated criteria source, so an instruction file supplies criteria only for changed files that no `CODING_STANDARDS.md` governs, and no file is graded against both kinds. Every governing `CODING_STANDARDS.md` still applies together. When the instruction-file fallback supplied the criteria for any changed file, name it as the fallback in Coverage.
+`CODING_STANDARDS.md` is the designated criteria source, so an instruction file supplies criteria only for changed files that no `CODING_STANDARDS.md` governs, and no file is graded against both kinds. Every governing `CODING_STANDARDS.md` still applies together. Declared Compound Packs are not a criteria kind here: they select `learnings-researcher` in Stage 3 and are graded by it independently, so a line that violates a standards rule and a pack rule yields one finding per source. When the instruction-file fallback supplied the criteria for any changed file, name it as the fallback in Coverage.
 
 **Done** when no changed file could be graded against two kinds of criteria. A changed file that no criteria file governs is a complete result, not a gap. **On uncertainty, fail closed** — an error is never an empty result:
 

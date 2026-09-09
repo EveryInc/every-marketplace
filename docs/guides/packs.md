@@ -63,7 +63,7 @@ applies_when:
   - architecture
 ```
 
-Rules of thumb: one situation per line; use the vocabulary a feature request would use ("page", "endpoint", "background job"), not internal jargon; two or three concrete conditions beat one abstract one.
+Rules of thumb: one situation per line; use the vocabulary a feature request would use ("page", "endpoint", "background job"), not internal jargon; two or three concrete conditions beat one abstract one. Keep rules in one pack disjoint in what they prescribe: when two rules both reach the same line, review files a finding for each contradiction and has no way to decide which rule governs, so a narrower rule's carve-out ("a value that is only logged needs no validation") belongs in the broader rule's text too.
 
 **Scoping a rule to a pipeline stage** is also just phrasing — there is no `stages:` field, on purpose. Every consuming stage matches `applies_when` against *its own* context, so a situational condition self-selects: *"reviewing a diff that touches payment code"* fires at review and nowhere else; *"deciding whether a feature needs a new endpoint"* is planning-shaped; a neutral condition like *"adding a page that needs server data"* correctly fires at planning **and** again at review — same rule, both moments earned. Only frontmatter is re-read per stage (cheap); a rule's body loads solely on a match. Unknown frontmatter keys are tolerated, so future fields can be added without breaking existing packs. Packs are read in full (every file's frontmatter, no keyword pre-filter, up to 25 files per pack), so a condition sharing zero keywords with the prompt can still match — but a clearly-worded situation matches more reliably.
 
@@ -225,7 +225,7 @@ CE grounds in **two knowledge corpora**, searched by the same research pass with
 | Discovery | **Grep-first**: frontmatter patterns shortlist a large corpus, then the shortlist is read | **Read-everything**: every rule's frontmatter is read and matched semantically (no keyword filter below 25 files) |
 | A miss costs | A little rediscovery | The violation the pack exists to prevent — hence the stronger guarantee |
 
-Both are searched together wherever institutional knowledge loads: `ce-plan`'s research and `ce-code-review`'s learnings pass take a search-root list of `<root>/solutions/` **plus** every resolved pack — declaring packs never displaces learnings discovery. (`ce-brainstorm`'s scout reads packs and the repo but not `docs/solutions/` — implementation learnings enter at the planning stage by design; `ce-doc-review` receives packs only.)
+Both are searched together wherever institutional knowledge loads: `ce-plan`'s research and `ce-code-review`'s learnings pass take a search-root list of `<root>/solutions/` **plus** every resolved pack — declaring packs never displaces learnings discovery. A repo's `CODING_STANDARDS.md` is a third, separate source: review grades it through its own `project-standards` pass, so a line that breaks both a standards rule and a pack rule gets one finding per source, each citing its own file. (`ce-brainstorm`'s scout reads packs and the repo but not `docs/solutions/` — implementation learnings enter at the planning stage by design; `ce-doc-review` receives packs only.)
 
 So the compounding loop is: solve → `/ce-compound` captures it as a Learning → planning and review rediscover it in this repo — and when it proves to be a standing rule bigger than one repo, promote it into a pack (next section) so every declaring repo inherits it.
 
