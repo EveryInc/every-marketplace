@@ -4,9 +4,9 @@
 
 `ce-babysit-pr` is the post-open watch. It is a git-workflow skill, not a core-loop step. After `/ce-commit-push-pr` opens a PR, this skill watches three streams (review comments, CI, base-branch movement) until the PR looks ready, is blocked, hits a budget, or is merged or closed.
 
-It is a conductor. It does not fix comments or diagnose CI itself. Comments go to `/ce-resolve-pr-feedback`. Real CI failures go to `/ce-debug`. This skill owns the loop, the order, dedup across ticks, the settle window, bounded branch maintenance, and the stop. `/ce-resolve-pr-feedback` by contrast is a one-pass "fix the comments now" skill. Use that when you want a single round you watch. Use this when you want the PR driven over time.
+It coordinates other skills. It does not fix comments or diagnose CI itself. Comments go to `/ce-resolve-pr-feedback`. Real CI failures go to `/ce-debug`. This skill owns the loop, the order, dedup across ticks, the settle window, bounded branch maintenance, and the stop. `/ce-resolve-pr-feedback` by contrast is a one-pass "fix the comments now" skill. Use that when you want a single round you watch. Use this when you want the PR driven over time.
 
-Posture sets the scope. Default is `target`, the named PR only. On a confirmed managed stack you can choose `stack-ready` (advance upstack as soon as a layer has nothing actionable, even while its CI is still running, with lower layers kept under probe; no merge) or `stack-land` (same walk, plus `gh stack merge` of the bottom-most open settled prefix). Settled is not merged. A layer can look ready and still be OPEN.
+Posture sets the scope. Default is `target`, the named PR only. On a confirmed managed stack you can choose `stack-ready` or `stack-land`. `stack-ready` advances upstack as soon as a layer has nothing actionable, even while its CI is still running, with lower layers kept under probe, and does not merge. `stack-land` does the same walk, plus `gh stack merge` of the bottom-most open settled prefix. Settled is not merged. A layer can look ready and still be OPEN.
 
 It cannot promise merge-readiness. A reviewer can still comment later. Required checks can change. Under `target` and `stack-ready`, you merge. Selecting `stack-land` *is* land authorization for that managed prefix.
 
@@ -70,7 +70,7 @@ Hand-babysitting, or a naive loop, usually fails in the same ways:
 
 ## The Solution
 
-Each tick is stateless and resumable from disk. The harness keeps the session active while waiting for the detector’s output.
+Each tick is stateless and resumable from disk. The harness keeps the session active while waiting for the detector's output.
 
 - Comments first. New review threads and non-thread comments get handled before CI. If that pass pushed a commit, the old CI failure sits on a dead SHA and gets skipped
 - Delegation. `/ce-resolve-pr-feedback` for comments, `/ce-debug` for real failures (once per new signature). The only inline CI work is a cheap flaky-vs-real split
@@ -137,7 +137,7 @@ Each major piece of the engine exists because a specific failure happened withou
 
 Simpler skills do not solve these problems. They export them. A bounded "3 rounds then stop" cap is a budget the user enforces by re-invoking. "Poll until all reviewers are finished" with no definition of finished hangs on a reviewer that announces itself and never signals completion, the exact bug fixed here in #1606/#1611. And a watcher with no comment-trust rule will follow instructions planted in PR comments, a concretely exploited injection class.
 
-The machinery still has to pay rent. When a piece turns out to encode a judgment rather than an observation, it gets deleted. #1611 removed a nine-function review-liveness detector and replaced it with a stated goal in `settle.md`. The direction of travel is thinner prose over a boring, observable-facts engine, not fewer facts.
+Each piece of machinery still has to justify itself. When a piece turns out to encode a judgment rather than an observation, it gets deleted. #1611 removed a nine-function review-liveness detector and replaced it with a stated goal in `settle.md`. The direction of travel is thinner prose over a boring, observable-facts engine, not fewer facts.
 
 ---
 

@@ -129,7 +129,7 @@ When an external route is selected for clear bare-prompt work, `ce-work` does no
 
 ### Session-settled decisions are not yours to improve
 
-A KTD carrying a `session-settled:` label records a decision the user examined and chose for a reason. `ce-work` implements it as specified instead of "improving" it. The restraint is scoped to labeled KTDs: judgment on everything the plan leaves open is unchanged, and real defects inside a settled approach still surface at full strength. A discovery that a settled decision genuinely cannot work is a blocker return, never a silently-accepted residual.
+A KTD carrying a `session-settled:` label records a decision the user examined and chose for a reason. `ce-work` implements it as specified instead of "improving" it. The restraint is scoped to labeled KTDs. Judgment on everything the plan leaves open is unchanged, and real defects inside a settled approach still surface at full strength. A discovery that a settled decision genuinely cannot work is a blocker return, never a silently-accepted residual.
 
 ---
 

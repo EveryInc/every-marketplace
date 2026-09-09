@@ -4,7 +4,7 @@
 
 `ce-optimize` is an on-demand **optimization** skill. The goal is confirmed improvements on an `optimize/<spec-name>` branch, not a one-shot edit. A first run stays short and serial until the harness is trusted; a harder target spends longer in the same phases. On a cost target (latency, CPU, memory, throughput, I/O, wall time), it attributes shares before it tries implementation experiments. On a scored variant space (judge, clustering, search, prompts, a multi-objective that is not a single hotspot), it searches and keeps. If you already know the change, make it. If you need a root cause, that is `ce-debug`.
 
-It writes a spec (or loads yours), measures a baseline, then runs the next cheapest action that would change what gets implemented: a locating measurement, or experiments in isolated worktrees (or via Codex when the spec says so). Wins stay on an `optimize/<spec-name>` branch. Losses revert. It writes every result to disk, so a long run survives a crash or a compacted context.
+It writes a spec (or loads yours) and measures a baseline. Then it runs the next cheapest action that would change what gets implemented: a locating measurement, or experiments in isolated worktrees (or via Codex when the spec says so). Wins stay on an `optimize/<spec-name>` branch. Losses revert. It writes every result to disk, so a long run survives a crash or a compacted context.
 
 It handles multi-file code changes and non-ML work alike: clustering, search, prompts, build time, latency, anything you can score the same way twice.
 
@@ -105,7 +105,7 @@ After each batch a strategy digest (categories tried, what worked, what is still
 
 Before implementation, every hypothesis carries an opportunity record: workload, observed cost or rubric evidence, expected benefit with units and a comparison baseline, confidence, and implementation/measurement cost and behavioral risk. Estimates can be ranges or upper bounds. Unknown benefits stay unknown with a proposed measurement to resolve them. An unknown may sit on the backlog; it is not a runnable implementation experiment on a cost target while a cheaper locating measurement would change keep or skip. A scored variant space uses rubric evidence and does not require a performance profile or invented numerical forecasts.
 
-Selection favors credible benefit relative to cost and risk; the priority label does not rank the backlog, and there is no required hypothesis count. Each experiment retains its original forecast and the actual measured comparison identities. Standalone and combined results remain separate, so a runner-up's isolated improvement is not mistaken for its contribution after integration.
+Selection favors credible benefit relative to cost and risk. The priority label does not rank the backlog, and there is no required hypothesis count. Each experiment retains its original forecast and the actual measured comparison identities. Standalone and combined results remain separate, so a runner-up's isolated improvement is not mistaken for its contribution after integration.
 
 Wrap-up reports every required objective from original baseline to confirmed final, each retained change's estimate versus measured contribution, uncertainty and correctness evidence, and remaining opportunities. Percentages are used only where meaningful, and successive gains are not added. Older logs still work: missing estimates and attribution evidence are reported as unrecorded.
 
@@ -143,7 +143,7 @@ Skip it when:
 - You already know the change → make it, or use `/ce-work`
 - You are tracing a bug, or why something is slow → `/ce-debug`
 - Nothing can be measured or judged the same way twice
-- The target is a scored variant space with only one plausible answer, so a search is theater
+- The target is a scored variant space with only one plausible answer, so a search decides nothing
 - Each evaluation is so expensive that multiple runs cannot pay for themselves
 
 ---
@@ -167,7 +167,7 @@ Most runs start here, not from another skill.
 - Reviewed spec: `/ce-optimize path/to/spec.yaml`
 - Resume or fresh start: `/ce-optimize .context/compound-engineering/ce-optimize/<spec-name>/spec.yaml`
 
-Templates live next to the skill: `references/example-hard-spec.yaml` for a cheap single metric, `references/example-judge-spec.yaml` when quality needs a rubric, and `references/example-expensive-benchmark-spec.yaml` when each run costs minutes or several hard targets must all hold. The friendly overview of hard vs judge, plus longer kickoff prompts, is `references/usage-guide.md`.
+Templates live next to the skill: `references/example-hard-spec.yaml` for a cheap single metric, `references/example-judge-spec.yaml` when quality needs a rubric, and `references/example-expensive-benchmark-spec.yaml` when each run costs minutes or several hard targets must all hold. The overview of hard vs judge, plus longer kickoff prompts, is `references/usage-guide.md`.
 
 ---
 
