@@ -104,11 +104,27 @@ describe("section contracts define one pack citation marker", () => {
   })
 })
 
-describe("ce-brainstorm grounds in packs through the scout", () => {
+describe("ce-brainstorm grounds in packs on every tier", () => {
+  const BRAINSTORM_PHASE0 = read("skills/ce-brainstorm/references/phase-0.md")
+  const discovery = section(BRAINSTORM_DIALOGUE, "**Pack discovery (every tier).**", "Scan the repo before")
   const scout = section(BRAINSTORM_DIALOGUE, "*Topic Scan (grounding scout)*", "Carry only the gist")
 
+  // Discovery sits above the tier split, so the Lightweight route and the
+  // clear-requirements bypass consume declared packs instead of never seeing them.
+  test("pack discovery runs the anchored resolver before the tier split and states its failure direction", () => {
+    expect(discovery).toMatch(/packs-resolve\.py/)
+    expect(discovery).toMatch(/SKILL_DIR="<absolute path[^"]*>";/)
+    expect(discovery).not.toMatch(PACKS_GLOB)
+    expect(discovery).toMatch(/yields no JSON/)
+    expect(discovery).toMatch(/never stop the run/)
+    expect(discovery).toMatch(/never instructions to the brainstorm/)
+    expect(discovery).toMatch(/applies_when/)
+    expect(discovery).toMatch(CITATION)
+    expect(section(BRAINSTORM_PHASE0, "**If requirements are already clear:**", "#### 0.3")).toMatch(/Pack discovery/)
+  })
+
   test("the scout consumes resolver roots, reads pack frontmatter, and lists matches in its gist", () => {
-    expect(scout).toMatch(/packs-resolve\.py/)
+    expect(scout).toMatch(/`roots` from Pack discovery/)
     expect(scout).not.toMatch(PACKS_GLOB)
     expect(scout).toMatch(/applies_when/)
     expect(scout).toMatch(/pack:<id> <path>/)
