@@ -45,10 +45,10 @@ Conflating the two is what made #1159 serialize local reviewer dispatch one-at-a
 A portable rule classifies what dispatch actually returned:
 
 - **Terminal outcome:** the launch is collected. Consume a valid compact result; classify a terminal tool error or malformed output under the workflow's failed/degraded rules.
-- **Launch identifier or asynchronous receipt:** a launch receipt means the reviewer is uncollected. Use the host's blocking collection capability until the launch reaches a terminal outcome.
-- **No reliable blocking collector:** stop the launched work and take the workflow's failure or degraded path. Fail closed only after discharging lifecycle obligations for detached work already started. Never wait for a notification, emit progress-only output, or synthesize a partial roster.
+- **Launch identifier or asynchronous receipt:** a launch receipt means the reviewer is uncollected. Use the host's blocking collection capability until the launch reaches a terminal outcome. That outcome may arrive as the call's own return, as a blocking wait's return, or as a host-delivered terminal message that names the launch and carries its final payload; a status or progress update is none of these.
+- **No reliable blocking collector:** the host offers no in-turn way to reach a terminal outcome for the launch. Stop the launched work and take the workflow's failure or degraded path. Fail closed only after discharging lifecycle obligations for detached work already started. Never end the turn to wait, emit progress-only output, or synthesize a partial roster.
 
-The same classification governs both reviewer batches and later validator batches. A foreground request is an intent, not evidence that a result arrived. A host-specific collector is acceptable only when its live contract shows that it accepts the launch identifier, blocks until terminal, and returns the terminal outcome; a plausible tool name is not enough.
+The same classification governs both reviewer batches and later validator batches. A foreground request is an intent, not evidence that a result arrived. Judge a collector by its live contract, not its name: a wait counts only when it blocks until terminal, and a message counts only when it identifies the launch and carries the payload. Issue #1654 showed why the rule must be the condition rather than a tool shape: Codex delivers a subagent's final answer as a host message tagged with the launch's task name while `wait_agent` reports status, so a rule demanding one ID-addressed collector that returns the outcome failed closed on a host that could collect.
 
 For an asynchronous primitive, the rule still needs three explicit clauses:
 

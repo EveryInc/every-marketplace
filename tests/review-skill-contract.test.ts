@@ -563,6 +563,20 @@ describe("ce-code-review contract", () => {
     expect(content).toMatch(/terminal.*tool error.*malformed.*failed reviewer/i)
     expect(content).toMatch(/no reliable blocking collection/i)
     expect(content).toMatch(/["`]status["`]\s*:\s*["`]failed["`]/i)
+    // #1654: Codex delivers a subagent's final answer as a host message tagged with the
+    // launch's task name, while wait_agent reports status. The collector rule must state the
+    // condition (an attributable terminal result reached in-turn), accept that channel, and
+    // still refuse a progress update as a result; it must not demand one ID-addressed tool.
+    expect(content).toMatch(/host-delivered terminal message/i)
+    expect(content).toMatch(/progress or a state change is not a terminal result/i)
+    expect(content).toMatch(/within this turn/i)
+    expect(content).toMatch(/instead of ending the turn to wait/i)
+    expect(content).not.toMatch(/instead of waiting for notifications/i)
+    expect(content).not.toMatch(/accepts the launch identifier, blocks until terminal, and returns the terminal outcome/i)
+    expect(skill).toMatch(/host-delivered terminal message that names the launch and carries its payload/i)
+    expect(skill).toMatch(/never end the turn on progress/i)
+    expect(skill).not.toMatch(/wait for a notification/i)
+    expect(solution).toMatch(/host-delivered terminal message/i)
     expect(skill).toMatch(/persisted peer.*cleanup.*before.*failure result/i)
     expect(content).toMatch(/persisted peer.*owning cleanup.*before.*failure/i)
     expect(crossModel).toMatch(/every persisted job id.*terminal.*job directory.*deleted.*before.*returns/i)
@@ -629,6 +643,7 @@ describe("ce-code-review contract", () => {
     expect(content).toMatch(/launch receipt.*uncollected/i)
     expect(content).toMatch(/blocking collection/i)
     expect(content).toMatch(/terminal outcome/i)
+    expect(content).toMatch(/host-delivered terminal message/i)
     expect(content).toMatch(/malformed output.*validator infrastructure failure/i)
     expect(content).toMatch(/validator infrastructure failure/i)
     expect(content).not.toMatch(/A foreground Agent call is the wait/i)
