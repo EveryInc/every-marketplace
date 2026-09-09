@@ -546,6 +546,9 @@ describe("ce-code-review contract", () => {
     const content = await readRepoFile(
       "skills/ce-code-review/references/dispatch-reviewers.md",
     )
+    const finish = await readRepoFile(
+      "skills/ce-code-review/references/finish-review.md",
+    )
     const crossModel = await readRepoFile(
       "skills/ce-code-review/references/cross-model-review.md",
     )
@@ -573,6 +576,22 @@ describe("ce-code-review contract", () => {
     expect(solution).toMatch(/terminal tool error or malformed output.*failed\/degraded rules/i)
     expect(solution).toMatch(/launch receipt.*uncollected/i)
     expect(solution).toMatch(/fail closed.*lifecycle obligations.*detached work.*already started/i)
+
+    // #1654: a matchable host-native terminal answer is a terminal result.
+    // A progress notification is not. The ID-addressed collector is not required.
+    expect(skill).toMatch(/progress or status notification is not a terminal result/i)
+    expect(content).toMatch(/progress or status notification is not a terminal result/i)
+    expect(finish).toMatch(/progress or status notification is not a terminal result/i)
+    expect(skill).toMatch(/host-native terminal answer that names the launched work/i)
+    expect(content).toMatch(/host-native terminal answer that names the launched work/i)
+    expect(finish).toMatch(/host-native terminal answer that names the launched work/i)
+    expect(skill).toMatch(/matched to a terminal result payload/i)
+    expect(content).toMatch(/matched to a terminal result payload/i)
+    expect(content).not.toMatch(
+      /accepts the launch identifier, blocks until terminal, and returns the terminal outcome/,
+    )
+    expect(solution).toMatch(/progress or status notification is not a terminal result/i)
+    expect(solution).toMatch(/host-native terminal answer that names the launched work/i)
   })
 
   test("Stage 5 synthesis uses anchor gate and one-anchor promotion", async () => {
