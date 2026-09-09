@@ -1,0 +1,12 @@
+{%- assign hosts = site.data.ce.hosts -%}
+{%- if hosts and hosts.size > 0 -%}
+<section class="ce-home-section ce-hosts">
+  <h2 id="hosts">Runs on the agent host you already use</h2>
+  <p>One workflow that travels with you. Pick the host and model you want without losing what you have built up.</p>
+  <ul class="ce-host-list">
+    {%- for host in hosts %}
+    <li>{{ host }}</li>
+    {%- endfor %}
+  </ul>
+</section>
+{%- endif -%}
