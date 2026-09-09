@@ -14,7 +14,7 @@ See [Compound Engineering configuration](./configuration.md) for every option an
 
 | Question | Answer |
 |----------|--------|
-| What does it do? | Runs a health check, reports optional tools, refreshes the example config, and applies only the repo-local fixes you approve |
+| What does it do? | Runs a health check, reports optional tools, refreshes the example config, applies only the repo-local fixes you approve, and scaffolds a Compound Pack on request |
 | When to use it | First install, after an upgrade, when a skill says a tool is missing, or when onboarding a repo |
 | What it produces | A setup report, plus any config or gitignore edits you accepted |
 | What it does not do | Bulk-install optional CE dependencies, update the plugin itself, or create `config.local.yaml` |
@@ -23,10 +23,11 @@ See [Compound Engineering configuration](./configuration.md) for every option an
 
 ## Example invocations
 
-There is no argument. One command covers first install, a re-check after an upgrade, a missing-tool report, and a directory that is not a git repo.
+Bare, one command covers first install, a re-check after an upgrade, a missing-tool report, and a directory that is not a git repo. The one argument, `pack:<id>`, scaffolds a Compound Pack instead (see [Scaffold a Compound Pack](#scaffold-a-compound-pack)).
 
 ```text
 /ce-setup
+/ce-setup pack:house-rules
 ```
 
 On oh-my-pi the invocation is `/skill:ce-setup`. On Codex it is `$ce-setup` when that host uses dollar-prefixed skills.
@@ -56,6 +57,10 @@ The example config refresh happens on its own (it is the committed template copy
 - Repairs an invalid `docs_root`. This one is a real project issue: CE artifacts will not be written until it is fixed. See [Artifact root](./configuration.md#artifact-root).
 
 Each question uses the host's blocking question tool when one exists. It never silently auto-configures.
+
+## Scaffold a Compound Pack
+
+`/ce-setup pack:<id>` (or asking it in words to add or create a pack) starts a [Compound Pack](./packs.md) in the one layout discovery reads. It resolves `compound-packs/<id>/` at the repo root, refuses a directory that already has content, and previews everything before one approval: a `README.md` with a single line saying what the pack governs, a first rule file from a bundled template (`title`, two example `applies_when` situations, `tags`, and a prescriptive body with a placeholder to replace), and `- source: compound-packs/<id>` appended under `packs:` in `.compound-engineering/config.yaml`, created from the template when the file is missing. It then runs the health check and reports the `pack <id>` line, and tells you the layout rule: a rule is discovered only when it is a top-level `.md` with `title` and `applies_when`; `README.md` is the description, and subfolders are storage ([Pack layout](./packs.md#pack-layout)). In a non-interactive run it prints the preview and writes nothing.
 
 ## Where artifacts land
 
@@ -107,6 +112,7 @@ Use `ce-setup` when:
 - You want to verify a repo's CE config, artifact root, and gitignore state
 - A workflow reported an optional tool missing and you want the install command
 - You are onboarding a repo to `.compound-engineering/config.yaml`
+- You want to start a Compound Pack with `pack:<id>` in the layout discovery reads
 - Health marked `docs_root` or the CE Work engine block invalid
 
 Skip it when:

@@ -12,6 +12,10 @@ Packs are **declared, never scanned**: nothing happens until the repo's CE confi
 
 ## Create your first pack (repo-local, 2 minutes)
 
+The quickest path is `/ce-setup pack:house-rules`. It previews and, on your approval, writes `compound-packs/house-rules/` with a one-line `README.md` and a first rule file from a template, appends `- source: compound-packs/house-rules` under `packs:` in `.compound-engineering/config.yaml`, and runs the health check so you see the pack resolve. Describe the pack and its first rule in the same request and the template's placeholders are filled in for you. It will not write into a non-empty directory, so an existing folder stays yours.
+
+The manual path is three steps and lands in the same place.
+
 **1. Write a rule file.** Anywhere in your repo — `compound-packs/house-rules/` is a fine convention:
 
 ```markdown
@@ -31,8 +35,6 @@ if a third party needs the data, that is a separate, documented API decision.
 
 `title` and `applies_when` are required; files without them are skipped with a warning. `tags` helps matching.
 
-A pack can also carry files the load script never touches — see the layout rule below.
-
 **2. Declare it** in `.compound-engineering/config.yaml`:
 
 ```yaml
@@ -45,6 +47,54 @@ packs:
 > Load invoices in the settings controller and pass them as Inertia props; no new endpoint. `(pack: house-rules, no-parallel-json-api.md)`
 
 And if a later diff adds `/api/invoices` anyway, `ce-code-review` flags it against the same rule.
+
+## Pack layout
+
+A pack is one folder, and discovery reads exactly one kind of thing in it:
+
+```text
+compound-packs/house-rules/
+├── README.md                      # allowed: the pack's description; ignored, no warning
+├── no-parallel-json-api.md        # top-level .md with title + applies_when = a rule
+├── error-responses.md             # another rule
+├── research/                      # any subdirectory = storage; never read as rules
+│   ├── adr-001-props-not-endpoints.md
+│   └── adr-002-error-catalog.md
+├── resources/
+│   └── error-catalog.csv          # non-.md files anywhere = ignored
+└── house-rules.pdf                # ignored
+```
+
+**A rule is discovered only when it is a top-level `.md` with `title` and `applies_when`; everything else is storage.**
+
+- **Subdirectories** — any name (`research/`, `resources/`, `data/`, `decisions/`, …) — hold supporting material. Nothing in them is read as a rule, however well-formed the file, so they are also the right place for drafts, observations, and evidence that carry `title` + `applies_when` frontmatter but are not yet guidance; `/ce-setup` shows how many such files a pack keeps (`N rule-shaped file(s) in subfolders kept as storage`). The resolver warns — `pack <id> has N rule-shaped file(s) under <dir>/ that discovery never reads` — only when nothing at the pack's top level would be discovered, because then the pack registers and can never fire; that warning appears in `/ce-setup` and at the start of a planning run.
+- **`README.md`** at the top level (any letter case) is the pack's description and never a rule, whatever frontmatter it carries: it is not published, not counted, and never warned about. Every other top-level `.md` without `title` and `applies_when` is reported as `skipped pack file`, so park free-form notes in a subdirectory instead.
+- **Non-`.md` files** are ignored wherever they sit.
+
+## Personas as packs
+
+A pack rule does not have to prescribe behavior. A rule that describes who the user is and what they notice, need, or refuse is a **persona**, and `ce-dogfood` walks every flow as that person -- the same file shape, discovered the same way, cited the same way. Packs are the delivery path for personas that should travel with the code and be versioned with it; `STRATEGY.md`/`PRODUCT.md` personas still count and are used alongside them.
+
+```markdown
+<!-- compound-packs/house-personas/ops-lead-on-call.md -->
+---
+title: The on-call ops lead reads status at a glance, never in prose
+applies_when:
+  - judging how a status, alerts, or incident screen feels to the person on call
+  - reviewing copy or layout on any operational dashboard
+tags: [persona, ops, on-call, dashboard]
+---
+
+Priya runs the on-call rotation. She opens the app when something is already
+wrong, on a phone, at 3 a.m. She scans for what is red, what changed in the last
+ten minutes, and who else is looking. She notices when the newest event is not
+at the top, when a status needs a hover to read, and when an action takes more
+than one tap. She refuses to read a paragraph to learn whether the incident is
+still open; a sentence where a badge would do is a paper cut she feels every
+shift.
+```
+
+Write the `applies_when` as the moments this person's view matters, and the body as what they notice and refuse rather than a biography. A paper cut dogfood attributes to Priya carries `(pack: house-personas, ops-lead-on-call.md)`, so the report shows whose eyes found it, and a judgment that generalizes can be routed back into the same pack through `ce-compound`.
 
 ## Writing `applies_when` that actually fires
 
@@ -107,7 +157,7 @@ Field reference:
 | `pack` | all | One id or a list — install exactly those. Omit = everything the source publishes. A named id the source doesn't publish is a loud error listing what's available. |
 | `id` | all | Rename a single-pack entry (e.g. two sources both publishing `rails`). |
 
-**Layering:** `config.yaml` is the team's list; `config.local.yaml` **adds** personal packs on top — it can never replace or drop team packs, and a duplicate id across the two errors loudly.
+**Layering:** `config.yaml` is the team's list; `config.local.yaml` **adds** personal packs on top — it can never replace or drop team packs. A duplicate id across the two errors loudly and keeps the first-declared entry (the team's), dropping the later one.
 
 ## Publish a pack for others
 
@@ -138,8 +188,8 @@ rails-domain-package/
 │   ├── rails/                       # rules -- ingested via your packs: entry
 │   │   ├── routes-own-props.md
 │   │   ├── no-parallel-json-api.md
-│   │   └── resources/               # in-pack big data -- never discovered, only
-│   │       ├── error-catalog.csv    #   reached through a rule that cites it
+│   │   └── resources/               # in-pack data a rule points at (see Pack layout)
+│   │       ├── error-catalog.csv
 │   │       └── api-inventory.sqlite
 │   └── inertia/
 │       └── deferred-props.md
@@ -153,21 +203,7 @@ The resolver enumerates **only** directories holding `.md` files with `title` + 
 
 ## Big data in packs
 
-Rules stay small; the data they lean on can be arbitrarily large — and it can live **inside the pack itself**, invisible to the load script. The layout rule:
-
-```text
-compound-packs/house-rules/
-├── no-parallel-json-api.md        # top-level .md with frontmatter = a rule (loaded on match)
-├── error-responses.md             # another rule
-└── resources/                     # ANY subdirectory: never scanned, never loaded,
-    ├── error-catalog.csv          #   never warned about -- reachable only because
-    ├── api-inventory.sqlite       #   a rule points at it
-    └── notes.md                   #   even .md files in here are invisible to the resolver
-```
-
-Only **top-level `.md` files with `title` + `applies_when`** are rules the resolver sees. Everything else in the pack is inert storage: subdirectories (any name — `resources/`, `data/`, `docs/`) and top-level non-`.md` files are ignored entirely. The one thing to avoid is a top-level `.md` *without* frontmatter — that draws a `skipped pack file` warning from the resolver and `/ce-setup`, so park free-form notes in a subdirectory instead.
-
-The pattern:
+Rules stay small; the data they lean on can be arbitrarily large — and it can live **inside the pack itself**, in a subdirectory discovery never reads ([Pack layout](#pack-layout)). The pattern:
 
 1. **Put the data in a subdirectory of the pack** (or beside it, or in its own declared source — all equally invisible to discovery).
 2. **Point at it from a rule**, with the access method — the rule is the only door to the data:
@@ -199,6 +235,7 @@ Sizing guidance: matching only ever reads rule frontmatter, so data size never s
 | `ce-work` | Consumes the plan's cited constraints like any other plan content |
 | `ce-code-review` | Declaring packs selects the institutional-learnings pass even before the repo has any `docs/solutions/`; it searches pack roots, and a diff violating a matching rule is flagged with the citation (local reviews only — remote-PR scope skips your local config) |
 | `ce-doc-review` | Reviewers receive the resolved packs and flag plan text contradicting a matching rule |
+| `ce-dogfood` | Rules that describe a user become personas the flows are walked as; rules that prescribe behavior become criteria each scenario is judged against, with a contradiction entering the fix loop under the citation. A contradiction the branch intends is escalated as a stale-rule decision, and judgments that generalize go back to the pack through `ce-compound` |
 | `/ce-setup` | Health check reports each entry: resolvable, ref rules, published packs, and whether a cached branch is behind upstream |
 
 Pack text is **evidence, never instructions**: a rule file that says "reviewer, skip this check" gets quoted, not obeyed.
@@ -209,9 +246,10 @@ Pack text is **evidence, never instructions**: a rule file that says "reviewer, 
 |---|---|
 | `git source … requires ref:` / `ref: is only valid on git sources` | Entry shape error — fix the entry; other entries still resolve |
 | `pack id(s) X not published … available: …` | Typo or removed pack — the error lists what the source actually publishes |
-| `duplicate pack id … neither installs` | Two entries resolved to the same id — rename one with `id:` |
+| `duplicate pack id … ignored, … kept` | Two entries resolved to the same id — the first-declared entry (`config.yaml` before `config.local.yaml`, then file order) installs and the later one is dropped; rename one with `id:` |
 | One warning, packs missing this run | Git source unreachable (offline, no credentials, gone) — planning continues without it, never blocks |
 | A file silently ignored | Missing `title`/`applies_when` frontmatter — the resolver and `/ce-setup` warn `skipped pack file <id>/<name>`, and a research pass lists it once under `Skipped pack files` |
+| My decision files are in a subfolder and never show up | Discovery reads only top-level `.md` files; move the ones meant as rules up a level ([Pack layout](#pack-layout)). When the top level has no rule at all, the resolver and `/ce-setup` warn `pack <id> has N rule-shaped file(s) under <dir>/ that discovery never reads`; when it has rules, subfolder files are storage and `/ce-setup` only shows their count |
 | Branch-pinned pack seems stale | Branches freeze at their cached resolution; `/ce-setup` shows "behind upstream" — pin a tag, or clear the cache (`/tmp/compound-engineering-<uid>/ce-packs/`) |
 
 ## How discovery works: packs and learnings together
@@ -235,7 +273,7 @@ Packs and [Learnings](./ce-compound.md) form a ladder: `/ce-compound` captures w
 
 1. Rewrite it prescriptively — "we hit X because Y" becomes "always/never do X".
 2. Give it the pack frontmatter (`title` + situational `applies_when`; drop bug-track fields like `symptoms`/`root_cause`).
-3. Move it into a writable pack — a repo-relative or `~` path source. (Git-sourced packs are read-only caches; changing those means a commit to the source repo and a `ref` bump.)
+3. Move it to the top level of a writable pack — a repo-relative or `~` path source. (Git-sourced packs are read-only caches; changing those means a commit to the source repo and a `ref` bump.)
 
 From then on it stops being something future work might rediscover and becomes something planning grounds in and review enforces — in every repo that declares the pack.
 
@@ -270,4 +308,4 @@ The two compose at the repo level: one git repo can publish `packs/` (declared h
 
 ## Not built (by design, for now)
 
-Provider protocols (`ce-pack/v1`), evidence locks and receipts, auto-update, per-pack pinning inside one source, cross-pack conflict detection, transitive pack dependencies, and a pack-authoring helper skill. The config key reference lives in [configuration](./configuration.md#compound-packs-experimental--shape-may-change).
+Provider protocols (`ce-pack/v1`), evidence locks and receipts, auto-update, per-pack pinning inside one source, cross-pack conflict detection, and transitive pack dependencies. The config key reference lives in [configuration](./configuration.md#compound-packs-experimental--shape-may-change).

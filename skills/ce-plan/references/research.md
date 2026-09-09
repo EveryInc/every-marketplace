@@ -22,7 +22,7 @@ PY="$(for c in python3 python py; do command -v "$c" >/dev/null 2>&1 && "$c" -c 
 "$PY" "$SKILL_DIR/scripts/packs-resolve.py"
 ```
 
-The JSON result carries `roots` (pack `id` + absolute `dir`), `warnings`, and `errors`. Build the researcher's **search-root list**: `<root>/solutions/` plus one entry per root. Surface each `errors` and `warnings` line to the user once — they are per-entry config problems and skipped sources, not run blockers — and never write them into the plan. With no `packs:` key the result is empty and nothing else changes; no directory is scanned by convention.
+The JSON result carries `roots` (pack `id` + absolute `dir`), `warnings`, and `errors`. Build the researcher's **search-root list**: `<root>/solutions/` plus one entry per root. Surface each `errors` and `warnings` line to the user once — they are per-entry config problems and skipped sources, not run blockers — and never write them into the plan. With no `packs:` key the result is empty and nothing else changes; no directory is scanned by convention. When the command yields no JSON (no interpreter, script not found, non-zero exit), packs are unresolved for this run: the search-root list is `<root>/solutions/` alone, say so once where the `warnings` go, and never stop the run for it.
 
 For Standard and Deep, prepare a concise planning context summary (a paragraph or two) to pass as input to the research agents:
 - If an origin document exists, summarize the problem frame, requirements, and key decisions from that document
@@ -151,7 +151,7 @@ Summarize:
 
 **Land external findings in decisions, not an appendix.** Any external research that ran must surface where it changes a choice — Key Technical Decisions rationale, Alternatives, Risks, or Sources & Research — not as a detached list with no bearing on the plan. If a finding shaped nothing, it was not load-bearing; do not pad the plan with it.
 
-**Cite Compound Pack findings where they land.** A requirement, KTD, constraint, or risk that a pack finding shaped ends with `(pack: <id>, <path within the pack>)` — the path relative to the pack's own directory, stable for path- and git-sourced packs alike. A pack finding that shaped nothing is not cited, and a plan whose research used no pack finding never mentions packs. If the researcher output contains a `Skipped pack files` line, surface it to the user once as a warning naming each file; never write it into the plan.
+**Cite Compound Pack findings where they land.** A requirement, KTD, constraint, or risk that a pack finding shaped ends with `(pack: <id>, <path within the pack>)` (shape in `references/plan-sections.md`, Sources & Research). A pack finding that shaped nothing is not cited, and a plan whose research used no pack finding never mentions packs. If the researcher output contains a `Skipped pack files` line, surface it to the user once as a warning naming each file; never write it into the plan.
 
 **Mark whether external research was load-bearing.** Record a single internal flag: did external findings materially shape a KTD, Alternative, Scope boundary, or Risk? This flag answers only that question — it does **not** gate whether research runs (Phase 1.2 owns that decision). Phase 5.3.2 reads it to decide whether to enter a confidence-scoring pass.
 
