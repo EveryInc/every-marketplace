@@ -1,6 +1,6 @@
 # Compound Engineering docs site. Built with Jekyll and jekyll-vitepress-theme.
 # Published sources are symlinked in from the repo and adopted by _plugins/ce_sources.rb;
-# nothing under skills/guides, README.md, or docs/install is edited for the site's sake.
+# nothing under docs/guides, README.md, or docs/install is edited for the site's sake.
 
 title: Compound Engineering
 description: AI skills that make each unit of engineering work easier than the last.
