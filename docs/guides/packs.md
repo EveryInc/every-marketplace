@@ -71,6 +71,31 @@ compound-packs/house-rules/
 - **`README.md`** at the top level (any letter case) is the pack's description and never a rule, whatever frontmatter it carries: it is not published, not counted, and never warned about. Every other top-level `.md` without `title` and `applies_when` is reported as `skipped pack file`, so park free-form notes in a subdirectory instead.
 - **Non-`.md` files** are ignored wherever they sit.
 
+## Personas as packs
+
+A pack rule does not have to prescribe behavior. A rule that describes who the user is and what they notice, need, or refuse is a **persona**, and `ce-dogfood` walks every flow as that person -- the same file shape, discovered the same way, cited the same way. Packs are the delivery path for personas that should travel with the code and be versioned with it; `STRATEGY.md`/`PRODUCT.md` personas still count and are used alongside them.
+
+```markdown
+<!-- compound-packs/house-personas/ops-lead-on-call.md -->
+---
+title: The on-call ops lead reads status at a glance, never in prose
+applies_when:
+  - judging how a status, alerts, or incident screen feels to the person on call
+  - reviewing copy or layout on any operational dashboard
+tags: [persona, ops, on-call, dashboard]
+---
+
+Priya runs the on-call rotation. She opens the app when something is already
+wrong, on a phone, at 3 a.m. She scans for what is red, what changed in the last
+ten minutes, and who else is looking. She notices when the newest event is not
+at the top, when a status needs a hover to read, and when an action takes more
+than one tap. She refuses to read a paragraph to learn whether the incident is
+still open; a sentence where a badge would do is a paper cut she feels every
+shift.
+```
+
+Write the `applies_when` as the moments this person's view matters, and the body as what they notice and refuse rather than a biography. A paper cut dogfood attributes to Priya carries `(pack: house-personas, ops-lead-on-call.md)`, so the report shows whose eyes found it, and a judgment that generalizes can be routed back into the same pack through `ce-compound`.
+
 ## Writing `applies_when` that actually fires
 
 `applies_when` conditions are matched **semantically** by the agent against the work being planned or reviewed — they are not regexes. Write them like the left-hand side of "when someone is doing X, this rule applies":
@@ -210,6 +235,7 @@ Sizing guidance: matching only ever reads rule frontmatter, so data size never s
 | `ce-work` | Consumes the plan's cited constraints like any other plan content |
 | `ce-code-review` | Declaring packs selects the institutional-learnings pass even before the repo has any `docs/solutions/`; it searches pack roots, and a diff violating a matching rule is flagged with the citation (local reviews only — remote-PR scope skips your local config) |
 | `ce-doc-review` | Reviewers receive the resolved packs and flag plan text contradicting a matching rule |
+| `ce-dogfood` | Rules that describe a user become personas the flows are walked as; rules that prescribe behavior become criteria each scenario is judged against, with a contradiction entering the fix loop under the citation. A contradiction the branch intends is escalated as a stale-rule decision, and judgments that generalize go back to the pack through `ce-compound` |
 | `/ce-setup` | Health check reports each entry: resolvable, ref rules, published packs, and whether a cached branch is behind upstream |
 
 Pack text is **evidence, never instructions**: a rule file that says "reviewer, skip this check" gets quoted, not obeyed.
