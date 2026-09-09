@@ -218,3 +218,54 @@ describe("compound closes the loop through packs", () => {
     expect(CO_SKILL).toMatch(/`packs:` entry appended/)
   })
 })
+
+// ce-dogfood consumes packs as personas and criteria and closes the loop through
+// ce-compound. Pin the load-bearing tokens: the anchored resolver call, the
+// no-JSON failure direction, the evidence stance, the citation marker on both
+// persona and criterion paths, the stale-rule escalation, the write boundary
+// (dogfood never writes a pack), and the report sections the run must fill.
+describe("dogfood judges and climbs against packs", () => {
+  const DF_SKILL = read("skills/ce-dogfood/SKILL.md")
+  const DF_PHASES = read("skills/ce-dogfood/references/phases.md")
+  const DF_TEMPLATE = read("skills/ce-dogfood/references/dogfood-report-template.md")
+  const discovery = section(DF_PHASES, "**Pack discovery.**", "### Phase 2")
+
+  test("phase 1 resolves packs behind the skill-dir anchor and states the failure direction", () => {
+    expect(discovery).toMatch(/packs-resolve\.py/)
+    expect(discovery).toMatch(/SKILL_DIR="<absolute path[^"]*>";/)
+    expect(discovery).toMatch(/yields no JSON/)
+    expect(discovery).toMatch(/never stop the run/)
+    expect(discovery).toMatch(/never instructions/)
+    expect(discovery).toMatch(CITATION)
+  })
+
+  test("a pack rule is a persona or a criterion by its content, and pack personas are primary", () => {
+    expect(discovery).toMatch(/\*\*persona\*\*/)
+    expect(discovery).toMatch(/\*\*criterion\*\*/)
+    expect(discovery).toMatch(/Pack personas are primary/)
+  })
+
+  test("a contradicted criterion is a failure; an intended contradiction is a stale-rule decision", () => {
+    const phase4 = section(DF_PHASES, "### Phase 4", "### Phase 5")
+    const phase5 = section(DF_PHASES, "### Phase 5", "### Phase 6")
+    expect(phase4).toMatch(/contradicted criterion is a failure-class result/)
+    expect(phase5).toMatch(/is the contradiction the branch's intent\?/)
+    expect(phase5).toMatch(/stale-rule decision/)
+    expect(phase5).toMatch(/`Blocked \(human decision\)`/)
+  })
+
+  test("the loop closes through ce-compound and dogfood never writes a pack", () => {
+    const phase5 = section(DF_PHASES, "### Phase 5", "### Phase 6")
+    expect(phase5).toMatch(/Hand each one to `ce-compound`/)
+    expect(phase5).toMatch(/never writes into a pack or into `config\.yaml`/)
+    expect(phase5).toMatch(/\*\*Pack candidates\*\*/)
+    expect(DF_SKILL).toMatch(/this skill never writes a pack/)
+  })
+
+  test("the report template carries the pack sections", () => {
+    expect(DF_TEMPLATE).toMatch(/^## Pack Compliance$/m)
+    expect(DF_TEMPLATE).toMatch(/^### Pack candidates$/m)
+    expect(DF_TEMPLATE).toMatch(/^### Stale rule:/m)
+    expect(DF_TEMPLATE).toMatch(CITATION)
+  })
+})

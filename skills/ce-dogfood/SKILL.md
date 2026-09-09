@@ -53,6 +53,10 @@ Reports live under `<root>/dogfood-reports/` and personas under `<root>/personas
 
 `ce-dogfood` is an orchestrator: prefer an existing CE skill over re-deriving its behavior. Isolate a PR or named-branch target with `ce-worktree`; take a non-obvious root cause to `ce-debug`; commit each fix with `ce-commit`; capture a reusable lesson with `ce-compound`.
 
+## Compound Packs
+
+The repo's declared Compound Packs supply personas and criteria. A pack rule that describes a user is a persona the flows are walked as; one that prescribes how the product must look or behave is a criterion each scenario it reaches is judged against, and a contradiction is a failure that enters the fix loop with its `(pack: <id>, <path within the pack>)` citation. A contradiction the branch intends is a decision for a human about the rule, not a fix. Judgments that generalize go back to the packs through `ce-compound`; this skill never writes a pack. `references/phases.md` owns the mechanics.
+
 ## Phase order
 
 Scope -> analyze the diff -> map the flows -> derive the matrix -> serve -> execute -> fix loop -> report. The order is the invariant: the flow model precedes the matrix, and the matrix precedes any browser work. Each phase's conditions are in `references/phases.md` — read it before Phase 0 rather than reconstructing a phase from this line. Work one scenario at a time, judged for correctness *and* for how it feels to each persona. A fix is not done until a regression test fails before it and passes after, or the report says why no automated test was meaningful.
