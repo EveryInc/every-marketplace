@@ -62,8 +62,8 @@ If Step 1 found an existing PR, pass its URL to Step 4 so PR mode fetches the ex
 
 ## Step 5: Apply and report
 
-**Read `references/apply-and-handoff.md`** for the apply routes, preview-before-edit, archival, and handoff. Two rules bound the external writes. Re-run the existing-PR check right before `gh pr create` and route on it: a matching PR takes the existing-PR path, exit-0 `[]` creates, non-zero blocks. And pass the body via `--body-file <path>`, never stdin — `gh` exits 0 with an empty body.
+**Read `references/apply-and-handoff.md`** for apply, preview, archival, and handoff. Before `gh pr create`, re-check PR presence: a matching PR takes the existing-PR path, exit-0 `[]` creates, non-zero blocks. Pass the body via `--body-file <path>`, never stdin — `gh` exits 0 with an empty body.
 
-**The completion gate is here.** In an interactive full workflow, or in `mode:pipeline` when this run submitted a stack, a reported PR URL, a stack submit, or new commits on an open PR leave this run **not done** until `ce-babysit-pr` owns follow-on for that PR. Reporting the PR URL alone is not success.
+**The completion gate is here.** An interactive full workflow or pipeline stack submit is **not done** until `ce-babysit-pr` owns follow-on for the published PR. Reporting the PR URL alone is not success. Load the callee to choose the monitoring mode. If running it in this session, continue until its stop condition permits a final report.
 
-The only skips are `babysit:off`, a standing `auto_babysit: false` in CE config, and that reference's do-not-fire cases, drafts among them. No other watch substitutes: not `ci-watcher`, not `gh pr checks --watch`, not a hand-rolled poll, not "later". If `ce-babysit-pr` cannot be loaded or started, stop and report it blocked.
+Only `babysit:off`, CE config's `auto_babysit: false`, or the reference's do-not-fire cases skip this gate. No other watch substitutes: not `ci-watcher`, not `gh pr checks --watch`, not a hand-rolled poll, not "later". If `ce-babysit-pr` cannot be loaded or started, stop and report it blocked.
