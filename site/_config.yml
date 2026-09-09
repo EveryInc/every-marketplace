@@ -60,8 +60,6 @@ jekyll_vitepress:
       --vp-button-brand-active-text: "#ffffff"
       --vp-home-hero-name-color: "#111111"
       --vp-home-hero-name-background: transparent
-      --vp-home-hero-image-background-image: "linear-gradient(-45deg, rgba(0, 0, 0, 0.10) 50%, rgba(0, 0, 0, 0.04) 50%)"
-      --vp-home-hero-image-filter: "blur(44px)"
     dark:
       --vp-c-brand-1: "#f5f5f5"
       --vp-c-brand-2: "#d4d4d4"
@@ -72,8 +70,6 @@ jekyll_vitepress:
       --vp-button-brand-active-text: "#111111"
       --vp-home-hero-name-color: "#f5f5f5"
       --vp-home-hero-name-background: transparent
-      --vp-home-hero-image-background-image: "linear-gradient(-45deg, rgba(255, 255, 255, 0.14) 50%, rgba(255, 255, 255, 0.05) 50%)"
-      --vp-home-hero-image-filter: "blur(44px)"
   syntax:
     light_theme: github
     dark_theme: github.dark

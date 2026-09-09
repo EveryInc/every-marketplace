@@ -1,18 +1,15 @@
 {%- assign groups = site.data.ce.groups -%}
 {%- if groups and groups.size > 0 -%}
-<section class="ce-home-section ce-skills">
+<section class="ce-section ce-skills">
   <h2 id="skills">The skills</h2>
-  <p>Grouped the way the <a href="/guides/">catalog</a> groups them. Each card opens the guide.</p>
+  <p>Each one is a workflow the agent runs end to end. Grouped the way the <a href="/guides/">catalog</a> groups them.</p>
   {%- for group in groups %}
   <h3 id="skills-{{ group.title | slugify }}"><a href="{{ group.url }}">{{ group.title }}</a></h3>
-  <div class="ce-skill-grid">
+  <ul class="ce-skill-list">
     {%- for skill in group.guides %}
-    <a class="ce-skill-card" href="{{ skill.url }}">
-      <span class="ce-skill-name">/{{ skill.name }}</span>
-      <span class="ce-skill-desc">{{ skill.description }}</span>
-    </a>
+    <li><a href="{{ skill.url }}"><code>/{{ skill.name }}</code></a><span>{{ skill.description }}</span></li>
     {%- endfor %}
-  </div>
+  </ul>
   {%- endfor %}
 </section>
 {%- endif -%}

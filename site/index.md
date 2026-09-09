@@ -2,52 +2,46 @@
 layout: home
 title: Compound Engineering
 permalink: /
-description: AI skills that make each unit of engineering work easier than the last. A plugin for the coding agent you already use.
+description: Skills for your coding agent that make each unit of engineering work easier than the last.
 hero:
-  name: Compound Engineering
-  text: Each unit of work easier than the last.
-  tagline: A plugin of skills for AI coding agents. Brainstorm, plan, build, review, then capture what you learned where the next change can read it.
-  image:
-    light: /assets/logo.png
-    dark: /assets/logo.png
-    alt: Compound Engineering logo
-    width: 320
-    height: 320
+  text: Each unit of work should make the next one easier.
+  tagline: Compound Engineering is a set of skills for the coding agent you already use. Plan, work, review, then compound. What you learn gets written down where the next run will read it.
   actions:
     - theme: brand
-      text: Get started
+      text: Install
       link: /install/
     - theme: alt
-      text: Browse the skills
+      text: See the skills
       link: /guides/
 ---
 
-<section class="ce-home-section ce-install">
-  <h2 id="install">Install in Claude Code</h2>
-  <p>Two commands inside Claude Code. Other hosts are on the <a href="/install/">install page</a>.</p>
+<section class="ce-section ce-install">
+  <h2 id="install">Install</h2>
+  <p>In Claude Code, two commands. Other hosts are on the <a href="/install/">install page</a>.</p>
   <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/plugin marketplace add EveryInc/compound-engineering-plugin
 /plugin install compound-engineering</code></pre></div></div>
-  <p class="ce-version">Current release <span class="ce-version-badge">v{{ site.data.ce.version }}</span></p>
+  {% include ce/hosts.html %}
+  <p class="ce-muted">Current release v{{ site.data.ce.version }}</p>
 </section>
 
-<section class="ce-home-section ce-demo">
+<section class="ce-section ce-loop">
   <h2 id="the-loop">The loop</h2>
-  <p>Every iteration runs the same way: brainstorm what it needs to be, plan how, build it, review it, then write the learning down so the next iteration starts further ahead.</p>
-  <figure>
-    <img src="/assets/demo/compound-loop.gif" alt="Animated terminal demo of the compound engineering loop: brainstorm, plan, work, and compound running in a coding agent" loading="lazy" width="1200" height="675">
-    <figcaption>The core loop running in a coding agent.</figcaption>
-  </figure>
+  <p>Most of the thinking happens before and after the code is written. The last step is the one that pays off next time.</p>
+  <ol class="ce-steps">
+    <li><strong>Plan</strong><span>Decide what to build and why before any code exists.</span></li>
+    <li><strong>Work</strong><span>Build it from the plan, with tests and review gates along the way.</span></li>
+    <li><strong>Review</strong><span>Check the change against the plan and the repo's standards.</span></li>
+    <li><strong>Compound</strong><span>Write down what was learned so the next run starts further ahead.</span></li>
+  </ol>
 </section>
-
-{% include ce/hosts.html %}
 
 {% include ce/skill_grid.html %}
 
-<section class="ce-home-section ce-more">
-  <h2 id="learn-more">Learn more</h2>
-  <ul>
-    <li><a href="https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents">Compound engineering: how Every codes with agents</a></li>
-    <li><a href="https://every.to/source-code/my-ai-had-already-fixed-the-code-before-i-saw-it">The story behind compounding engineering</a></li>
-    <li><a href="https://github.com/EveryInc/compound-engineering-plugin">Source and issues on GitHub</a></li>
+<section class="ce-section ce-more">
+  <h2 id="read-more">Read more</h2>
+  <ul class="ce-links">
+    <li><a href="https://every.to/guides/compound-engineering">The compound engineering guide</a></li>
+    <li><a href="https://every.to/chain-of-thought/compound-engineering-how-every-codes-with-agents">How Every codes with agents</a></li>
+    <li><a href="https://github.com/EveryInc/compound-engineering-plugin">Source on GitHub</a></li>
   </ul>
 </section>
