@@ -26,7 +26,7 @@ export const CALIBRATION_SCENARIOS: Scenario[] = [
     id: "ce-plan/completed-review-handoff",
     skill: "ce-plan",
     fixture: "tests/skill-eval-cell/fixtures/doc-review-caller",
-    baseline_ref: "2f91f391c1cca9763c66cd98e6dc687886fb6382",
+    baseline_ref: "153e605e1622154a0d7da095fceed13edcb68bf7",
     read_only: false,
     key_behavior: "judgment",
     git_init: true,
