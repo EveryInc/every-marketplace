@@ -321,6 +321,56 @@ describe("rule file detection", () => {
   })
 })
 
+// Pack layout: a rule is discovered only as a top-level `.md` with `title` and
+// `applies_when`; subdirectories are storage. A pack author put 23 decision
+// records under `research/` with a top-level README and nothing was ever
+// discovered, with no signal why. The resolver now names the misplaced files
+// once per pack, and a description-only README stops drawing a skip warning.
+describe("pack layout warnings", () => {
+  test("a rule-shaped file in a subdirectory is not published and draws one warning naming the subdirectory", () => {
+    const local = tempDir("nested-rules")
+    const pack = path.join(local, "house-rules")
+    writeKnowledgeFile(pack, "top-rule.md", "top rule")
+    writeKnowledgeFile(path.join(pack, "research"), "adr-001.md", "decision 1")
+    writeKnowledgeFile(path.join(pack, "research"), "adr-002.md", "decision 2")
+    const out = resolve(makeProject(`packs:\n  - source: ${local}/house-rules\n`))
+    expect(ids(out)).toEqual(["house-rules"])
+    expect(out.roots[0].dir).toBe(realpathSync(pack))
+    expect(out.errors).toEqual([])
+    expect(out.warnings.length).toBe(1)
+    expect(out.warnings[0]).toContain("config.yaml:2: pack `house-rules` has 2 rule-shaped file(s) under `research/` that discovery never reads")
+    expect(out.warnings[0]).toContain("move rules to the pack's top level (see docs/guides/packs.md, Pack layout)")
+  })
+
+  test("a top-level README.md without frontmatter is not a skipped pack file; any other frontmatter-less .md still is", () => {
+    const local = tempDir("readme")
+    writeKnowledgeFile(path.join(local, "rules"), "r.md", "rule")
+    writeFileSync(path.join(local, "rules", "README.md"), "# House rules\n\nWhat this pack is for.\n")
+    writeFileSync(path.join(local, "rules", "notes.md"), "just notes, no frontmatter\n")
+    writeKnowledgeFile(path.join(local, "lower"), "r.md", "rule")
+    writeFileSync(path.join(local, "lower", "readme.md"), "lowercase readme\n")
+    const out = resolve(makeProject(`packs:\n  - source: ${local}/rules\n  - source: ${local}/lower\n`))
+    expect(ids(out)).toEqual(["lower", "rules"])
+    expect(out.warnings.length).toBe(1)
+    expect(out.warnings[0]).toContain("skipped pack file `rules/notes.md`")
+    expect(out.warnings.join(" ")).not.toMatch(/readme/i)
+  })
+
+  test("a source whose only rule-shaped files are nested publishes nothing and says why", () => {
+    const local = tempDir("only-nested")
+    const pack = path.join(local, "compound-packs", "house-rules")
+    mkdirSync(pack, { recursive: true })
+    writeFileSync(path.join(pack, "README.md"), "# House rules\n\nSee research/ for the decisions.\n")
+    for (const n of [1, 2, 3]) writeKnowledgeFile(path.join(pack, "research"), `adr-00${n}.md`, `decision ${n}`)
+    const out = resolve(makeProject(`packs:\n  - source: ${local}/compound-packs\n`))
+    expect(ids(out)).toEqual([])
+    expect(out.errors).toEqual([])
+    expect(out.warnings.length).toBe(2)
+    expect(out.warnings[0]).toContain("publishes no packs")
+    expect(out.warnings[1]).toContain("pack `house-rules` has 3 rule-shaped file(s) under `research/` that discovery never reads")
+  })
+})
+
 describe("--declared-only", () => {
   test("reports the declaration from the config alone: declared path pack, no key, broken entry", () => {
     const local = tempDir("declonly")

@@ -186,6 +186,7 @@
 # pasted GitHub /tree/<ref>/<sub> URLs scope a source to a subfolder.
 # pack: picks one id or a list; omit it to install everything the source
 # publishes. id: renames a single-pack entry.
+# Rules are top-level .md files with title + applies_when; subfolders are storage.
 
 # packs:
 #   - source: compound-packs/local-rules                       # repo-relative, read live

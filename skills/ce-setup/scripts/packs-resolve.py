@@ -345,6 +345,9 @@ def resolve_git_source(url: str, ref: str, warnings: list, label: str) -> str | 
 
 _FRONTMATTER_KEYS = ("title:", "applies_when:")
 _FRONTMATTER_CAP = 64 * 1024  # frontmatter must close within this many characters
+# A pack's top-level README is its description, not a rule: it needs no
+# frontmatter and is never reported as a skipped pack file.
+_README = "readme.md"
 
 
 @functools.lru_cache(maxsize=None)
@@ -388,6 +391,26 @@ def _contained_md_files(directory: str, boundary: str, escaped: list) -> list:
     return files
 
 
+def _contained_child_dirs(directory: str, boundary: str, escaped: list) -> list:
+    """`(name, path)` of the non-hidden directories directly under `directory`
+    whose real path stays within `boundary`; one that links outside it is
+    appended to `escaped` and never entered."""
+    try:
+        names = sorted(os.listdir(directory))
+    except OSError:
+        return []
+    dirs = []
+    for name in names:
+        child = os.path.join(directory, name)
+        if name.startswith(".") or not os.path.isdir(child):
+            continue
+        if _within(os.path.realpath(child), boundary):
+            dirs.append((name, child))
+        else:
+            escaped.append(child)
+    return dirs
+
+
 def _has_knowledge_files(directory: str, boundary: str, escaped: list) -> bool:
     return any(_is_knowledge_file(f) for f in _contained_md_files(directory, boundary, escaped))
 
@@ -403,21 +426,30 @@ def enumerate_packs(source_root: str, boundary: str, escaped: list, self_name: s
     if _has_knowledge_files(source_root, boundary, escaped):
         name = self_name or os.path.basename(os.path.abspath(source_root))
         return {name: source_root}
-    packs = {}
-    try:
-        children = sorted(os.listdir(source_root))
-    except OSError:
-        return packs
-    for name in children:
-        child = os.path.join(source_root, name)
-        if name.startswith(".") or not os.path.isdir(child):
-            continue
-        if not _within(os.path.realpath(child), boundary):
-            escaped.append(child)
-            continue
-        if _has_knowledge_files(child, boundary, escaped):
-            packs[name] = child
-    return packs
+    return {
+        name: child
+        for name, child in _contained_child_dirs(source_root, boundary, escaped)
+        if _has_knowledge_files(child, boundary, escaped)
+    }
+
+
+def nested_rules_warning(pack_id: str, pack_dir: str, boundary: str) -> str | None:
+    """One line naming the immediate subdirectories of `pack_dir` that hold
+    rule-shaped files, which discovery never reads; None when there are none.
+    Scans one level down only, inside `boundary`, so a misplaced rule is named
+    without walking the pack's data."""
+    hits, total = [], 0
+    for name, child in _contained_child_dirs(pack_dir, boundary, []):
+        count = sum(1 for f in _contained_md_files(child, boundary, []) if _is_knowledge_file(f))
+        if count:
+            hits.append(f"`{name}/`")
+            total += count
+    if not hits:
+        return None
+    return (
+        f"pack `{pack_id}` has {total} rule-shaped file(s) under {', '.join(hits)} that discovery"
+        " never reads -- move rules to the pack's top level (see docs/guides/packs.md, Pack layout)"
+    )
 
 
 # --- entry resolution --------------------------------------------------------
@@ -519,6 +551,12 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
         )
     if not published:
         warnings.append(f"{label}: source `{source}` publishes no packs (no directories with valid knowledge files)")
+        # Each child directory is a would-be pack; say when its rules sit one
+        # level too deep, so the author learns why nothing published.
+        for name, child in _contained_child_dirs(source_root, boundary, []):
+            nested = nested_rules_warning(name, child, boundary)
+            if nested:
+                warnings.append(f"{label}: {nested}")
         return
 
     selection = entry.get("pack")
@@ -548,10 +586,14 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
     for pack_id, pack_dir in selected.items():
         # Escaping links were already reported during enumeration.
         for child in _contained_md_files(pack_dir, boundary, []):
-            if os.path.isfile(child) and not _is_knowledge_file(child):
+            name = os.path.basename(child)
+            if os.path.isfile(child) and not _is_knowledge_file(child) and name.lower() != _README:
                 warnings.append(
-                    f"{label}: skipped pack file `{pack_id}/{os.path.basename(child)}` (missing `title`/`applies_when` frontmatter)"
+                    f"{label}: skipped pack file `{pack_id}/{name}` (missing `title`/`applies_when` frontmatter)"
                 )
+        nested = nested_rules_warning(pack_id, pack_dir, boundary)
+        if nested:
+            warnings.append(f"{label}: {nested}")
         root = {"id": pack_id, "dir": pack_dir, "_label": label}
         if git_meta:
             root.update(git_meta)
