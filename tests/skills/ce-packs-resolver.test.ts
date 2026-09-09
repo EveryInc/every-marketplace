@@ -438,6 +438,28 @@ describe("--declared-only", () => {
 })
 
 describe("cache and failure modes", () => {
+  // KTD-3: a missing git binary degrades git entries only. The repository is
+  // then located by walking up from the cwd, so path sources still resolve.
+  test("without a git binary on PATH, path sources resolve and each git source warns and is skipped", () => {
+    const personal = tempDir("nogit-personal")
+    writeKnowledgeFile(path.join(personal, "kk-style"), "style.md", "kk style")
+    const repo = makePackRepo(["rails"])
+    const project = makeProject(`packs:\n  - source: ${personal}/kk-style\n  - source: file://${repo}\n    ref: v1\n`)
+    const python = Bun.which("python3")
+    expect(python).toBeTruthy()
+    const res = spawnSync(python as string, [RESOLVER], {
+      cwd: path.join(project, ".compound-engineering"), // below the top level: exercises the walk-up
+      encoding: "utf8",
+      env: { ...process.env, PATH: tempDir("empty-path"), CE_PACKS_CACHE_ROOT: tempDir("cache-nogit") },
+    })
+    expect(res.status, res.stderr).toBe(0)
+    const out = JSON.parse(res.stdout)
+    expect(ids(out)).toEqual(["kk-style"])
+    expect(out.errors).toEqual([])
+    expect(out.warnings.length).toBe(1)
+    expect(out.warnings[0]).toContain("git binary not found")
+  })
+
   test("second resolve reuses the cache: branch ref stays at its cached resolution", () => {
     const repo = makePackRepo(["rails"])
     const branch = spawnSync("git", ["-C", repo, "branch", "--show-current"], { encoding: "utf8" }).stdout.trim()
@@ -624,7 +646,9 @@ describe("symlink and ownership containment", () => {
     expect(out.warnings[0]).toContain("outside the source")
   })
 
-  test("a rule file linking outside the checkout is skipped and named; the pack still publishes", () => {
+  // Consumers list a published pack directory themselves, so skipping the one
+  // escaping file at resolve time is not containment: the pack is refused.
+  test("a rule file linking outside the checkout refuses the whole pack, naming the link", () => {
     const outside = tempDir("outside-file")
     writeKnowledgeFile(outside, "secret.md", "leaked rule")
     const repo = makePackRepo(["honest"])
@@ -634,10 +658,29 @@ describe("symlink and ownership containment", () => {
     git(repo, "tag", "-f", "v1")
 
     const out = resolve(makeProject(`packs:\n  - source: file://${repo}\n    ref: v1\n`))
-    expect(ids(out)).toEqual(["honest"])
-    expect(out.warnings.length).toBe(1)
-    expect(out.warnings[0]).toContain("`honest/secret.md`")
-    expect(out.warnings[0]).toContain("outside the source")
+    expect(ids(out)).toEqual([])
+    expect(out.errors.length).toBe(1)
+    expect(out.errors[0]).toContain("pack `honest` not published")
+    expect(out.errors[0]).toContain("`secret.md`")
+    expect(out.errors[0]).toContain("outside the source")
+  })
+
+  test("a link that leaves the source below the pack's top level refuses that pack; siblings publish", () => {
+    const outside = tempDir("outside-nested")
+    writeFileSync(path.join(outside, "keys.md"), "not a rule, still readable")
+    const repo = makePackRepo(["honest", "clean"])
+    mkdirSync(path.join(repo, "honest", "resources"))
+    symlinkSync(path.join(outside, "keys.md"), path.join(repo, "honest", "resources", "keys.md"))
+    git(repo, "add", "-A")
+    commit(repo, "nested link out")
+    git(repo, "tag", "-f", "v1")
+
+    const out = resolve(makeProject(`packs:\n  - source: file://${repo}\n    ref: v1\n`))
+    expect(ids(out)).toEqual(["clean"])
+    expect(out.warnings).toEqual([])
+    expect(out.errors.length).toBe(1)
+    expect(out.errors[0]).toContain("pack `honest` not published")
+    expect(out.errors[0]).toContain("`resources/keys.md`")
   })
 
   test("a symlink that stays inside the checkout is ordinary content", () => {

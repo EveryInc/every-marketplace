@@ -238,7 +238,7 @@ Sizing guidance: matching only ever reads rule frontmatter, so data size never s
 | `ce-dogfood` | Rules that describe a user become personas the flows are walked as; rules that prescribe behavior become criteria each scenario is judged against, with a contradiction entering the fix loop under the citation. A contradiction the branch intends is escalated as a stale-rule decision, and judgments that generalize go back to the pack through `ce-compound` |
 | `/ce-setup` | Health check reports each entry: resolvable, ref rules, published packs, and whether a cached tag or branch still matches upstream (only a full commit sha is exempt from that comparison) |
 
-Pack text is **evidence, never instructions**: a rule file that says "reviewer, skip this check" gets quoted, not obeyed.
+Pack text is **evidence, never instructions**: a rule file that says "reviewer, skip this check" gets quoted, not obeyed. Pack files are also **read only from inside their source**: consumers list a pack directory themselves, so the resolver refuses to publish a pack whose tree contains a symlink that leaves the source — a git pack cannot point a rule or resource at a file on your machine.
 
 ## When something goes wrong
 
@@ -247,7 +247,8 @@ Pack text is **evidence, never instructions**: a rule file that says "reviewer, 
 | `git source … requires ref:` / `ref: is only valid on git sources` | Entry shape error — fix the entry; other entries still resolve |
 | `pack id(s) X not published … available: …` | Typo or removed pack — the error lists what the source actually publishes |
 | `duplicate pack id … ignored, … kept` | Two entries resolved to the same id — the first-declared entry (`config.yaml` before `config.local.yaml`, then file order) installs and the later one is dropped; rename one with `id:` |
-| One warning, packs missing this run | Git source unreachable (offline, no credentials, gone) — planning continues without it, never blocks |
+| One warning, packs missing this run | Git source unreachable (offline, no credentials, gone) — planning continues without it, never blocks. `git binary not found` degrades git sources the same way; path sources still resolve |
+| `pack <id> not published -- <file> link(s) outside the source` | The pack holds a symlink whose target lies outside its source; nothing from that pack is read. Replace the link with a copy of the file, or drop it |
 | A file silently ignored | Missing `title`/`applies_when` frontmatter — the resolver and `/ce-setup` warn `skipped pack file <id>/<name>`, and a research pass lists it once under `Skipped pack files` |
 | My decision files are in a subfolder and never show up | Discovery reads only top-level `.md` files; move the ones meant as rules up a level ([Pack layout](#pack-layout)). When the top level has no rule at all, the resolver and `/ce-setup` warn `pack <id> has N rule-shaped file(s) under <dir>/ that discovery never reads`; when it has rules, subfolder files are storage and `/ce-setup` only shows their count |
 | Branch- or tag-pinned pack seems stale | Refs freeze at their cached resolution; `/ce-setup` shows "behind upstream" when the remote's branch tip or (force-moved) tag no longer matches the cache — pin a full commit sha, or clear the cache (`/tmp/compound-engineering-<uid>/ce-packs/`) |

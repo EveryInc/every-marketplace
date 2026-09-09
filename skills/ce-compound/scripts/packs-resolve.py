@@ -45,8 +45,15 @@ Git sources cache under `<scratch-root>/ce-packs/<sha256(url\\nref)>` with an
 atomic temp-clone-then-rename, so a keyed path's existence proves a complete
 clone. All git subprocesses run non-interactively (GIT_TERMINAL_PROMPT=0, ssh
 BatchMode, bounded timeout): missing credentials degrade to a warning, never a
-hang. Environment overrides: CE_PACKS_CACHE_ROOT (cache base for tests),
-CE_PACKS_GIT_TIMEOUT (seconds, default 60).
+hang. A missing `git` binary degrades git sources only (each warns and is
+skipped); path sources still resolve, with the repository located by walking up
+from the working directory to the nearest `.git` entry. Environment overrides:
+CE_PACKS_CACHE_ROOT (cache base for tests), CE_PACKS_GIT_TIMEOUT (seconds,
+default 60).
+
+A published pack is a directory a consumer lists and reads itself, so nothing
+in it may link outside its source: a pack whose tree holds such a link is not
+published (a loud per-entry error), never trimmed a file at a time.
 """
 
 from __future__ import annotations
@@ -420,6 +427,19 @@ def _has_knowledge_files(directory: str, boundary: str, escaped: list) -> bool:
     return any(_is_knowledge_file(f) for f in _contained_md_files(directory, boundary, escaped))
 
 
+def _escaping_links(root: str, boundary: str) -> list:
+    """Symlinks anywhere under `root` (walked without following links) whose real
+    path leaves `boundary`, sorted. Only a link can leave: every other entry sits
+    under `root`, which is already inside the boundary."""
+    leaks = []
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        for name in dirnames + filenames:
+            child = os.path.join(dirpath, name)
+            if os.path.islink(child) and not _within(os.path.realpath(child), boundary):
+                leaks.append(child)
+    return sorted(leaks)
+
+
 def enumerate_packs(source_root: str, boundary: str, escaped: list, self_name: str | None = None) -> dict:
     """Map published pack id -> dir. Immediate children only; self = single pack.
 
@@ -601,7 +621,15 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
         selected = {str(override): next(iter(selected.values()))}
 
     for pack_id, pack_dir in selected.items():
-        # Escaping links were already reported during enumeration.
+        # Consumers list the pack directory themselves, so a link that leaves
+        # the source anywhere inside it would let pack content read files off
+        # the user's machine: refuse the whole pack. (Top-level escapes were
+        # already named as skipped during enumeration.)
+        leaks = _escaping_links(pack_dir, boundary)
+        if leaks:
+            names = ", ".join(f"`{os.path.relpath(p, pack_dir)}`" for p in leaks)
+            errors.append(f"{label}: pack `{pack_id}` not published -- {names} link(s) outside the source")
+            continue
         for child in _contained_md_files(pack_dir, boundary, []):
             name = os.path.basename(child)
             if os.path.isfile(child) and not _is_knowledge_file(child):
@@ -631,6 +659,25 @@ def _emit(declared_only: bool, entries: list, roots: list, warnings: list, error
     return 0
 
 
+def _repo_root() -> str | None:
+    """The enclosing checkout's top level: git's answer when git is on PATH,
+    otherwise the nearest ancestor of the working directory holding a `.git`
+    entry (a directory, or the file a worktree or submodule leaves). None when
+    the working directory is not inside a checkout."""
+    if shutil.which("git") is not None:
+        proc = subprocess.run(["git", "rev-parse", "--show-toplevel"],
+                              stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+        return proc.stdout.strip() if proc.returncode == 0 else None
+    current = os.getcwd()
+    while True:
+        if os.path.lexists(os.path.join(current, ".git")):
+            return current
+        parent = os.path.dirname(current)
+        if parent == current:
+            return None
+        current = parent
+
+
 def _main(argv: list) -> int:
     parser = argparse.ArgumentParser(description="Resolve the Compound Packs declared in CE config.")
     parser.add_argument(
@@ -640,15 +687,10 @@ def _main(argv: list) -> int:
     args = parser.parse_args(argv)
     warnings, errors, roots, entries = [], [], [], []
 
-    if shutil.which("git") is None:
-        warnings.append("git binary not found; packs unavailable")
-        return _emit(args.declared_only, entries, roots, warnings, errors)
-    proc = subprocess.run(["git", "rev-parse", "--show-toplevel"],
-                          stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
-    if proc.returncode != 0:
+    repo_root = _repo_root()
+    if repo_root is None:
         warnings.append("not inside a git repository; no CE config to read")
         return _emit(args.declared_only, entries, roots, warnings, errors)
-    repo_root = proc.stdout.strip()
     cfg_dir = os.path.join(repo_root, ".compound-engineering")
     for name in CONFIG_FILES:
         entries.extend(parse_packs_block(os.path.join(cfg_dir, name), errors))
