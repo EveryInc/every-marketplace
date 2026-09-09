@@ -3,8 +3,8 @@
 require "pathname"
 
 # Translates GitHub-flavoured markdown written for the repo into the site's terms
-# at pre-render time, so README.md, docs/install/upgrading.md, and the guides render
-# without being edited:
+# when the sources are adopted, so README.md, docs/install/upgrading.md, and the
+# guides render without being edited:
 #
 # - `> [!NOTE]`-style alerts become kramdown callouts the theme styles
 #   (marker line dropped, `{: .note }` appended after the blockquote).
@@ -155,15 +155,8 @@ module CeGithubMarkdown
   end
 end
 
-if defined?(Jekyll::Hooks)
-  Jekyll::Hooks.register [:pages, :documents], :pre_render do |item|
-    source_path = item.data["ce_source_path"]
-    next unless source_path
-
-    item.content = CeGithubMarkdown.rewrite(
-      item.content,
-      source_path: source_path,
-      repo_root: File.expand_path("..", item.site.source)
-    )
-  end
-end
+# No Jekyll hook here: ce_sources.rb calls CeGithubMarkdown.rewrite on every
+# adopted document and page inside its high-priority :site, :post_read pass,
+# before the theme snapshots content for llms-full.txt, search.json, and the
+# copy-page exports. A :pre_render hook would run after those snapshots and
+# leave them carrying raw GitHub markers and repo-relative links.

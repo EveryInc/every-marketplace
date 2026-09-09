@@ -10,6 +10,7 @@
 # collection once and cannot be re-run.
 
 require "json"
+require_relative "ce_github_markdown"
 require "open3"
 require "time"
 
@@ -221,6 +222,7 @@ module CeSources
       adopt_root_pages
       groups = Catalog.parse(catalog_text(collection))
       synthesize_groups(collection, groups)
+      rewrite_sources(collection)
       by_name = collection.docs.to_h { |doc| [doc.basename_without_ext, doc] }
       arrange(collection, groups, by_name)
       collection.docs.sort_by! { |doc| [doc.data["nav_order"].to_f, doc.path] }
@@ -278,6 +280,19 @@ module CeSources
         page.data["last_updated_at"] = Git.last_updated_at(repo_root, source, dates: commit_dates)
         site.pages << page
         site.static_files.delete(file)
+      end
+    end
+
+    # Rewrites GitHub-flavoured markdown in every adopted item now, in post_read,
+    # so the theme's builders (llms-full.txt, search.json, copy-page exports)
+    # snapshot the rewritten content rather than the raw repo text.
+    def rewrite_sources(collection)
+      items = collection.docs + site.pages.select { |page| page.data["ce_source_path"] }
+      items.each do |item|
+        source = item.data["ce_source_path"]
+        next unless source
+
+        item.content = CeGithubMarkdown.rewrite(item.content, source_path: source, repo_root: repo_root)
       end
     end
 

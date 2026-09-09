@@ -269,7 +269,7 @@ class TestAdoption < Minitest::Test
       two = guide(site, "Group Two")
       assert_equal true, one.data["ce_group"]
       assert_equal "/guides/group-one/", one.url
-      assert_includes one.content, "| [`/ce-alpha`](./ce-alpha.md) |"
+      assert_includes one.content, "| [`/ce-alpha`](/guides/ce-alpha/) |"
 
       assert_equal 1, guide(site, "Skill catalog").data["nav_order"]
       assert_equal 2, one.data["nav_order"]
@@ -413,6 +413,12 @@ class TestSiteBuild < Minitest::Test
 
       llms = File.read(File.join(out, "llms.txt"))
       GUIDE_TITLES.each { |t| assert_equal 1, llms.scan("[#{t}](").length, "llms.txt lists #{t}" }
+      llms_full = File.read(File.join(out, "llms-full.txt"))
+      refute_includes llms_full, "[!IMPORTANT]", "llms-full.txt keeps a raw GitHub alert marker"
+      refute_includes llms_full, "](./", "llms-full.txt keeps a sibling-relative guide link"
+      refute_includes llms_full, 'src="assets/', "llms-full.txt keeps a repo-relative asset path"
+      assert_includes llms_full, "/guides/ce-beta/", "llms-full.txt carries the rewritten guide link"
+      assert_includes llms_full, "{: .important }", "llms-full.txt carries the theme callout syntax"
       sitemap = File.read(File.join(out, "sitemap.xml"))
       assert_includes sitemap, "https://example.test/guides/ce-alpha/"
 
