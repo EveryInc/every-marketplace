@@ -650,7 +650,7 @@ if [ "$in_repo" = "yes" ]; then
       project_issues=$((project_issues + 1))
     else
       packs_report="$(printf '%s' "$packs_json" | "$packs_python" -c '
-import json, os, subprocess, sys
+import json, os, re, subprocess, sys
 data = json.load(sys.stdin)
 roots, errors, warns = data.get("roots", []), data.get("errors", []), data.get("warnings", [])
 if not roots and not errors and not warns:
@@ -660,29 +660,33 @@ for r in roots:
     url, ref = r.get("url"), r.get("ref")
     if url and ref:
         line += " (" + ref + ")"
-        try:
-            # Branch refs only: tags and shas are immutable, so a drift note there
-            # would be a false positive (annotated-tag ls-remote shas differ). Only a
-            # branch clone leaves refs/heads/<ref> in the cache, so that local check
-            # decides whether the remote is worth asking.
-            is_branch = subprocess.run(["git", "-C", r["dir"], "show-ref", "--verify", "--quiet", "refs/heads/" + ref],
-                                       capture_output=True, timeout=10).returncode == 0
-            if is_branch:
+        # Only a full commit id is immutable. A branch tip advances and a tag can
+        # be force-moved upstream, so for either compare the cached HEAD with the
+        # remote target of that name -- the peeled commit for an annotated tag,
+        # which is why the ls-remote asks for `<tag>^{}` too.
+        if not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", ref):
+            try:
                 genv = dict(os.environ)
                 genv["GIT_TERMINAL_PROMPT"] = "0"
                 genv.setdefault("GIT_ASKPASS", "true")
                 _ssh = genv.get("GIT_SSH_COMMAND") or "ssh"
                 if "BatchMode" not in _ssh:
                     genv["GIT_SSH_COMMAND"] = _ssh + " -o BatchMode=yes"
-                remote = subprocess.run(["git", "ls-remote", "--end-of-options", url, "refs/heads/" + ref],
+                names = ["refs/tags/" + ref + "^{}", "refs/tags/" + ref, "refs/heads/" + ref]
+                remote = subprocess.run(["git", "ls-remote", "--end-of-options", url, *names],
                                         capture_output=True, text=True, timeout=10, env=genv)
+                targets = {}
+                for row in remote.stdout.splitlines() if remote.returncode == 0 else []:
+                    sha, _, name = row.partition("\t")
+                    if name:
+                        targets[name] = sha
+                rsha = next((targets[n] for n in names if n in targets), "")
                 local = subprocess.run(["git", "-C", r["dir"], "rev-parse", "HEAD"], capture_output=True, text=True, timeout=10)
-                rsha = remote.stdout.split()[0] if remote.returncode == 0 and remote.stdout.strip() else ""
                 lsha = local.stdout.strip() if local.returncode == 0 else ""
                 if rsha and lsha and rsha != lsha:
                     line += " -- cached resolution is behind upstream"
-        except Exception:
-            pass  # offline or slow remote: silently skip the drift note
+            except Exception:
+                pass  # offline or slow remote: silently skip the drift note
     # Subdirectories are storage, so rule-shaped files there are a note on the
     # OK line, never a warning: the author may keep drafts and evidence with frontmatter.
     nested = r.get("nested_rule_shaped", 0)

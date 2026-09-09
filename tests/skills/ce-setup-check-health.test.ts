@@ -1013,4 +1013,50 @@ describe("ce-setup check-health pack drift note", () => {
       await rm(upstream, { recursive: true, force: true })
     }
   })
+
+  // A tag is not immutable: `git tag --force` moves it upstream while every
+  // machine that already cached it keeps the old commit. Only a full commit id
+  // is exempt from the remote comparison.
+  test("notes when a cached tag was force-moved upstream", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "ce-setup-health-"))
+    const cache = await mkdtemp(path.join(os.tmpdir(), "ce-packs-cache-"))
+    const upstream = await mkdtemp(path.join(os.tmpdir(), "ce-packs-up-"))
+    const g = (...args: string[]) => Bun.$`git -C ${upstream} ${args}`.env(isolatedGitEnv).quiet()
+    const commit = (message: string) => g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", message)
+    try {
+      await Bun.$`git init -q ${upstream}`.env(isolatedGitEnv).quiet()
+      await mkdir(path.join(upstream, "rails"), { recursive: true })
+      await writeFile(path.join(upstream, "rails", "r.md"), knowledgeFile("Rule"))
+      await g("add", "-A")
+      await commit("p")
+      await g("-c", "user.email=t@t", "-c", "user.name=t", "tag", "-a", "v1", "-m", "v1")
+
+      await initGitRepo(root)
+      await mkdir(path.join(root, ".compound-engineering"), { recursive: true })
+      await copyFile(configTemplate, path.join(root, ".compound-engineering", "config.example.yaml"))
+      await writeFile(
+        path.join(root, ".compound-engineering", "config.yaml"),
+        `packs:\n  - source: file://${upstream}\n    ref: v1\n`,
+      )
+
+      const run = () => runCheckHealth(root, process.env.PATH ?? "/usr/bin:/bin", { CE_PACKS_CACHE_ROOT: cache })
+
+      const first = await run()
+      expect(first.stdout).toContain("pack rails (v1)")
+      expect(first.stdout).not.toContain("behind upstream")
+
+      // Move the tag to a new commit; the cached checkout still holds the old one.
+      await writeFile(path.join(upstream, "rails", "r2.md"), knowledgeFile("Rule 2"))
+      await g("add", "-A")
+      await commit("later")
+      await g("-c", "user.email=t@t", "-c", "user.name=t", "tag", "-f", "-a", "v1", "-m", "v1 moved")
+
+      const second = await run()
+      expect(second.stdout).toContain("pack rails (v1) -- cached resolution is behind upstream")
+    } finally {
+      await rm(root, { recursive: true, force: true })
+      await rm(cache, { recursive: true, force: true })
+      await rm(upstream, { recursive: true, force: true })
+    }
+  })
 })

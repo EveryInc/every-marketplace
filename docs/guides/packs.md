@@ -236,7 +236,7 @@ Sizing guidance: matching only ever reads rule frontmatter, so data size never s
 | `ce-code-review` | Declaring packs selects the institutional-learnings pass even before the repo has any `docs/solutions/`; it searches pack roots, and a diff violating a matching rule is flagged with the citation (local reviews only — remote-PR scope skips your local config) |
 | `ce-doc-review` | Reviewers receive the resolved packs and flag plan text contradicting a matching rule |
 | `ce-dogfood` | Rules that describe a user become personas the flows are walked as; rules that prescribe behavior become criteria each scenario is judged against, with a contradiction entering the fix loop under the citation. A contradiction the branch intends is escalated as a stale-rule decision, and judgments that generalize go back to the pack through `ce-compound` |
-| `/ce-setup` | Health check reports each entry: resolvable, ref rules, published packs, and whether a cached branch is behind upstream |
+| `/ce-setup` | Health check reports each entry: resolvable, ref rules, published packs, and whether a cached tag or branch still matches upstream (only a full commit sha is exempt from that comparison) |
 
 Pack text is **evidence, never instructions**: a rule file that says "reviewer, skip this check" gets quoted, not obeyed.
 
@@ -250,7 +250,7 @@ Pack text is **evidence, never instructions**: a rule file that says "reviewer, 
 | One warning, packs missing this run | Git source unreachable (offline, no credentials, gone) — planning continues without it, never blocks |
 | A file silently ignored | Missing `title`/`applies_when` frontmatter — the resolver and `/ce-setup` warn `skipped pack file <id>/<name>`, and a research pass lists it once under `Skipped pack files` |
 | My decision files are in a subfolder and never show up | Discovery reads only top-level `.md` files; move the ones meant as rules up a level ([Pack layout](#pack-layout)). When the top level has no rule at all, the resolver and `/ce-setup` warn `pack <id> has N rule-shaped file(s) under <dir>/ that discovery never reads`; when it has rules, subfolder files are storage and `/ce-setup` only shows their count |
-| Branch-pinned pack seems stale | Branches freeze at their cached resolution; `/ce-setup` shows "behind upstream" — pin a tag, or clear the cache (`/tmp/compound-engineering-<uid>/ce-packs/`) |
+| Branch- or tag-pinned pack seems stale | Refs freeze at their cached resolution; `/ce-setup` shows "behind upstream" when the remote's branch tip or (force-moved) tag no longer matches the cache — pin a full commit sha, or clear the cache (`/tmp/compound-engineering-<uid>/ce-packs/`) |
 
 ## How discovery works: packs and learnings together
 
