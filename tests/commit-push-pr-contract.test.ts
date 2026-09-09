@@ -461,7 +461,7 @@ describe("PR concept teaching contract", () => {
     // Completion gate: PR URL alone is not done; ce-babysit-pr must own follow-on.
     expect(handoff).toMatch(/not done.+until `ce-babysit-pr` owns/is)
     expect(handoff).toMatch(/Reporting the PR URL alone is not success/)
-    expect(handoff).toMatch(/\*\*Success\*\*.+`ce-babysit-pr` has started/is)
+    expect(handoff).toMatch(/\*\*Success\*\*.+`ce-babysit-pr` owns the monitoring lifecycle/is)
     // Harness-agnostic load: use the host's normal skill mechanism without a platform matrix.
     expect(handoff).toMatch(/host's normal skill-invocation mechanism/)
     expect(handoff).not.toContain("Claude Code `Skill` tool")
@@ -553,7 +553,7 @@ describe("PR concept teaching contract", () => {
     // The pipeline exception is part of the do-not-fire list in the apply reference.
     expect(applyRef).toMatch(/mode:pipeline` \*\*except\*\* when this run completed a stack-mode submit/i)
     expect(applyRef).toMatch(/outer orchestrator[\s\S]{0,80}second bare babysit/i)
-    expect(applyRef).toMatch(/mode:pipeline[\s\S]{0,160}started-only is not enough/i)
+    expect(applyRef).toMatch(/mode:pipeline[\s\S]{0,160}wait for its pipeline stop/i)
     expect(submit).toMatch(/authoritative parent tip/i)
     expect(submit).toContain('git checkout -b -- "<branch-name>" "<parent-tip>"')
     expect(submit).toMatch(/Do not hard-code `origin\/<parent>`/i)

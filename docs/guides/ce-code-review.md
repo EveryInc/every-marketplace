@@ -14,6 +14,8 @@ It is not a verdict on a document (`ce-pov`), not findings on a planning doc (`c
 
 The agent leading the review checks each finding against the code. It keeps findings that identify a real problem or make maintenance easier enough to justify the change. Agreement between reviewers does not make a minor issue important. Rejected suggestions do not reappear as risks or requests for more tests. Advisory observations need a demonstrated benefit too; uncertainty by itself does not justify passing a concern to the user.
 
+Collected review agents and validators are released before the next batch or handoff when the harness provides caller-owned cleanup. When it does not, the review reports retained-capacity limitations without claiming that completion freed a slot.
+
 ---
 
 ## TL;DR

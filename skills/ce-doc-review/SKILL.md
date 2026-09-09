@@ -10,7 +10,7 @@ Help the author finish a sound document they can use to carry out the agreed wor
 
 Reviewer personas supply evidence; you own the judgment. Investigate their claims against the whole document, project facts, and settled decisions. Correct proven errors that prevent an existing decision from being carried out, within the edit authority and reviewer requirements in synthesis. Return only worthwhile improvements still needing permission, consequential choices or essential information only the user can supply, and useful observations.
 
-**Done when:** every assigned reviewer has returned or is named as failed in Coverage, retained findings have a verified consequence for the agreed work, and every authorized correction assigned to Apply has been made and checked. Report that final state through the interactive approval or decision process, or return it as structured text in non-interactive mode.
+**Done when:** every selected reviewer has returned or is named as failed in Coverage, retained findings have a verified consequence for the agreed work, and every authorized correction assigned to Apply has been made and checked. Report that final state through the interactive approval or decision process, or return it as structured text in non-interactive mode.
 
 ## Interactive mode rules
 
@@ -52,7 +52,7 @@ The team is `coherence-reviewer` and `feasibility-reviewer` always, plus each ac
 
 Dispatch generic subagents with **bounded parallelism** through the platform's subagent primitive. Seed each one with the full content of its `references/personas/<reviewer-name>.md`. Never dispatch a standalone agent by type or name.
 
-A capacity rejection is backpressure, not reviewer failure. That reviewer stays queued and retries when a slot frees, and no reviewer is dropped because the harness cap is below the team size.
+A capacity rejection is backpressure, not reviewer failure. If capacity cannot recover and selected reviewers remain undispatched, finish any started cross-model jobs under `references/cross-model-review.md`'s terminal collection and cleanup contract, then stop as incomplete without synthesis, fixes, or a success handoff. Preserve collected outcomes and report which reviewers completed, failed, or could not run, and why.
 
 ### Cross-Model Judgment Pass
 

@@ -51,7 +51,7 @@ After all mutations in this run have settled (initial write, deepening synthesis
 
 ## 5.4 Post-Generation Options
 
-**Pipeline mode:** If invoked from an automated workflow such as LFG or any `disable-model-invocation` context, skip the interactive menu below and return control to the caller immediately. The plan file has been written, the confidence check has run, and either `ce-doc-review` completed or ce-plan recorded `skill_unreachable` because the review could not start. Return the resolved review envelope to the caller (e.g., LFG), which determines the next step.
+**Pipeline mode:** Return control to the caller without an interactive menu. If document review started but did not complete, return the skill's `status: blocked` result with `phase`, `blocker`, `recovery_path`, and the preserved `artifact_path`. Otherwise return the resolved review envelope from completion or the pre-entry `skill_unreachable` fallback.
 
 **Path format:** Use absolute paths for chat-output file references — relative paths are not auto-linked as clickable in most terminals.
 
