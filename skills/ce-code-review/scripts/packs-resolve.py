@@ -86,15 +86,28 @@ def _owned_dir(path: str) -> bool:
 
 
 def _private_root_usable(path: str) -> bool:
+    """Create or repair `path` as a private (0700) root owned by this user."""
     try:
         os.mkdir(path, 0o700)
     except FileExistsError:
         pass
     except OSError:
         return False
-    if not IS_WINDOWS and not _owned_dir(path):
-        return False
+    if not IS_WINDOWS:
+        if not _owned_dir(path):
+            return False
+        try:
+            os.chmod(path, 0o700)
+        except OSError:
+            return False
     return os.path.isdir(path) and os.access(path, os.W_OK)
+
+
+def _trusted_checkout(path: str) -> bool:
+    """A real directory (never a symlink) that this user owns; ownership is POSIX-only."""
+    if os.path.islink(path) or not os.path.isdir(path):
+        return False
+    return IS_WINDOWS or _owned_dir(path)
 
 
 @functools.lru_cache(maxsize=None)
@@ -250,11 +263,21 @@ def resolve_git_source(url: str, ref: str, warnings: list, label: str) -> str | 
         return None
     key = hashlib.sha256(f"{url}\n{ref}".encode()).hexdigest()
     dest = os.path.join(base, key)
-    if os.path.isdir(dest):
-        if IS_WINDOWS or _owned_dir(dest):
+    if os.path.lexists(dest):
+        if _trusted_checkout(dest):
             return dest
         warnings.append(f"{label}: cached checkout {dest} is a symlink or not owned by this user; refetching")
+        # rmtree refuses to follow a symlink (and ignores a plain file); unlink
+        # those explicitly so a planted link is removed, never its target.
         shutil.rmtree(dest, ignore_errors=True)
+        if os.path.islink(dest) or os.path.isfile(dest):
+            try:
+                os.unlink(dest)
+            except OSError:
+                pass
+        if os.path.lexists(dest):
+            warnings.append(f"{label}: cannot replace untrusted cached checkout {dest}; source skipped")
+            return None
     tmp = tempfile.mkdtemp(prefix=f"{key}.part-", dir=base)
     try:
         try:
@@ -277,12 +300,21 @@ def resolve_git_source(url: str, ref: str, warnings: list, label: str) -> str | 
             except subprocess.TimeoutExpired:
                 warnings.append(f"{label}: git fetch timed out after {int(GIT_TIMEOUT)}s; source skipped")
                 return None
-        if not os.path.isdir(dest):
+        if not os.path.lexists(dest):
             try:
                 os.replace(tmp, dest)
             except OSError:
-                pass  # another resolver published the same key concurrently
-        return dest
+                # Expected when another resolver published the same key
+                # concurrently; anything else leaves no checkout to return.
+                if not os.path.lexists(dest):
+                    warnings.append(f"{label}: could not publish the clone to {dest}; source skipped")
+                    return None
+        if _trusted_checkout(dest):
+            return dest
+        warnings.append(
+            f"{label}: cached checkout {dest} appeared during the clone and is a symlink or not owned by this user; source skipped"
+        )
+        return None
     finally:
         if os.path.isdir(tmp):
             shutil.rmtree(tmp, ignore_errors=True)
@@ -309,17 +341,39 @@ def _is_knowledge_file(path: str) -> bool:
     return all(re.search(rf"^\s*{re.escape(k)}", fm, re.MULTILINE) for k in _FRONTMATTER_KEYS)
 
 
-def _has_knowledge_files(directory: str) -> bool:
+def _contained_md_files(directory: str, boundary: str, escaped: list) -> list:
+    """Paths of the `.md` entries directly under `directory` whose real path stays
+    within `boundary` (a realpath). An entry that links outside it is appended to
+    `escaped` and never opened, so a pack cannot read files off the user's machine."""
     try:
         names = sorted(os.listdir(directory))
     except OSError:
-        return False
-    return any(n.endswith(".md") and _is_knowledge_file(os.path.join(directory, n)) for n in names)
+        return []
+    files = []
+    for name in names:
+        if not name.endswith(".md"):
+            continue
+        child = os.path.join(directory, name)
+        if _within(os.path.realpath(child), boundary):
+            files.append(child)
+        else:
+            escaped.append(child)
+    return files
 
 
-def enumerate_packs(source_root: str, self_name: str | None = None) -> dict:
-    """Map published pack id -> dir. Immediate children only; self = single pack."""
-    if _has_knowledge_files(source_root):
+def _has_knowledge_files(directory: str, boundary: str, escaped: list) -> bool:
+    return any(_is_knowledge_file(f) for f in _contained_md_files(directory, boundary, escaped))
+
+
+def enumerate_packs(source_root: str, boundary: str, escaped: list, self_name: str | None = None) -> dict:
+    """Map published pack id -> dir. Immediate children only; self = single pack.
+
+    `boundary` is the realpath every child directory and rule file must stay
+    within (the git checkout, the repository, or the source root itself); a
+    child that links outside it is recorded in `escaped` and skipped. Symlinks
+    that stay inside the boundary are ordinary content.
+    """
+    if _has_knowledge_files(source_root, boundary, escaped):
         name = self_name or os.path.basename(os.path.abspath(source_root))
         return {name: source_root}
     packs = {}
@@ -329,7 +383,12 @@ def enumerate_packs(source_root: str, self_name: str | None = None) -> dict:
         return packs
     for name in children:
         child = os.path.join(source_root, name)
-        if os.path.isdir(child) and not name.startswith(".") and _has_knowledge_files(child):
+        if name.startswith(".") or not os.path.isdir(child):
+            continue
+        if not _within(os.path.realpath(child), boundary):
+            escaped.append(child)
+            continue
+        if _has_knowledge_files(child, boundary, escaped):
             packs[name] = child
     return packs
 
@@ -375,7 +434,7 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
         if not _within(real_root, real_checkout):
             errors.append(f"{label}: path `{sub_path}` escapes the source checkout")
             return
-        source_root = real_root
+        source_root, boundary = real_root, real_checkout
         if not os.path.isdir(source_root):
             errors.append(f"{label}: path `{sub_path}` does not exist in {source}@{ref}")
             return
@@ -390,12 +449,14 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
         expanded = os.path.expanduser(source)
         if os.path.isabs(expanded):
             source_root = os.path.realpath(expanded)
+            boundary = source_root
         else:
             source_root = os.path.realpath(os.path.join(repo_root, expanded))
             repo_real = os.path.realpath(repo_root)
             if not _within(source_root, repo_real) or _within(source_root, os.path.join(repo_real, ".git")):
                 errors.append(f"{label}: repo-relative source `{source}` resolves outside the repository")
                 return
+            boundary = repo_real
         if not os.path.isdir(source_root):
             errors.append(f"{label}: source directory `{source}` does not exist")
             return
@@ -407,7 +468,12 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
         self_name = re.sub(r"\.git$", "", tail.split(":")[-1]) or None
     else:
         self_name = None
-    published = enumerate_packs(source_root, self_name)
+    escaped = []
+    published = enumerate_packs(source_root, boundary, escaped, self_name)
+    for link in escaped:
+        warnings.append(
+            f"{label}: skipped `{os.path.relpath(link, source_root)}` in `{source}` -- it links outside the source"
+        )
     if not published:
         warnings.append(f"{label}: source `{source}` publishes no packs (no directories with valid knowledge files)")
         return
@@ -437,11 +503,11 @@ def resolve_entry(entry: dict, repo_root: str, roots: list, warnings: list, erro
         selected = {str(override): next(iter(selected.values()))}
 
     for pack_id, pack_dir in selected.items():
-        for name in sorted(os.listdir(pack_dir)):
-            child = os.path.join(pack_dir, name)
-            if name.endswith(".md") and os.path.isfile(child) and not _is_knowledge_file(child):
+        # Escaping links were already reported during enumeration.
+        for child in _contained_md_files(pack_dir, boundary, []):
+            if os.path.isfile(child) and not _is_knowledge_file(child):
                 warnings.append(
-                    f"{label}: skipped pack file `{pack_id}/{name}` (missing `title`/`applies_when` frontmatter)"
+                    f"{label}: skipped pack file `{pack_id}/{os.path.basename(child)}` (missing `title`/`applies_when` frontmatter)"
                 )
         root = {"id": pack_id, "dir": pack_dir, "_label": label}
         if git_meta:

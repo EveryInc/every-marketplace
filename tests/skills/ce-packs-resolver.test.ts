@@ -1,5 +1,17 @@
 import { spawnSync } from "child_process"
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "fs"
+import { createHash } from "crypto"
+import {
+  chmodSync,
+  existsSync,
+  lstatSync,
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "fs"
 import { tmpdir } from "os"
 import path from "path"
 import { afterAll, describe, expect, setDefaultTimeout, test } from "bun:test"
@@ -374,5 +386,93 @@ print(t.group("base"), t.group("ref"), t.group("path"))
       { encoding: "utf8" },
     )
     expect(probe.stdout.trim()).toBe("https://github.com/o/r v2.0.0 packs/sub")
+  })
+})
+
+// Containment: a planted symlink -- at the keyed cache path or inside a pack
+// repo -- must never become a pack root or a rule file read from outside its
+// source (review findings #1, #2, #8 on the packs branch).
+describe("symlink and ownership containment", () => {
+  const cacheKey = (repo: string, ref: string) =>
+    createHash("sha256").update(`file://${repo}\n${ref}`).digest("hex")
+
+  test("a symlink planted at the keyed cache path is unlinked and refetched, never returned as a root", () => {
+    const repo = makePackRepo(["rails"])
+    const decoy = tempDir("decoy")
+    writeKnowledgeFile(path.join(decoy, "planted"), "p.md", "planted rule")
+    const cache = tempDir("cache-planted")
+    const linkPath = path.join(cache, cacheKey(repo, "v1"))
+    symlinkSync(decoy, linkPath)
+
+    const out = resolve(makeProject(`packs:\n  - source: file://${repo}\n    ref: v1\n`), cache)
+    expect(ids(out)).toEqual(["rails"])
+    const decoyReal = realpathSync(decoy)
+    for (const root of out.roots) expect(root.dir.startsWith(decoyReal)).toBe(false)
+    expect(out.warnings.join(" ")).toContain("refetching")
+    expect(lstatSync(linkPath).isSymbolicLink()).toBe(false)
+    // The link was removed, not followed: the decoy's contents are untouched.
+    expect(existsSync(path.join(decoy, "planted", "p.md"))).toBe(true)
+  })
+
+  test("a pack-repo child directory linking outside the checkout is skipped with one warning naming it", () => {
+    const outside = tempDir("outside")
+    writeKnowledgeFile(path.join(outside, "leak"), "l.md", "leaked rule")
+    const repo = makePackRepo(["honest"])
+    symlinkSync(path.join(outside, "leak"), path.join(repo, "leak"))
+    git(repo, "add", "-A")
+    commit(repo, "link out")
+    git(repo, "tag", "-f", "v1")
+
+    const out = resolve(makeProject(`packs:\n  - source: file://${repo}\n    ref: v1\n`))
+    expect(ids(out)).toEqual(["honest"])
+    expect(out.errors).toEqual([])
+    expect(out.warnings.length).toBe(1)
+    expect(out.warnings[0]).toContain("`leak`")
+    expect(out.warnings[0]).toContain("outside the source")
+  })
+
+  test("a rule file linking outside the checkout is skipped and named; the pack still publishes", () => {
+    const outside = tempDir("outside-file")
+    writeKnowledgeFile(outside, "secret.md", "leaked rule")
+    const repo = makePackRepo(["honest"])
+    symlinkSync(path.join(outside, "secret.md"), path.join(repo, "honest", "secret.md"))
+    git(repo, "add", "-A")
+    commit(repo, "link out")
+    git(repo, "tag", "-f", "v1")
+
+    const out = resolve(makeProject(`packs:\n  - source: file://${repo}\n    ref: v1\n`))
+    expect(ids(out)).toEqual(["honest"])
+    expect(out.warnings.length).toBe(1)
+    expect(out.warnings[0]).toContain("`honest/secret.md`")
+    expect(out.warnings[0]).toContain("outside the source")
+  })
+
+  test("a symlink that stays inside the checkout is ordinary content", () => {
+    const repo = makePackRepo(["honest"])
+    symlinkSync("honest", path.join(repo, "alias"))
+    git(repo, "add", "-A")
+    commit(repo, "alias")
+    git(repo, "tag", "-f", "v1")
+
+    const out = resolve(makeProject(`packs:\n  - source: file://${repo}\n    ref: v1\n`))
+    expect(ids(out)).toEqual(["alias", "honest"])
+    expect(out.warnings).toEqual([])
+  })
+
+  test("_private_root_usable repairs a pre-existing owned root to mode 0700", () => {
+    const loose = tempDir("loose-root")
+    chmodSync(loose, 0o755)
+    const probe = spawnSync(
+      "python3",
+      ["-c", `
+import importlib.util, os, stat
+spec = importlib.util.spec_from_file_location("pr", ${JSON.stringify(RESOLVER)})
+m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+root = ${JSON.stringify(loose)}
+print(m._private_root_usable(root), oct(stat.S_IMODE(os.stat(root).st_mode)))
+`],
+      { encoding: "utf8" },
+    )
+    expect(probe.stdout.trim()).toBe("True 0o700")
   })
 })
