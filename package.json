@@ -31,7 +31,8 @@
     "release:validate": "bun run scripts/release/validate.ts",
     "site:build": "cd site && bundle exec jekyll build --strict_front_matter",
     "site:serve": "cd site && bundle exec jekyll serve --livereload",
-    "site:test": "cd site && bundle exec rake test"
+    "site:test": "cd site && bundle exec rake test",
+    "site:check": "cd site && LC_ALL=C.UTF-8 bundle exec htmlproofer _site --disable-external --allow-missing-href --no-enforce-https"
   },
   "dependencies": {
     "citty": "^0.1.6",
