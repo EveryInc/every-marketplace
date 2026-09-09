@@ -4,27 +4,26 @@ Read this once per babysit session, before acting on the first tick's output. It
 
 ## How the watch sustains itself
 
-A skill's turn ends when it returns, so *the skill sets up its own loop* — nothing re-invokes it by magic. The robust, cross-harness-verified way is **not** to call a specific per-harness scheduler; it is to run a cheap deterministic background change-detector and **stay in-session**, woken when it signals:
+Keep monitoring in the current session until a stop condition is met. Run the deterministic change detector and wait for its output using the harness's tools:
 
 - **`pr-snapshot watch`** is that detector — same fetch→diff on an interval, **no agent tokens**, prints one `BABYSIT_WAKE {reason,url,...}` line *only* on work to inspect (`actionable` for unresolved threads or failed CI; `feedback-candidate` for non-thread content awaiting resolver judgment; `branch-currency` for an item requiring claim, semantic inspection, or reconciliation) or a stop condition (`terminal` / `blocked-external` / `blocked-external-drained` / `blocked-failing` — a dispatched check left terminally red — / `base-ref-blocked` / `needs-human` / `merge-ready` after settle / `review-evidence-moved` — readiness-bearing state changed while a widened settle window was still running, so the agent re-judges rather than sleeping out a window armed against evidence that has since moved / `max-runtime` / `stop-signal` / `invocation-superseded`), then exits. A `feedback-candidate` that the resolver silent-drops is a normal classification outcome, not a detector false positive.
 - At the fixed deadline, the final refresh preserves `terminal` and already-settled `merge-ready` stops; `max-runtime` outranks every non-terminal work/residual wake so the cap cannot start another agent round.
-- The agent **backgrounds `watch` and waits for that line** with its harness's *background-and-wake* capability, runs a tick, and re-arms. The loop lives **in the current session**, so it keeps every decision the conversation made — declined nits, a reviewer judged wrong, the user's mid-run steering — and spends reasoning only when something changed.
+- The agent waits for that line, runs a tick, and re-arms the detector. Keep the session active while waiting so each wake returns to this agent with the conversation's decisions intact.
 
 Watcher ownership is **latest-valid-watcher-wins**. A newer invocation cancels an older invocation whose first fetch is still in flight, preventing network completion order from stealing ownership back. That candidate reservation does not displace the active watcher: only a successful first snapshot atomically supersedes and gracefully terminates it, while a failed preflight leaves it healthy and active. Wakes and snapshots carry `watch_generation`. On delivery, compare the wake generation with a fresh snapshot: discard a stale wake and coalesce it into that current read; if the generation matches but the attention set already cleared, do no work. An `invocation-superseded` wake ends the old loop without a tick or re-arm because a later explicit invocation owns the state. Replacement preserves `last_change_at`, `invocation_started_at`, and `invocation_budget_seconds`, so a fresh watcher polls immediately without adding a new settle delay or renewing the budget.
 
-The needed capability is generic — *run a background process and be woken when it emits a line, without ending the turn* — so **describe the capability and use whatever tool the harness has**, rather than hardcoding a scheduler. A skill drives **tool calls**, never user-typed slash commands. Known instances (examples, not a required list; verified live this session):
+Use the harness's tools to run the detector and wait for its output. A skill drives tool calls, not user-typed slash commands. These are examples, not a required tool list:
 
-| Harness | Background-and-wake tool the agent uses | Durable beyond the session? |
-|---------|-----------------------------------------|-----------------------------|
+| Harness | Run and wait tools | Durable beyond the session? |
+|---------|--------------------|-----------------------------|
 | Claude Code (CLI) | background `Bash` + a `Monitor`/wait; or `ScheduleWakeup` under `/loop` | No (session-bound) — cron for durable |
 | Grok (CLI/TUI) | background `run_terminal_command` + `get_command_or_subagent_output`; `scheduler_create --durable` for a cross-session schedule | Yes via `scheduler_create --durable` (60s min, 7d) |
 | Cursor (CLI) | `Shell` background + `notify_on_output` sentinel (its `/loop` is user-typed, **not** skill-invocable) | No (session-bound) |
-| Codex (CLI) | a runtime-owned background exec that re-runs the tick (a detached `nohup` is **reaped** when the tool call ends) | No (session-bound) |
-| GUI apps / headless / unknown | none reliable → **checkpoint** | — |
+| Codex (CLI) | `exec_command` to start the detector, then `write_stdin` to wait on the returned process session | No (session-bound) |
 
 **User-runnable resume syntax.** Whenever this reference tells the skill to print or copy a resume invocation, default to `/ce-babysit-pr <url>` and, when the run posture is not `target`, append the same `posture:stack-ready` or `posture:stack-land` token so checkpoint / durable / session re-entry keeps stack scope. Use `$ce-babysit-pr <url> [posture:…]` only when the active host is Codex or explicitly documents dollar-prefixed skill invocation. Render only the invocation as inline code and output one form only.
 
-**Checkpoint (the floor):** when no background-and-wake capability exists, run one tick, persist, report, and print the exact host-rendered re-run invocation — monitoring is *paused*, say so plainly. Because every tick is disk-resumable, checkpoint is the same loop hand-cranked; the in-session watch only automates the crank. Never fake a loop with a foreground `sleep` (blocked on Claude Code, discouraged elsewhere) or a detached `nohup` (reaped/unsupported on several harnesses).
+**Checkpoint:** Use checkpoint mode only when the user requests it or the harness cannot keep the session active while waiting for the detector’s output. Run one tick, persist, report, and print the exact host-rendered resume invocation. Say monitoring is paused. Never fake a loop with a foreground `sleep` or an unmanaged detached process.
 
 **Durability:** the in-session watch dies with the session; re-invoking resumes from disk (`/tmp` persists across ticks). For an unattended multi-day watch, escalate to a durable scheduler (Grok `scheduler_create --durable`, or cron running `<cli> exec '<host-rendered resume invocation>'`) — a fresh headless run is context-blind, so persist consequential decisions to disk. **Shell env vars do not persist between separate tool calls** on any harness — re-set `SKILL_DIR`/`STATE_DIR` inline in every command.
 

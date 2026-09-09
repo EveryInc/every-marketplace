@@ -16,7 +16,7 @@ const modelVisibleRendererCases = [
     unnecessaryOmp: ["/skill:ce-explain <name>", "/skill:ce-babysit-pr <pr-url>"],
   },
   {
-    file: "skills/ce-babysit-pr/SKILL.md",
+    file: "skills/ce-babysit-pr/references/setup.md",
     defaults: ["/ce-babysit-pr <url>"],
     codex: ["$ce-babysit-pr <url>"],
     unnecessaryOmp: ["/skill:ce-babysit-pr <url>"],
