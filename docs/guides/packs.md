@@ -12,6 +12,10 @@ Packs are **declared, never scanned**: nothing happens until the repo's CE confi
 
 ## Create your first pack (repo-local, 2 minutes)
 
+The quickest path is `/ce-setup pack:house-rules`. It previews and, on your approval, writes `compound-packs/house-rules/` with a one-line `README.md` and a first rule file from a template, appends `- source: compound-packs/house-rules` under `packs:` in `.compound-engineering/config.yaml`, and runs the health check so you see the pack resolve. Describe the pack and its first rule in the same request and the template's placeholders are filled in for you. It will not write into a non-empty directory, so an existing folder stays yours.
+
+The manual path is three steps and lands in the same place.
+
 **1. Write a rule file.** Anywhere in your repo — `compound-packs/house-rules/` is a fine convention:
 
 ```markdown
@@ -278,4 +282,4 @@ The two compose at the repo level: one git repo can publish `packs/` (declared h
 
 ## Not built (by design, for now)
 
-Provider protocols (`ce-pack/v1`), evidence locks and receipts, auto-update, per-pack pinning inside one source, cross-pack conflict detection, transitive pack dependencies, and a pack-authoring helper skill. The config key reference lives in [configuration](./configuration.md#compound-packs-experimental--shape-may-change).
+Provider protocols (`ce-pack/v1`), evidence locks and receipts, auto-update, per-pack pinning inside one source, cross-pack conflict detection, and transitive pack dependencies. The config key reference lives in [configuration](./configuration.md#compound-packs-experimental--shape-may-change).
