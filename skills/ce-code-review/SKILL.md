@@ -17,6 +17,8 @@ argument-hint: "[mode:agent] [apply:local] [blank to review current branch, or p
 - **Use** `<root>` as the sole artifact location: create it if absent, compose each path as `<root>/<subdir>` with this skill's own subdirectory, and never also read `docs`.
 <!-- ce-docs-root:end -->
 
+**Agent lifecycle.** Collect terminal outcomes, including failures, before cleanup. Close or release review-owned agents when the harness provides caller-owned cleanup, before refilling slots, advancing stages, or returning. Do not message completed agents with no remaining work. Do not infer released capacity from completion or interruption, or invent cleanup operations.
+
 ## Execution spine
 
 Follow these steps in order; the references supply the detail but never change the order. Each reference named below is a required read for its step: load it before doing that step's work.

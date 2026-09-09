@@ -12,6 +12,8 @@ It is not a verdict on a document (`ce-pov`), not findings on a planning doc (`c
 
 `ce-work` invokes it as the portable review path before shipping. `ce-optimize` and `ce-debug` also call it on the diffs they produce. You can invoke it directly any time.
 
+Collected review agents and validators are released before the next batch or handoff when the harness provides caller-owned cleanup. When it does not, the review reports retained-capacity limitations without claiming that completion freed a slot.
+
 ---
 
 ## TL;DR
