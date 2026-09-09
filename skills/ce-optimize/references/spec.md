@@ -2,6 +2,8 @@
 
 Read this at the start of Phase 0. It carries how to tell a spec path from a goal description, and how to load, build, or validate the spec before CP-0. The schemas it validates against are `references/optimize-spec-schema.yaml` and `references/experiment-log-schema.yaml`.
 
+**Horizon:** continue while another measurement or experiment is worthwhile within the stopping rules. Start serial until measurement is trusted. Stop as soon as a stopping criterion holds.
+
 ### 0.1 Determine Input Type
 
 Check whether the input is:
@@ -96,4 +98,4 @@ Check whether the input is:
    - If the user named multiple required hard targets or an expensive harness: recommend `metric.objectives` plus `stability.mode: ladder` as above, and show `references/example-expensive-benchmark-spec.yaml`
    - If `type: judge`: recommend `sample_size: 10`, `batch_size: 5`, and `max_total_cost_usd: 5` until the rubric and harness are trusted
 6. Write the spec to `.context/compound-engineering/ce-optimize/<spec-name>/spec.yaml`
-7. Present the spec to the user for approval before proceeding
+7. Present the proposed scope, behavior constraints, measurement approach, and limits for approval before proceeding, with a link to the saved spec. Apply the body's user-facing reporting rule.
