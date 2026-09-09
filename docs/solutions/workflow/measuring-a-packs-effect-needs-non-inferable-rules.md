@@ -47,6 +47,15 @@ pair per model; replication showed that was a Claude-specific effect.
    otherwise implement); Grok 4.6 was within noise. A single pair per model is direction only.
 6. **The reliable, model-independent effects are traceability and enforcement**: `(pack: <id>, <file>)` citations in the plan
    (0 without, 3–7 with, and 0 decoy citations from a 15-rule pack), and review findings citing the contradicted rule.
+7. **Include an instruction-file arm before claiming a pack beats the obvious alternative.** The same three rules as `AGENTS.md`
+   bullets matched the pack's 3/3 compliance on all four models — but produced zero citations and zero review findings, and cost
+   more total tokens than the pack arm on three of four (an always-loaded file is paid on every turn). The pack's advantage is
+   traceability, enforcement, and scaling past a handful of rules, not raw compliance on three of them; say so rather than implying
+   the instruction file fails.
+8. **A rule that names a helper should also state the helper's observable output.** With `src/ids.js` deleted from the fixture, both
+   models recreated it from the rule's prose; one dropped the `u_` separator (`ubnbq6najvb52`), and no review stage can check a
+   regenerated helper against one that no longer exists. An example output in the rule (`u_1a1b2fjc3mq7`) makes the recreation
+   checkable.
 
 ## Why This Matters
 
@@ -72,3 +81,5 @@ expect 400.
 - `docs/solutions/skill-design/authored-eval-corpora-contain-the-happy-path.md` — the same trap at the eval-corpus level
 - `docs/solutions/skill-design/new-knowledge-source-re-derives-persona-gate-and-route.md` — the review-gate defect the first dogfood found
 - PR #1656 (the runs, fixtures, and scorer are recorded in its cloud-agent dogfood artifacts)
+- `EveryInc/frontier-experiments-kieran`, `experiments/002-ce-packs/` — every run's report, the raw scores and usage, the prompts,
+  the fixture, and the three findings write-ups (`COMPOUND-BENCH.md`, `EXPERIMENTS.md`, `EXPERIMENTS-ROUND3.md`)
