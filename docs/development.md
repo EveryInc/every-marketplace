@@ -13,6 +13,31 @@ bun run release:validate  # plugin/marketplace consistency
 bun run plugin:validate   # Claude marketplace + plugin schema (needs `claude` on PATH)
 ```
 
+## Docs site
+
+The public docs at [compound.engineer](https://compound.engineer) are built from `site/` with Jekyll and the `jekyll-vitepress-theme` gem. The site is a build layer, not a second copy: `site/_guides`, `site/assets`, `site/install.md`, and `site/upgrading.md` are symlinks to `docs/guides/`, `assets/`, `README.md`, and `docs/install/upgrading.md`. Never edit a published source to suit the site. Two site-local plugins do the adapting: `site/_plugins/ce_sources.rb` promotes the frontmatter-less sources into Jekyll pages and documents and derives titles, sidebar groups, the homepage data, and last-updated dates from the guides catalog, the README, and git; `site/_plugins/ce_github_markdown.rb` rewrites GitHub alerts, repo-relative links, and asset paths at render time.
+
+Prerequisites: Ruby 3.3 or newer and Bundler. Then:
+
+```bash
+cd site && bundle install && cd ..
+bun run site:build   # builds site/_site with strict front matter
+bun run site:serve   # local server with live reload
+bun run site:test    # the plugins' minitest suite
+bun run site:check   # internal link check over site/_site
+```
+
+`.github/workflows/pages.yml` runs the plugin tests, the build, and an internal link check on every pull request, and deploys on pushes to `main`. A guide with a broken relative link fails that check.
+
+### Go-live runbook (repository settings, done once by a maintainer)
+
+1. **Pages source.** Repository Settings -> Pages -> Build and deployment -> Source: "GitHub Actions". The legacy branch build from `main:/docs` must be switched off; it cannot run the site's plugins and currently serves a 404.
+2. **Custom domain.** In the same Pages settings, set the custom domain to `compound.engineer` and, once DNS resolves, tick "Enforce HTTPS". `site/CNAME` carries the same name for the build artifact.
+3. **DNS at Namecheap.** Apex `A` records to GitHub Pages' four IPs (`185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`) and a `www` `CNAME` to `everyinc.github.io`. Remove the parking-page records first.
+4. **Branch protection.** Add the `build` job of the "Docs site" workflow to the required status checks on `main`, alongside `test`, so a site-breaking change cannot merge.
+
+Until steps 1 and 2 are done the `deploy` job fails on `main`; the `build` job still proves every PR.
+
 ## From your local checkout
 
 For active development, load this checkout directly in the harness you want to test. The harnesses below are the ones with a verified local-load path.
