@@ -2,14 +2,11 @@
 {%- if groups and groups.size > 0 -%}
 <section class="ce-section ce-skills">
   <h2 id="skills">The skills</h2>
-  <p>Each one is a workflow the agent runs end to end. Grouped the way the <a href="/guides/">catalog</a> groups them.</p>
-  {%- for group in groups %}
-  <h3 id="skills-{{ group.title | slugify }}"><a href="{{ group.url }}">{{ group.title }}</a></h3>
-  <ul class="ce-skill-list">
-    {%- for skill in group.guides %}
-    <li><a href="{{ skill.url }}"><code>/{{ skill.name }}</code></a><span>{{ skill.description }}</span></li>
+  <p>Each one is a workflow the agent runs end to end. The <a href="/guides/">catalog</a> has a guide for every one.</p>
+  <ul class="ce-skill-index">
+    {%- for group in groups %}
+    <li><a class="ce-group" href="{{ group.url }}">{{ group.title }}</a><span class="ce-names">{% for skill in group.guides %}<a href="{{ skill.url }}"><code>/{{ skill.name }}</code></a>{% endfor %}</span></li>
     {%- endfor %}
   </ul>
-  {%- endfor %}
 </section>
 {%- endif -%}
