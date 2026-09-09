@@ -61,6 +61,8 @@ Collect:
 - **Tools available + user didn't ask**: Note in output: "Slack tools detected. Ask me to search Slack for organizational context at any point, or include it in your next prompt."
 - **No tools + user asked**: Note in output: "Slack context was requested but no Slack tools are available. Install and authenticate the Slack plugin to enable organizational context search."
 
+When an unanswered question about system behavior or design rationale would materially change this work, use `ce-explain`. Pass the question, its scope, its intended use, and pointers to existing evidence. Reuse adequate current research rather than repeating it. Use the explanation’s evidence, constraints, and unanswered questions in this work. Requirements and design decisions remain this skill’s responsibility. The existing source restrictions still apply, including the opt-in rule for Slack research.
+
 #### 1.1b Detect Execution Direction Signals
 
 Decide whether the plan should carry a lightweight execution direction signal.

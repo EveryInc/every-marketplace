@@ -66,8 +66,8 @@ Invoked when a specific need arises, not part of any chain.
 | Skill | Description |
 |-------|-------------|
 | [`/ce-bakeoff`](./ce-bakeoff.md) | Independent approach development and selection for better brainstorming and planning decisions. Explicitly requested from those workflows, or used standalone. |
-| [`/ce-pov`](./ce-pov.md) | A project-grounded verdict: adopt/hold/reject, a document take, or a position on supplied approaches. Optional named/`oracle` panel. |
-| [`/ce-explain`](./ce-explain.md) | A durable teaching document for a concept, a diff, an idea, or a window of recent work, with a self-check section when the material warrants one. |
+| [`/ce-pov`](./ce-pov.md) | A project-grounded judgment on adoption, documents, or supplied approaches, with an oracle panel for independent model opinions. |
+| [`/ce-explain`](./ce-explain.md) | An evidence-backed explanation of how something works and why, delivered for learning or further work; standalone teaching artifacts when useful. |
 | [`/ce-prototype`](./ce-prototype.md) | Build a throwaway prototype so someone can experience how the product should work, feel, or read, then write those decisions into an existing plan or continue into brainstorm or plan |
 | [`/ce-debug`](./ce-debug.md) | Find the root cause of broken behavior: causal chain, predictions, then an optional fix and PR handoff |
 | [`/ce-code-review`](./ce-code-review.md) | Structured review of a diff or PR: skill-local personas, confidence-gated findings, and the rules you write in `CODING_STANDARDS.md` |
@@ -125,6 +125,7 @@ Invoked when a specific need arises, not part of any chain.
 
 | Skill | Description |
 |-------|-------------|
+| [`/ce-noslop`](./ce-noslop.md) | Rewrite, check, or draft prose with no AI tells that reads on the first read; every fact preserved. Sibling skills invoke it where they write. |
 | [`/ce-promote`](./ce-promote.md) | Draft announcement copy for a shipped feature (X, changelog, LinkedIn, email, blog, demo). Drafts only; never posts. |
 | [`/ce-resolve-pr-feedback`](./ce-resolve-pr-feedback.md) | One pass to evaluate, fix, and reply to PR review comments, including nitpicks. Babysit is the watch that calls this. |
 | [`/ce-dogfood`](./ce-dogfood.md) | Hands-off browser QA of the branch: map flows, fix small breakages, write a report. Manual invoke only. |

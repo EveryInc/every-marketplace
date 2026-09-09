@@ -52,6 +52,8 @@ If the scan and scout surface nothing relevant, say so and continue. Two rules g
 - **Tools available + user didn't ask**: Note in output: "Slack tools detected. Ask me to search Slack for organizational context at any point, or include it in your next prompt."
 - **No tools + user asked**: Note in output: "Slack context was requested but no Slack tools are available. Install and authenticate the Slack plugin to enable organizational context search."
 
+When an unanswered question about system behavior or design rationale would materially change this work, use `ce-explain`. Pass the question, its scope, its intended use, and pointers to existing evidence. Reuse adequate current research rather than repeating it. Use the explanation’s evidence, constraints, and unanswered questions in this work. Requirements and design decisions remain this skill’s responsibility. The existing source restrictions still apply, including the opt-in rule for Slack research.
+
 #### 1.2 Product Pressure Test
 
 Before generating approaches, scan the user's opening for rigor gaps. This is agent-internal analysis, not a user-facing checklist: read the opening, note which gaps actually exist, and raise only those during Phase 1.3 — folded into the normal flow of dialogue, not fired as a pre-flight gauntlet. A fuzzy opening may earn three or four probes; a concrete, well-framed one may earn zero because no scope-appropriate gaps were found.

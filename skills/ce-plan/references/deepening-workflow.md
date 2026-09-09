@@ -242,7 +242,7 @@ Deepening may tighten, not only grow. A section can be strengthened by cutting a
 **Strengthen at the owning entry.** A rule owned by an R or KTD gains evidence, rationale, or precision at that entry; a sibling section that needs it cites the owning ID. Never restate an owned rule into a Key Decision, Scope bullet, or unit Approach — deleting an unlinked sibling restatement found in a strengthened section is itself a valid tightening move.
 
 Allowed changes:
-- Tighten prose in a strengthened section: cut hedges, split sentences carrying more than one idea, remove superseded text in place (version control holds the history), and replace unlinked restatements with citations of the owning R/KTD
+- Tighten prose in a strengthened section through the `ce-noslop` skill: remove superseded text in place (version control holds the history), and replace unlinked restatements with citations of the owning R/KTD
 - Clarify or strengthen decision rationale
 - Tighten requirements trace or origin fidelity
 - Reorder or split implementation units when sequencing is weak — but **never renumber existing U-IDs**. Reordering preserves U-IDs in their new order (e.g., U1, U3, U5 reordered is correct; renumbering to U1, U2, U3 is not). Splitting keeps the original U-ID on the original concept and assigns the next unused number to the new unit. Renumbering breaks ce-work blocker and verification references that were written against the original IDs

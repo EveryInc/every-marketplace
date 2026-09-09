@@ -17,8 +17,8 @@ function assetVariants(asset: string): Record<string, string> {
   return out
 }
 
-function guideBlockquotes(guide: string): string[] {
-  const section = guide.split("## Make capture automatic")[1]?.split("\n---")[0] ?? ""
+function guideBlockquotes(guide: string, heading = "## Make capture automatic"): string[] {
+  const section = guide.split(heading)[1]?.split("\n---")[0] ?? ""
   return [...section.matchAll(/^> (.+)$/gm)].map((m) => m[1].trim())
 }
 
@@ -65,5 +65,47 @@ describe("ce-setup instruction-file offers", () => {
     expect(step).toMatch(/already carries a standing instruction to invoke `ce-compound`/)
     const skill = await readRepoFile("skills/ce-setup/SKILL.md")
     expect(skill).toContain("Steps 4-9")
+  })
+
+  // The chat-register directive is the always-on path for ce-noslop's
+  // agent-reporting register: the skill is not in context when an agent writes
+  // a reply, so the instruction-file line has to carry the boundary, the
+  // register, and the exclusions on its own. It lives in two always-visible
+  // places, the asset ce-setup inserts and the ce-noslop guide a user copies
+  // from, so the two are pinned byte-for-byte to each other; a paraphrase in
+  // either forks the bar.
+  test("noslop directive asset matches the ce-noslop guide blockquote verbatim", async () => {
+    const variants = assetVariants(await readRepoFile("skills/ce-setup/assets/noslop-directive.md"))
+    expect(Object.keys(variants)).toEqual(["Standing instruction"])
+    const directive = variants["Standing instruction"]
+    const quotes = guideBlockquotes(await readRepoFile("docs/guides/ce-noslop.md"), "## Make it automatic")
+    expect(quotes).toEqual([directive])
+    expect(directive.length).toBeLessThan(900)
+    expect(directive).toContain("through the `ce-noslop` skill")
+    expect(directive).not.toMatch(/\/ce-noslop/)
+  })
+
+  test("Step 9 offers the noslop directive verbatim beside the compounding directive", async () => {
+    const fixes = await readRepoFile("skills/ce-setup/references/repo-fixes.md")
+    const step = fixes.split("### Step 9:")[1] ?? ""
+    expect(step).toContain("assets/noslop-directive.md")
+    expect(step).toMatch(/\*\*Chat-register directive\.\*\*/)
+    expect(step).toMatch(/Report all three outcomes/)
+    const skill = await readRepoFile("skills/ce-setup/SKILL.md")
+    expect(skill).toContain("the chat-register directive for `ce-noslop`")
+  })
+
+  test("Step 9 skips the noslop offer only when all three parts are already covered", async () => {
+    const fixes = await readRepoFile("skills/ce-setup/references/repo-fixes.md")
+    const step = fixes.split("### Step 9:")[1] ?? ""
+    // covers all three parts -> skip
+    expect(step).toMatch(
+      /Skip the offer only when the file already carries an instruction that covers all three parts of the bundled one: the report boundary \(.*\), the invocation \(.*\), and the exclusions \(.*\)\./,
+    )
+    // partial (boundary only, or a generic "write plainly") -> offer
+    expect(step).toMatch(/A partial instruction, such as one naming only the boundary or a generic "write plainly"/)
+    // unrelated or none -> offer
+    expect(step).toMatch(/or an unrelated writing rule still gets the offer/)
+    expect(step).toMatch(/Offer it whenever this step runs\./)
   })
 })

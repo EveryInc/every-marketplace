@@ -477,7 +477,7 @@ The panel itself never mutates. After delivery, apply SKILL.md Phase 4's
 four-part conjunction: the original prompt explicitly authorized the named
 downstream action, the result is non-stalemated, the action stays in inherited
 scope, and it is non-destructive and otherwise authorized. All four must pass
-for handoff; otherwise offer one logical next step and wait.
+for handoff; otherwise return the judgment without starting downstream work. A calling workflow retains ownership of continuation.
 
 ## 7. Skeptic mode and degradation
 

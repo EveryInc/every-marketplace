@@ -73,7 +73,7 @@ Do the investigation work before escalating. Don't punt with "this is complex." 
 
 ## Reply text for reply-list and human-list items
 
-Compose these now -- you have the evidence. Quote the specific sentence being addressed, not the whole comment if it's long.
+Compose these now -- you have the evidence. Every reply is posted as the PR author. Write each one through the `ce-noslop` skill in its user's-own-writing register. Quote the specific sentence being addressed, not the whole comment if it's long.
 
 For `replied` (a question, discussion, or a correct-but-immaterial point you're not changing):
 ```markdown
@@ -96,11 +96,11 @@ For `declined`:
 Declined: [specific harm cited, e.g., "this would add a defensive null check the type system already guarantees" or "violates the no-premature-abstraction rule in the project's conventions"]
 ```
 
-For `needs-human`, the **reply_text** posted to the thread sounds natural -- it's posted as the user, so avoid AI boilerplate like "Flagging for human review." Write it as the PR author would:
+For `needs-human`, the **reply_text** sounds natural, as the PR author would write it:
 ```markdown
 > [quote the relevant part of the reviewer's comment]
 
-[Natural acknowledgment, e.g., "Good question -- this is a tradeoff between X and Y. Going to think through this before making a call." or "Need to align with the team on this one -- [brief why]."]
+[Reply as the PR author, e.g., "This is a tradeoff between X and Y -- going to think it through before making a call." or "Need to align with the team on this one -- [brief why]."]
 ```
 
 The durable result is a typed residual. Compose it once at this boundary; callers may render it, but must not summarize away or rewrite its decision payload:

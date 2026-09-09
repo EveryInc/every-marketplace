@@ -72,6 +72,7 @@ describe("skill-eval-cell catalog", () => {
   test("every scenario skill exists at its runnable arm refs", () => {
     const missing: string[] = []
     for (const scenario of SCENARIOS) {
+      // A post-only row for a skill that did not exist at the sweep baseline has no pre arm to resolve.
       const preRef = scenario.baseline_ref ?? PRE_SWEEP_REF
       if (!scenario.post_only && !gitShowExists(preRef, scenario.skill)) {
         missing.push(`${scenario.skill} missing at ${preRef}`)
@@ -224,6 +225,12 @@ describe("skill-eval-cell catalog", () => {
       "ce-compound-refresh/plain-refresh-keeps-redundant-accurate-doc",
       "ce-compound-refresh/worth-lens-intent-confirms-before-loading",
       "ce-debug/pipeline-divergent-defer",
+      "ce-noslop/dense-paragraph-keeps-every-claim",
+      "ce-noslop/detect-names-patterns-without-rewrite",
+      "ce-noslop/facts-survive-the-edit",
+      "ce-noslop/non-english-runs-tests-only",
+      "ce-noslop/protected-spans-stay-byte-identical",
+      "ce-noslop/two-devices-stay-unchanged",
       "ce-plan/config-model-reaches-authoring-gate",
       "ce-plan/requested-bakeoff-boundary",
       "ce-pov/rough-options-need-development",
