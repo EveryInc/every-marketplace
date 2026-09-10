@@ -75,12 +75,12 @@ Two fixes, both bringing a unit in line with a convention the plan already appli
 
 ### FYI Observations
 
-Low-confidence observations surfaced without requiring a decision. Content advisory only.
+Only render advisory observations retained by synthesis after its admission check. State the verified practical benefit; confidence 50 alone does not make a concern worth surfacing.
 
 | # | Section | Observation | Reviewer | Confidence |
 |---|---------|-------------|----------|------------|
-| 1 | Naming | Filename `plan.md` is asymmetric with command name `user-auth`; could go either way | coherence | 50 |
-| 2 | Risk Analysis | Rollout-cadence decision may benefit from monitoring thresholds, though not blocking | scope-guardian | 50 |
+| 1 | Verification | Recorded manual fixture setup takes 15 minutes per run; the existing seed script produces the same fixture in 2 minutes | feasibility | 50 |
+| 2 | Operations | Support records show repeated searches for the same deployment logs; linking the existing log view from the runbook would shorten incident triage | feasibility | 50 |
 
 ### Residual Concerns
 

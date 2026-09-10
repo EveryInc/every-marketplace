@@ -94,7 +94,7 @@ Asking an agent "implement this plan" goes wrong in predictable ways:
 - An idempotency check before each task: if verification is already satisfied, skip it
 - Scope-appropriate implementation (native inline/subagents by default, or a sanctioned cross-model route) and scheduling (serial or bounded independent waves)
 - Test discovery and evidence selection before behavior changes, plus integration coverage before any task is marked done
-- Portable self-sizing code review with a residual-work gate: apply, file, accept, or stop, but never silently ship
+- Portable self-sizing code review: resolve justified fixes within scope, stop for blockers requiring evidence or a user decision, and record other worthwhile concerns
 - Every PR carries an operational validation plan: what to monitor, what triggers rollback
 
 ---

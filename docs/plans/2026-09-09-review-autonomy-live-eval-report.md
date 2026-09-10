@@ -1,5 +1,13 @@
 # Review autonomy: live behavioral evaluation
 
+## FYI template and caller-guide consistency
+
+The interactive document-review template still illustrated a filename preference and unsupported monitoring thresholds as FYIs. Its FYI block now inherits synthesis admission and illustrates verified practical benefits. The two caller-guide descriptions that still promised an apply/file/accept/stop menu now describe the existing outcome-based gate: resolve justified work, stop for essential evidence or a user-only choice, and record other worthwhile concerns. No runtime synthesis or caller gate changed.
+
+A bounded presentation scenario supplied those two noisy candidates and one verified fixture-setup benefit. Pre-change Fable low at `6d4a5b421822811a38950d3f71fd0bacd23209ef` already retained only the useful FYI. Current-tree Fable low and Astra low also retained exactly that one observation, with no edits or delegation. Fable narrated rejected candidates outside the FYI section in both arms; Astra returned only the requested section and count. This is template consistency and non-regression evidence, not proof of an additional reduction or generalization: the useful candidate shares the template's illustrative measurements. Explicit wrappers requested `claude-fable-5-1` low and `gpt-6-astra` low. Artifacts: `/var/folders/yr/rc1_m71d72zcl3zxwsdd75400000gn/T/ce-fyi-template-oEsJv0/{pre,post}`. The new catalog row `ce-doc-review/fyi-template-admission` uses the durable pre-change template at `153e605e1622154a0d7da095fceed13edcb68bf7`; that ref was not the measured pre arm.
+
+An independent reader found no contract expansion. The existing synthesis condition now decides admission in the template; replacing the two examples removed no required gate. Validation: 4,022 tests passed in 74.82 seconds; focused rendering/contracts passed 167 tests; release and strict plugin validation passed.
+
 ## Settled code-review preferences: follow-up correction
 
 PR review identified an exception that still reinserted preference-only feedback against a settled decision into the primary report. The synthesis policy now discards those candidates before the helper rerun. Evidence of real defects retains normal severity, and local apply still cannot reverse a settled decision without authority. The incoming `settled_conflict` field and helper compatibility remain; the marker no longer forces a finding into the report. The prior retention rule was explicitly pinned by contract tests, which were updated with the policy. The safety boundary they also protected remains in the apply condition.

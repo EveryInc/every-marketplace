@@ -168,7 +168,7 @@ Pipeline artifacts under `plans/`, `solutions/`, and legacy `brainstorms/` are p
 
 When a discovered plan carries `session-settled:` decisions, a finding that merely prefers a different approach is discarded. A real defect inside a settled approach keeps its full severity. Applying its fix still requires authority to change that decision when the fix cannot preserve it. Reviewers stay blind to the annotations. The orchestrator triages after the fact.
 
-Callers such as `/ce-work` read the Actionable Findings summary (or the JSON `actionable_findings` field) and own residual handling: apply now, file tickets, accept with a durable sink, or stop. This skill does not run that gate.
+Callers such as `/ce-work` read the Actionable Findings summary (or the JSON `actionable_findings` field) and own follow-up. They resolve justified fixes within scope, stop when completing the requested work requires missing evidence, authority, or a user decision, and record other worthwhile concerns. This skill does not run that gate.
 
 ---
 
