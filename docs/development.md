@@ -15,7 +15,7 @@ bun run plugin:validate   # Claude marketplace + plugin schema (needs `claude` o
 
 ## Docs site
 
-The public docs at [every.to/compound-engineering](https://every.to/compound-engineering/) are built from `site/` with Jekyll and the `jekyll-vitepress-theme` gem. The site is a build layer, not a second copy: `site/_guides`, `site/assets`, `site/install.md`, and `site/upgrading.md` are symlinks to `docs/guides/`, `assets/`, `README.md`, and `docs/install/upgrading.md`. Never edit a published source to suit the site. Two site-local plugins do the adapting: `site/_plugins/ce_sources.rb` promotes the frontmatter-less sources into Jekyll pages and documents and derives titles, sidebar groups, the homepage data, and last-updated dates from the guides catalog, the README, and git; `site/_plugins/ce_github_markdown.rb` rewrites GitHub alerts, repo-relative links, and asset paths at render time.
+The public docs at [every.to/compound-engineering](https://every.to/compound-engineering/) are built from `site/` with Jekyll and the `jekyll-vitepress-theme` gem. The site is a build layer, not a second copy: `site/_guides`, `site/assets`, `site/install.md`, and `site/upgrading.md` are symlinks to `docs/guides/`, `assets/`, `README.md`, and `docs/install/upgrading.md`. Never edit a published source to suit the site. Two site-local plugins do the adapting: `site/_plugins/ce_sources.rb` promotes the frontmatter-less sources into Jekyll pages and documents and derives titles, sidebar groups, the homepage data, and last-updated dates from the guides catalog, the README, and git; `site/_plugins/ce_github_markdown.rb` rewrites GitHub alerts, repo-relative links, and asset paths at render time; `site/_plugins/ce_relative_urls.rb` turns the built HTML's base-path URLs into page-relative ones, so one build serves every.to, the github.io origin, and a local server alike.
 
 Prerequisites: Ruby 3.3 or newer and Bundler. Then:
 
@@ -37,7 +37,7 @@ The site is served at `https://every.to/compound-engineering/` by every.to's edg
 2. **every.to proxy rule.** Route `https://every.to/compound-engineering/*` to the origin `https://everyinc.github.io/compound-engineering-plugin/*`, replacing the `/compound-engineering` prefix with `/compound-engineering-plugin` on the way to the origin and passing the response through unchanged. The HTML already links with the every.to prefix, so no response rewriting is needed. Forward `/compound-engineering` (no trailing slash) as `/compound-engineering/`.
 3. **Branch protection.** Add the `build` job of the "Docs site" workflow to the required status checks on `main`, alongside `test`, so a site-breaking change cannot merge.
 
-Until step 1 is done the `deploy` job fails on `main`; the `build` job still proves every PR. Visiting the github.io origin directly shows the site with links that point at every.to, which is expected.
+Until step 1 is done the `deploy` job fails on `main`; the `build` job still proves every PR. The github.io origin also works on its own: page links and assets are relative, and only the canonical, Open Graph, sitemap, and llms.txt URLs name every.to.
 
 ## From your local checkout
 

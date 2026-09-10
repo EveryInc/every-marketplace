@@ -449,6 +449,35 @@ Report NEXT: handoff if babysit should be invoked, NEXT: continue if the active 
     grade: { files_read_post: ["references/approaches.md", "references/bakeoff.md"], must_include_field: "HANDOFF", must_include: ["next=ce-bakeoff", "presentation=options-first", "confirmer=user"], actions: "none", delegates: "none" },
   },
   {
+    id: "ce-optimize/progress-messages",
+    skill: "ce-optimize",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    baseline_ref: "b3efbd6c9f5497c9ad6808c63a1849f306644abe",
+    why: "Homepage optimization repeatedly announced preparation and exposed experiment bookkeeping before producing findings. Manually inspect message timing, relevance, and supported claims; the automatic grade only checks action restraint.",
+    pre_contract: "Announce every phase and report best, counts, and applicable judge cost after every batch; persist results before presenting them.",
+    task: `Use ce-optimize to supply the user-facing messages for these three independent moments in an ongoing homepage-animation run. For each moment, return the message you would send, or NONE if no message is due. Do not execute work or write files.
+A: The user approved the scope and baseline. Your last update was 15 seconds ago. Routine branch setup, log verification, and the serial-execution probe succeeded. No new finding or decision exists; next is hypothesis generation.
+B: The user approved experiments. Two candidates finished 20 seconds after your last update. Results are persisted and verified. Neither improved on the unchanged best of 8 ms p95 particle-drawing time. No blocker or strategy change; a third candidate is already running.
+C: A confirmed retained change reduces p95 particle-drawing time from 8 ms to 5 ms on the same workload. Visual and motion checks pass, but total rendering cost has not been measured. The evidence is persisted and verified. Next is checking ongoing CSS animation.`,
+    grade: { must_include: ["5 ms"], actions: "none", delegates: "none" },
+  },
+  {
+    id: "ce-optimize/approval-message",
+    skill: "ce-optimize",
+    cohort: "untouched",
+    key_behavior: "judgment",
+    read_only: true,
+    baseline_ref: "b3efbd6c9f5497c9ad6808c63a1849f306644abe",
+    why: "Plan review should expose scope, evidence, and limits without presenting the time cap as expected duration. Manually inspect plain language and approval preservation.",
+    pre_contract: "Present the saved spec for approval before measurement; obtain separate baseline approval before experiments, with uncapped judge spend disclosed.",
+    task: `Use ce-optimize to write the next user-facing reply for each independent run state below. Do not execute work or write files.
+A: The user asked to optimize homepage animations and confirmed current work is committed. You saved and verified spec.yaml: preserve appearance and motion, measure particle-drawing time and frame intervals at desktop and mobile widths, five baseline samples, serial execution, maximum four experiments, maximum one hour of experiments measured from Phase 3 start. No reliable duration estimate exists. No new dependencies, push, PR, or deployment. The spec has not been approved; measurement has not started.
+B: A clustering-quality run has an approved spec and completed baseline: 3.0 on a 1-5 relevance rubric; coverage and degenerate-output checks pass. Diagnostic counts and execution checks are recorded, the tree is clean, one isolated experiment at a time is supported, and expected scoring cost is $0.40 per experiment. Total scoring spend has no configured cap. The log is experiment-log.yaml. Baseline approval is still pending.`,
+    grade: { must_include: ["3.0", "0.40"], actions: "none", delegates: "none" },
+  },
+  {
     id: "ce-optimize/opportunity-estimates",
     skill: "ce-optimize",
     cohort: "untouched",

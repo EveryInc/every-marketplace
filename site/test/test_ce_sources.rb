@@ -426,13 +426,19 @@ class TestSiteBuild < Minitest::Test
       refute File.exist?(File.join(out, "install.md"))
 
       assert File.exist?(File.join(out, "guides", "ce-alpha", "index.html"))
+      home = File.read(File.join(out, "index.html"), encoding: "UTF-8")
+      assert_includes home, 'href="./assets/css/vitepress-core.css"', "homepage stylesheet is not page-relative"
+      alpha = File.read(File.join(out, "guides", "ce-alpha", "index.html"), encoding: "UTF-8")
+      assert_includes alpha, 'href="../../assets/css/vitepress-core.css"', "guide stylesheet is not page-relative"
+      assert_includes alpha, 'data-search-index-url="../../search.json"'
+      refute_match(/\b(href|src)="\/(?!\/)/, alpha, "guide page still carries a root-absolute URL")
       assert File.exist?(File.join(out, "guides", "group-one", "index.html"))
       install = File.read(File.join(out, "install", "index.html"))
       assert_includes install, 'href="https://github.com/EveryInc/compound-engineering-plugin/edit/main/README.md"'
       assert_includes install, "Edit this page on GitHub"
-      alpha = File.read(File.join(out, "guides", "ce-alpha", "index.html"))
+      alpha = File.read(File.join(out, "guides", "ce-alpha", "index.html"), encoding: "UTF-8")
       assert_includes alpha, "edit/main/docs/guides/ce-alpha.md"
-      home = File.read(File.join(out, "index.html"))
+      home = File.read(File.join(out, "index.html"), encoding: "UTF-8")
       refute_includes home, "Edit this page on GitHub"
     end
   end

@@ -22,6 +22,7 @@ const EXAMPLE = readFileSync(
   "utf8",
 )
 const LOOP = readFileSync(path.join(SKILL_DIR, "references", "loop.md"), "utf8")
+const SPEC = readFileSync(path.join(SKILL_DIR, "references", "spec.md"), "utf8")
 const MEASUREMENT = readFileSync(path.join(SKILL_DIR, "references", "measurement.md"), "utf8")
 const SKILL_BODY = readFileSync(path.join(SKILL_DIR, "SKILL.md"), "utf8")
 
@@ -1495,7 +1496,8 @@ describe("schema and skill pins", () => {
     expect(SKILL_BODY).toContain("cheapest step that would change what gets implemented")
     expect(SKILL_BODY).toContain("locating measurement")
     expect(SKILL_BODY).toContain("**Outcome:**")
-    expect(SKILL_BODY).toContain("**Horizon:**")
+    expect(SPEC).toContain("**Horizon:**")
+    expect(SKILL_BODY).toContain("references/spec.md")
     expect(SKILL_BODY).toContain('description: "Optimize a named target with a measured loop:')
     expect(SKILL_BODY).toContain("attribute a workload's cost, or score variants and keep winners")
     expect(SKILL_BODY).toContain("working system's metric should move")

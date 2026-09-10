@@ -10,15 +10,15 @@ argument-hint: "[path to optimization spec YAML, or describe the optimization go
 
 **Intent:** the next action is the cheapest step that would change what gets implemented. Attribute the cost of a named workload before searching implementations. Search and keep a scored variant space without requiring a profile.
 
-**Horizon:** this is a long-running loop, not a one-shot edit. A first run stays short and serial until the harness is trusted. Spec first-run defaults are typically a few experiments and about an hour. Stop as soon as a stopping criterion holds. Do not grind to the iteration cap after the target is met or locating would not change keep or skip.
-
 **Done when:** a stopping criterion fired, every declared required target is met or another stop fired first, the final state is written and verified on disk, and the user has been given the post-completion options. If the run instead stopped at a gate it could not clear, say what blocked it.
 
 Invoking this skill authorizes reading the repo, building the harness, and (after the Phase 1 approval gate) isolated experiments and keep/revert commits on `optimize/<spec-name>`. Ask when spend is uncapped, when a new dependency appears, when wrap-up would push or open a PR, or when only the user can choose among the post-completion options. Do not ask again to run the next in-envelope experiment.
 
 Independent calls and dispatches that do not depend on each other go in one response. Serialize only real dependencies.
 
-Before each phase, say what it should produce. After each batch, say current best, this-batch and total counts, judge cost when it applies, and the next action. Wrap-up is the closing recap from disk.
+Report findings, user decisions, blockers, and results. During longer work, give occasional updates on what was learned and what remains. Routine preparation and phase or batch transitions need no separate announcement. Keep accounting in the log and final recap unless it affects a current decision.
+
+Explain the target, evidence, and decision in ordinary task language. Workflow labels (such as 'harness' or 'parallel readiness') belong in artifacts unless the user asks about those mechanics. State unknown duration or cost as unknown; caps are limits, not forecasts.
 
 A step is done only after it ran. Describing a measurement, dispatch, or checkpoint is not doing it. Do not end a turn while in-scope work remains merely described.
 
