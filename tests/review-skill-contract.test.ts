@@ -865,15 +865,14 @@ describe("ce-code-review contract", () => {
     expect(content).toMatch(/Suppressed candidates routed here remain absent from primary `findings`/)
     expect(content).toMatch(/discard all other `suppressed_findings`/)
 
-    // Settlement reconciliation owns suppressed preferences before the remainder is discarded.
+    // Settled preferences cannot bypass admission through the helper rerun.
     expect(stage5).toMatch(/Settled decisions[\s\S]*surviving `findings` and `suppressed_findings`/)
-    expect(stage5).toMatch(/include it in the synthetic rerun[\s\S]*helper preserves it in the primary report/)
+    expect(stage5).toMatch(/Discard findings that merely prefer an alternative/)
+    expect(stage5).toMatch(/Omit candidates discarded during settlement reconciliation/)
     expect(stage5.indexOf("**Settled decisions.**")).toBeLessThan(
       stage5.indexOf("**Soft-bucket demotion before validation.**"),
     )
-    expect(stage5).toMatch(
-      /Soft-bucket demotion[\s\S]*Keep every `settled_conflict`-stamped finding primary/,
-    )
+    expect(stage5).not.toMatch(/Keep every `settled_conflict`-stamped finding primary/)
   })
 
   test("personas use anchored rubric language and no float references remain", async () => {

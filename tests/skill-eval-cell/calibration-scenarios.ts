@@ -7,6 +7,23 @@ const base = { cohort: "resized", key_behavior: "judgment", read_only: true, fix
 export const CALIBRATION_SCENARIOS: Scenario[] = [
   {
     ...base,
+    id: "ce-code-review/settled-preference-admission",
+    skill: "ce-code-review",
+    baseline_ref: "153e605e1622154a0d7da095fceed13edcb68bf7",
+    why: "A settled-conflict marker previously forced preference-only feedback back into the primary report.",
+    pre_contract: "Synthesis retains preferences against settled decisions as report-only findings even when suppressed by the helper.",
+    task: `Use ce-code-review at Stage 5 settlement reconciliation and admission. Read references/finish-review.md. Resolve only the routing of these completed reviewer candidates; do not dispatch, edit files, or run the full review.
+
+The discovered plan explicitly states: K1 (session-settled: keep function-based injection, rejected a provider class hierarchy). Account isolation is required: only the owning account can receive a signed download URL. Reviewers verified the implementation calls sign(record.id) without checking accountId against record.accountId.
+
+Candidate A: P2, confidence 50, settled_conflict K1. Suggest a provider class hierarchy instead of the chosen function-based injection. Both designs satisfy all requirements; the reviewer prefers classes for symmetry. The helper suppressed it by confidence.
+Candidate B: P1, confidence 100. The missing ownership check lets another account obtain a private export URL. Evidence: return { url: await sign(record.id) }. Fix by calling the existing assertOwner before sign; the function-based design remains intact.
+
+Return ROUTING with one entry per candidate: discard, advisory, actionable, or user-decision; explain the reason and whether local apply would be authorized by a review-only invocation. Stop there.`,
+    grade: { must_include_field: "ROUTING", must_include: ["discard", "actionable"], actions: "none", delegates: "none" },
+  },
+  {
+    ...base,
     id: "ce-code-review/live-review",
     skill: "ce-code-review",
     fixture: "tests/skill-eval-cell/fixtures/code-review-live",

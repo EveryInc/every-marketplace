@@ -1,5 +1,23 @@
 # Review autonomy: live behavioral evaluation
 
+## Settled code-review preferences: follow-up correction
+
+PR review identified an exception that still reinserted preference-only feedback against a settled decision into the primary report. The synthesis policy now discards those candidates before the helper rerun. Evidence of real defects retains normal severity, and local apply still cannot reverse a settled decision without authority. The incoming `settled_conflict` field and helper compatibility remain; the marker no longer forces a finding into the report. The prior retention rule was explicitly pinned by contract tests, which were updated with the policy. The safety boundary they also protected remains in the apply condition.
+
+A bounded routing scenario supplied two completed candidates: a confidence-suppressed preference for a class hierarchy explicitly rejected by the plan, and a verified missing ownership check whose fix preserves the selected function-based design. Fresh CLI sessions loaded extracted skill files. Explicit wrappers requested Claude `claude-fable-5-1` with low effort and Codex `gpt-6-astra` with low reasoning; Codex's stderr confirms the latter selection.
+
+| Arm | Preference candidate | Ownership defect | Edit authority |
+|---|---|---|---|
+| Pre-change `9c9ec7d6d0644c4dcd0fa8c15bd0b556886168e4`, Fable low | Advisory/human; explicitly reinserted into primary output | Actionable | No local apply |
+| Current working-tree skill, Fable low | Discarded, excluded from helper rerun and residual risks | Actionable, downstream resolver | No local apply |
+| Current working-tree skill, Astra low | Discarded | Actionable, downstream resolver | No local apply |
+
+These are routing checks, not full-review or mutation evidence. The outputs were read candidate by candidate; matching keywords alone would not distinguish an inverted answer. Fable still added verification narration beyond the requested routing answer. No additional tuning was attempted for that behavior.
+
+The durable catalog row is `ce-code-review/settled-preference-admission`. It uses main-reachable `153e605e1622154a0d7da095fceed13edcb68bf7`, whose contract also retained settled preferences; the measured pre arm above used the exact pre-fix PR head and is not relabeled as a run against that catalog ref. Artifacts: `/var/folders/yr/rc1_m71d72zcl3zxwsdd75400000gn/T/ce-settled-review-lM9eGq/{pre,post}`. An independent reader confirmed the revised condition preserves genuine defects and settled-choice authority.
+
+Validation for this correction: `bun run test` passed all 4,022 tests in 75.94 seconds after updating the old settlement-retention assertions; the first run caught that stale contract test. The focused three-file run passed 177 tests. Release metadata and strict plugin validation passed.
+
 ## Current ce-doc-review calibration
 
 The default review now applies full-confidence corrections needed to implement a concrete decision already made in the document, provided a local reviewer supports the finding and no explicit edit restriction forbids it. Mechanical versus meaning-changing classification no longer makes every necessary correction an approval request. Broader improvements still need authority, peer-only findings retain R18, and unresolved user commitments remain protected.
