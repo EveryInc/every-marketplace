@@ -89,12 +89,12 @@
     },
     "residual_risks": {
       "type": "array",
-      "description": "Risks the reviewer noticed but could not confirm as findings",
+      "description": "Unresolved risks whose relevance and material consequence are supported by project evidence; exclude rejected claims and duplicates of findings",
       "items": { "type": "string" }
     },
     "testing_gaps": {
       "type": "array",
-      "description": "Missing test coverage the reviewer identified",
+      "description": "Worthwhile missing coverage for a concrete scenario in the reviewed scope; exclude hypothetical cases and gaps already carried by findings",
       "items": { "type": "string" }
     }
   }

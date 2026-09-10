@@ -161,6 +161,13 @@ describe("ce-pov cross-model panel contract", () => {
     expect(followup).toContain("Do not add a menu or capture offer")
   })
 
+  test("returns missing context without interviewing the user", async () => {
+    const skill = await skillFile("SKILL.md")
+    expect(skill).toContain("Blocked — missing context")
+    expect(skill).toContain("Do not interview the user")
+    expect(skill).toContain("The calling agent decides whether to ask for clarification")
+  })
+
   test("delegates only an unresolved understanding question and retains the judgment", async () => {
     const skill = await skillFile("SKILL.md")
     expect(skill).toContain("judgment requires an explanation of unresolved behavior or design rationale")

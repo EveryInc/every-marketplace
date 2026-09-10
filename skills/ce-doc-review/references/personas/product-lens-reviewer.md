@@ -76,7 +76,6 @@ Use the shared anchored rubric (see `subagent-template.md` — Confidence rubric
 
 - **`100` — Absolutely certain:** Can quote both the goal and the conflicting work — disconnect is clear. Evidence directly confirms the misalignment within the document itself. The rare case — use sparingly.
 - **`75` — Highly confident:** Likely misalignment, full confirmation depends on business context not in the document. You double-checked and the concern will materially affect direction. This is product-lens's normal working ceiling.
-- **`50` — Advisory (routes to FYI):** Observation about positioning, naming, or strategy without a concrete impact (subjective preference about framing with an evidence quote, minor identity-drift note where the drift has no downstream user consequence). Still requires an evidence quote. Surfaces as observation without forcing a decision.
 - **Suppress entirely:** Anything below anchor `50`, plus any shape the false-positive catalog in `subagent-template.md` names. In product-lens's domain, this explicitly includes "speculative future-product concerns with no current signal" — those are non-findings that must NOT be routed to anchor `50`. Do not emit; anchors `0` and `25` exist in the enum only so synthesis can track drops.
 
 ## What you don't flag

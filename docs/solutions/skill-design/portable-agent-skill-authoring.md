@@ -67,6 +67,8 @@ For Compound Engineering's multi-model skills, portable means Sol-first and Fabl
 
 For portable Sol/Fable skills, control output length by naming what shortened output must preserve. Do not paste a Fable-only brevity block or ship a blanket "be concise" / "keep it short" slogan into a cross-model skill; GPT-5.6 Sol can undershoot when broad brevity instructions stack on top of its default concision.
 
+Write instructions in the language the agent should use with the reader. Name who acts, what they do, and why it matters when that information is needed. Replace invented labels and internal workflow jargon with the action or consequence they mean. Keep necessary technical terms and exact identifiers, explaining unfamiliar terms where the reader needs them. Clarity must preserve evidence, qualifications, and required detail; shorter text is not the goal.
+
 This is not a ban on targeted steering. A phrase that counters a documented runtime behavior can stay as a model-behavior adapter: name the condition it addresses and verify the effect rather than promoting it to a universal quality slogan.
 
 Verification instructions should elicit an observable check of the final artifact at its requested fidelity, including changes made after review. Test whether the agent chooses and performs that check from the ordinary workflow request; success when a separate prompt names the check establishes capability, not reliable workflow behavior.
@@ -313,6 +315,8 @@ Stable cross-skill fields, enums, and return statuses are protocols. Version or 
 
 A review agent is biased toward producing changes. Counter that bias directly.
 
+The agent using a review must check each finding against the requested outcome. Confidence and reviewer agreement can strengthen evidence; they do not prove that a change is worthwhile or grant permission to edit. Apply the same standard to every output field so rejected suggestions do not return as risks or open questions. Reviewer personas and schema descriptions must use that same standard; a local rubric must not require concerns that synthesis is expected to discard. The agent should choose technical fixes from project evidence within the agreed outcome and constraints; permission governs whether it may apply them. Several workable approaches or newly specified details do not by themselves require a user decision. A calling workflow still owns its deliverable after review: preserve readable findings without treating the reviewer's wording, classifications, or counts as binding. When an assessment skill lacks essential context, it returns what is missing and why it matters to the calling agent instead of starting its own interview.
+
 ### Suspected defects
 
 A required correctness or protocol fix must cite one of:
@@ -364,7 +368,7 @@ Prioritize:
 
 Do not imply a full model-by-harness suite for every edit. Choose fixtures tied to the biggest gotchas in the change.
 
-Use fresh context for behavioral prose evaluation. Some harnesses cache skill content at session start, so invoking the edited skill in the authoring session may test stale content.
+Use fresh context for behavioral prose evaluation. Verify that every callable copy of each workflow skill matches the frozen source in the actual host workspace, including sibling skills reached through native invocation. Record the resolved paths and content hashes. A fresh session can still load an older project-local copy after reading an updated bundle; some harnesses also cache skills at session start. Keep historical source being reviewed separate from the workflow skills executing the review.
 
 For side-effecting skills, evaluate in layers:
 

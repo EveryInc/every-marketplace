@@ -52,7 +52,7 @@ The same classification governs both reviewer batches and later validator batche
 
 For an asynchronous primitive, the rule still needs three explicit clauses:
 
-- **Collect the complete roster.** Blocking collection waits continue until every successful launch reaches a terminal outcome. These harness-managed waits are not the forbidden detached-delegate poll loop.
+- **Collect the complete roster.** Native collection continues until every successful launch reaches a terminal outcome. These harness-managed waits are not the forbidden detached-delegate poll loop.
 - **Release collected agents when the primitive retains slots.** A completed agent can keep occupying its concurrency slot until explicitly closed; release it before refilling and before the validator stage.
 - **Guard the transition.** Synthesis cannot begin on launch receipts or a partial roster. If complete collection is unavailable, return the mode-appropriate failure instead.
 
@@ -62,7 +62,7 @@ On a harness that does not run same-message calls concurrently, this identical d
 
 Codex review of PR #1214 caught a partial-roster gap and a slot-cleanup gap in its asynchronous primitive. The resulting host-name split still assumed Claude Code supplied an all-return barrier. Issue #1523 falsified that assumption: Claude `-p` recorded local reviewers as background work despite foreground requests, then hit its print-mode background ceiling without returning final review JSON.
 
-The deeper lesson is that a harness label describes neither every version nor every execution mode. When a rule encodes concurrency or pool/refill semantics, the observable result is the contract: a terminal outcome means collected and ready for validation; a receipt means collection remains; no blocking collector means fail closed.
+The deeper lesson is that a harness label describes neither every version nor every execution mode. When a rule encodes concurrency or pool/refill semantics, the observable result is the contract: a terminal outcome means collected and ready for validation; a receipt means collection remains; no reliable collection path means fail closed.
 
 ## When to Apply
 

@@ -9,6 +9,12 @@
 - **Interactive:** stop and name the missing path(s): "Document(s) not found on disk: <paths>. Check out the branch containing them, use a worktree, or provide corrected readable paths before retrying the review."
 - **Non-interactive:** output "Review failed: document(s) not found on disk: <paths>. Expected input: paths to readable files on disk; check out the branch containing them or provide corrected paths." and return without dispatching reviewers.
 
+### Resume a completed review
+
+Reuse complete previous reviewer responses, evidence, classifications, and decision state when they cover the same document and scope, and the relevant source has not materially changed. Check the current document and saved review state to confirm that they match and the evidence is still current. A summary alone is insufficient. A new interaction mode or a request to handle existing findings is not a new review.
+
+On a valid resume, go directly to synthesis and presentation with the retained state. Preserve completed coverage instead of repeating the persona team or cross-model pass. Synthesis may obtain a limited independent local review when missing corroboration prevents resolution of a retained, worthwhile correction. Use the normal reviewer prompt and output contract from `references/dispatch.md` for that limited check. The reviewer must have a fresh context that has not seen the peer review. Supply the relevant document and source, agreed outcome, and constraints; do not supply peer claims, proposed fixes, or diagnostic questions derived from them. Choosing the relevant scope does not require telling the reviewer what problem to find. Reconcile new user decisions in synthesis. Missing complete evidence, material source changes, or an explicit request for a fresh review takes the normal dispatch path. Preserve prior decisions as history on either path. A rejected finding remains suppressed only while the evidence and assumptions supporting that rejection remain current; synthesis owns that check under R29.
+
 ### Classify Document Type
 
 Classify by **content shape and metadata, not file path** — under the unified plan contract a requirements-only and an implementation-ready plan both live in `<root>/plans/`, so location no longer signals type. Reviewers operate differently per classification, so a misclassification produces noisy or under-scrutinized findings.

@@ -8,7 +8,7 @@ Interactive mode only.
 
 ## Grouped confirmation (fires before routing)
 
-Synthesis step 3.7 sends here every finding with a concrete fix that touches meaning, plus obligations and the peer-only findings it diverted out of Apply. Each has one sensible remedy, so the reader is not choosing between alternatives — they are seeing the batch before it lands.
+Step 3.7 sends here specific fixes the agent has chosen that still need edit approval. These include changes to meet requirements already stated in the document and eligible findings raised only by another model. The reader sees and approves the edits before they are applied. Choices that still need the user are not part of this group.
 
 **This fires after the applied changes and before the routing question, and it is the only place the batch is applied.** The routing question covers the decision surface only. Skip this step when the batch is empty.
 
@@ -22,7 +22,7 @@ B. Choose which to apply
 C. Apply none of them
 ```
 
-- **A** — apply the batch in one pass, as the Apply step does. Track each for the "Applied changes" section. Recommended because 3.7 already established each member has one sensible remedy.
+- **A** — apply the batch in one pass, as the Apply step does. Track each for the "Applied changes" section. Recommended because 3.6 established that the agent could choose each fix, and 3.7 requires approval before applying these edits.
 - **B** — step through the batch only, using the per-finding presentation below. **In batch context that loop is a subroutine:** exactly one exit — run the accumulated Apply set against the document, **clear it**, then return to the routing question — and it never emits the completion report, including via `Auto-resolve with best judgment on the rest`, which is scoped to the remaining batch and returns here. **Flushing the edits is part of the exit, not of the report.** The walk-through normally defers them to a single pass at its terminal path, which this exit skips; leaving them staged means fixes the reader approved never land. Clearing is the other half: the decision pass runs that same terminal dispatch later, so a set still holding batch members would write them a second time. An exit that ends the run from inside the batch pass is a bug whatever its name.
 - **C** — apply none; every member is reported as skipped in the completion report.
 
@@ -30,7 +30,7 @@ C. Apply none of them
 
 ## Routing question (the entry point)
 
-After the applied changes land, the grouped confirmation is answered, and synthesis produces the remaining decision surface, the orchestrator asks a four-option routing question before any walk-through or bulk action runs.
+After applying the automatic corrections and handling approval for the proposed edits, follow the user's or calling agent's chosen way of handling the remaining decisions. Ask the four-option routing question only if they have not chosen one. Their choice does not waive approval for proposed edits or the required preview before bulk actions.
 
 **Same-turn presentation before routing (required).** Before firing the routing question, emit the Interactive Phase 4 presentation (`references/review-output-template.md`) as user-visible assistant text **in the same turn**. Content composed only in hidden thinking or reasoning does not count — same bar as the Preview event in `references/bulk-preview.md`. If that presentation event has not occurred in this turn, do not invoke the blocking-question tool.
 
@@ -44,7 +44,7 @@ These do **not** satisfy the invariant:
 
 On interactive entry after a same-session non-interactive pass (e.g. `ce-plan` "Decide on the review's open items"), still render the interactive presentation before routing. Reusing the prior pass's applied-fix and R29 decision state is fine; skipping presentation is not. The routing question itself does not need duplicated per-finding decision fields — its A/B/C/D labels are already self-describing sentences; this invariant is about findings being in front of the user when they choose a route.
 
-Use the host's blocking question tool already in the current tool list (match by capability, not by a host-specific name). Presence in the current tool list is proof the tool exists; never call a user-facing question tool to discover whether it exists. If a matching tool is listed but unloaded, use the host's tool-discovery primitive to load that capability — do not search for another host's tool name. Fall back to presenting the options as a numbered list only when no such tool is in the list, a real question call errors, or the runtime mode does not expose one. Never silently skip the question. Rendering the routing question as narrative text without the numbered-list fallback is a bug.
+Use the host's blocking question tool already in the current tool list (match by capability, not by a host-specific name). Presence in the current tool list is proof the tool exists; never call a user-facing question tool to discover whether it exists. If a matching tool is listed but unloaded, use the host's tool-discovery primitive to load that capability — do not search for another host's tool name. Fall back to presenting the options as a numbered list only when no such tool is in the list, a real question call errors, or the runtime mode does not expose one. When routing intent is unresolved, never silently skip the question. Rendering the routing question as narrative text without the numbered-list fallback is a bug.
 
 **Stem:** `What should the agent do with the remaining N findings?`
 
@@ -59,7 +59,7 @@ D. Report only — take no further action
 
 The per-finding `(recommended)` labeling lives inside the walk-through (option A) and the bulk preview (options B/C), where it's applied per-finding from synthesis step 3.5b's `recommended_action`. The routing question itself does not recommend one of A/B/C/D because the right route depends on user intent (engage / trust / triage / skim), not on the finding-set shape — a rule that mapped finding-set shape to routing recommendation (e.g., "most findings are Apply-shaped → recommend best-judgment") would pressure users toward automated paths in ways that conflict with the user-intent framing.
 
-If nothing remains in the decision surface — everything else applied, answered in the grouped confirmation, or landed in the FYI subsection — skip the routing question. **Skipping routing never skips the completion report:** emit the unified report, then flow to the Phase 5 terminal question.
+If nothing remains in the separate user decisions — everything else applied, answered in the grouped confirmation, or landed in the FYI subsection — skip the routing question. **Skipping routing never skips the completion report:** emit the unified report, then flow to the Phase 5 completion return.
 
 **Append-availability adaptation.** When `references/open-questions-defer.md` has cached `append_available: false` at Phase 4 start (e.g., read-only document, unwritable filesystem), option C is suppressed from the routing question because every per-finding Defer would fail into the open-questions failure path. The menu shows three options (A / B / D) and the stem appends one line explaining why (e.g., `Append to Open Questions unavailable — document is read-only in this environment.`). This mirrors the per-finding option B suppression described under "Adaptations" below — both routing-level and per-finding Defer paths share the same availability signal so the user never sees Defer surfaced at one level and omitted at the other.
 
@@ -68,7 +68,7 @@ If nothing remains in the decision surface — everything else applied, answered
 - **A** — load this walk-through (per-finding loop). Apply decisions accumulate in memory; Open-Questions defers execute inline via `references/open-questions-defer.md`; Skip decisions are recorded as no-action; `Auto-resolve with best judgment on the rest` routes through `references/bulk-preview.md`.
 - **B** — load `references/bulk-preview.md` scoped to every pending finding at confidence anchor `75` or `100`. On Proceed, execute the plan: Apply → end-of-batch document edit; Open-Questions defers → `references/open-questions-defer.md`; Skip → no-op. On Cancel, return to the routing question.
 - **C** — load `references/bulk-preview.md` with every pending finding in the Open-Questions bucket (regardless of the agent's natural recommendation). On Proceed, route every finding through `references/open-questions-defer.md`; no document edits apply. On Cancel, return to the routing question.
-- **D** — do not enter any dispatch phase. Emit the completion report and flow to Phase 5 terminal question.
+- **D** — do not enter any dispatch phase. Emit the completion report and flow to Phase 5 completion return.
 
 ---
 
@@ -79,7 +79,7 @@ The walk-through receives, from the orchestrator:
 - The merged findings list in severity order (P0 → P1 → P2 → P3), filtered to the decision surface synthesis step 3.7 produced. Applied findings are already reported as changes, grouped-confirmation findings were answered together in the step above, and FYI-subsection findings (anchor `50`) surface in the final report only; none of the three has a walk-through entry. The one exception is option B of the grouped confirmation, which reuses the per-finding presentation below to step through that batch — those findings enter this loop, and the decision surface is routed separately afterward.
 - The run id for artifact lookups (when applicable).
 
-Each finding's recommended action has already been normalized by synthesis step 3.5b (Deterministic Recommended-Action Tie-Break, `Skip > Defer > Apply`) — the walk-through surfaces that recommendation via the merged finding's `recommended_action` field and does not recompute it.
+Each finding's recommended action has already been normalized by synthesis step 3.5b (Lead Recommended Action) — the walk-through surfaces that recommendation via the merged finding's `recommended_action` field and does not recompute it.
 
 ---
 
@@ -131,7 +131,7 @@ Substitutions:
   - **Raw code blocks** — only for short (≤5-line) genuinely additive content where no before-state exists. Above 5 lines, switch to a summary.
   - **No diff blocks.** Document mutations render as prose.
 - **`If this is left as-is`** — one sentence naming the concrete downstream cost of not acting: what breaks, for whom, at what point. This is the line the user's decision turns on when they have not read the document as closely as the review did, so it must be evaluable on its own — no identifier the user would have to look up, no appeal to a claim only the reviewer can verify. When the honest answer is that the cost is small or speculative, say so plainly rather than inflating it.
-- **Conflict-context line (when applicable)** — when contributing personas implied different actions for this finding and synthesis step 3.6 broke the tie, surface that briefly. Example: `Coherence recommends Apply; scope-guardian recommends Skip. Agent's recommendation: Skip.` The orchestrator's recommendation — the post-tie-break value — is what the menu labels "recommended."
+- **Conflict-context line (when applicable)** — when contributing personas implied different actions for this finding and step 3.5b resolved the disagreement, explain that briefly. Example: `Coherence recommends Apply; scope-guardian recommends Skip. Agent's recommendation: Skip.` The orchestrator's recommendation — the value chosen by the lead agent — is what the menu labels "recommended."
 
 ### Question string (decision-focused; self-sufficient on modal harnesses)
 
@@ -170,7 +170,7 @@ C. Skip — don't apply, don't append
 D. Auto-resolve with best judgment on the rest
 ```
 
-**Mark the post-tie-break recommendation with `(recommended)` on its option label.** Required, not optional. Only A, B, or C can carry it — synthesis emits `recommended_action` as Apply/Defer/Skip, which maps to A/B/C. D (`Auto-resolve with best judgment on the rest`) is a workflow shortcut for bulk execution across remaining findings, not a finding-level resolution action, so it is never marked `(recommended)`.
+**Mark the recommendation chosen by the lead agent with `(recommended)` on its option label.** Required, not optional. Only A, B, or C can carry it — synthesis emits `recommended_action` as Apply/Defer/Skip, which maps to A/B/C. D (`Auto-resolve with best judgment on the rest`) is a workflow shortcut for bulk execution across remaining findings, not a finding-level resolution action, so it is never marked `(recommended)`.
 
 ```
 A. Apply the proposed fix  (recommended)

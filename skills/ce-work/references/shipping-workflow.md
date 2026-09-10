@@ -18,7 +18,7 @@ This file contains the shipping workflow (Phase 3-4). It is loaded when all Phas
 
 2. **Simplify** (conditional — separate from code review)
 
-   Before code review, invoke **`ce-simplify-code`** when the diff has enough substantive code to benefit (default: **>=30 substantive changed code lines** — count human-authored code, not total diff lines). Skip when the diff is purely mechanical (formatting, dependency bumps, lint-only fixes, generated artifacts) or when substantive code stays under the floor even though the total diff is larger.
+   Before code review, apply the project’s simplification threshold when one is specified. Otherwise invoke **`ce-simplify-code`** at **>=30 substantive changed code lines**. Count human-authored code, not total diff lines. Skip when the diff is purely mechanical (formatting, dependency bumps, lint-only fixes, generated artifacts) or when substantive code stays under the floor even though the total diff is larger.
 
    This step refines reuse, quality, and efficiency on the **current diff** so any later review sees cleaner code. It is not a substitute for code review.
 
@@ -36,29 +36,19 @@ This file contains the shipping workflow (Phase 3-4). It is loaded when all Phas
 
    **3a. Review (read-only).** Invoke `ce-code-review` through the host's normal skill-invocation mechanism with `mode:agent` (add `plan:<path>` when known; `base:<ref>` when the diff base is resolved). Skill invocation means loading the cataloged skill definition and following it through that mechanism; `ce-code-review` does not require a separate executable, runner, or binary. Pass **`depth:full`** when the plan, the task, or the user explicitly asked for a full / deep / thorough review — that is the one escalation signal `ce-code-review` cannot infer from the diff alone. Do not pass `mode:autofix`. Parse the JSON and retain the receipt only when `status` is `complete` (plus `artifact_path` / `run_id`).
 
-   **3b. Apply fixes (caller-owned).** Load `references/review-findings-followup.md`: filter on JSON, batch by file, dispatch fix subagents. Orchestrator merges, tests, commits. Then proceed to the Residual Work Gate.
+   **3b. Apply fixes (caller-owned).** Load `references/review-findings-followup.md`: check findings against the evidence and agreed scope, batch justified fixes by file, dispatch fix subagents. Orchestrator merges, tests, commits. Then proceed to the Residual Work Gate.
 
    **If the top-level `ce-code-review` attempt cannot produce a completed receipt:** Preserve the review gate by entering this branch only when the cataloged skill definition fails to load, or an attempted top-level invocation has terminated without a usable completed receipt and no recovery remains inside `ce-code-review`. Evidence comes from the definition load or the top-level terminal outcome; intermediate internal events never establish caller-owned unavailability. A missing dedicated runner, executable, or binary is not evidence when the definition loads, so proceed through 3a and let `ce-code-review` own its recovery. In an **interactive** session, run the harness-native review if the session catalog lists one (use that entry's listed path; it is not a Compound Engineering skill), fix inline, and note `Code review: harness-native fallback` with a one-line reason (that phrase is the gate satisfaction — not a silent mental review); in a **non-interactive** session (autonomous pipeline, or no native review available), skip the dedicated step, note `Code review: skipped (ce-code-review unavailable)`, and add an explicit manual diff scan to Final Validation. Never silently ship a non-mechanical change with no review of any kind.
 
-4. **Residual Work Gate** (REQUIRED when `ce-code-review` ran and left actionable residuals)
+4. **Residual Work Gate** (REQUIRED when `ce-code-review` ran and left justified unresolved findings)
 
-   After code review and review-findings followup, inspect the **Actionable Findings** summary (or read the absolute `<artifact-path>` returned by `ce-code-review` if the summary was truncated). If one or more actionable `downstream-resolver` findings were not applied in followup, do not proceed to Final Validation until they are resolved or durably recorded.
+   Compare the review's Actionable Findings with the fixes applied and the requested outcome. Close rejected claims; they are not unfinished work. Continue authorized fixes needed for completion without asking again for permission.
 
-   **Non-interactive / autonomous sessions (no human can answer — e.g. an `lfg`-style pipeline or a headless run):** do **not** call the blocking tool — that would hang the pipeline. After step 3b auto-applied every mechanically-eligible finding, take the `Accept and proceed` path automatically: record the remaining actionable residuals to a durable sink and continue to Final Validation. When a PR will be created or updated, that sink is the PR description's `## Unapplied review findings` section — a checklist the reviewer decides on, since nothing here merges. On the no-PR path, file them via `references/tracker-defer.md` in non-interactive mode — one tracker ticket per finding, with enough background to action it standalone; any findings the tracker chain could not durably file — its `failed` or `no_sink` buckets — are returned verbatim in the run's structured result and stated in its report, so none are silently dropped. Residuals are recorded, never dropped — this keeps autonomous shipping unblocked without losing findings.
+   If an unresolved problem prevents the requested outcome or shows that an agreed decision cannot work, do not accept it as a leftover risk. Resolve it within existing permission, or return `status: blocked` with the missing evidence or user decision, the consequence, and a recommendation. Autonomous runs return the blocker rather than assume consent. Group related decisions that need the user.
 
-   A settlement-invalidating conflict — evidence a `session-settled:`-labeled decision cannot work — is never auto-accepted as a residual; it is a blocker (`status: blocked` return in return-to-caller mode; stop-and-surface in standalone runs).
+   Leave an action outside the required outcome unapplied when evidence or permission is missing. Continue independent work that is already authorized. Remaining concerns that do not prevent completion do not need a menu asking what to do next. Before Final Validation, record each justified concern, why it is deferred, and which review raised it. Use the authorized PR's `## Unapplied review findings` section, or follow `references/tracker-defer.md` when authorized to record it in the issue tracker. If neither destination is authorized or available, return the concerns in full and state they are recorded nowhere else. Recording a concern does not give permission to act on it.
 
-   **Interactive sessions:** Ask the user using the host's blocking question tool already in the current tool list (match by capability, not by a host-specific name). Presence in the current tool list is proof the tool exists; never call a user-facing question tool to discover whether it exists. If a matching tool is listed but unloaded, use the host's tool-discovery primitive to load that capability — do not search for another host's tool name. Fall back to numbered options on the host's user-visible chat surface only when no such tool is in the list or a real question call errors. Never silently skip the gate.
-
-   Stem: `Code review left N actionable finding(s) not yet fixed. How should the agent proceed?`
-
-   Options (four or fewer, self-contained labels):
-   - `Apply/fix now` — load `references/review-findings-followup.md`, dispatch batched fix subagents for remaining eligible findings, run tests, commit if needed; optionally re-run `ce-code-review` only after the diff changed materially.
-   - `File tickets via project tracker` — load `references/tracker-defer.md` in Interactive mode; the agent files tickets in the project's detected tracker (or `gh` fallback, or leaves them in the report if no sink exists) and proceeds to Final Validation.
-   - `Accept and proceed` — record the residual findings in a durable sink before shipping. If a PR will be created or updated in Phase 4, include them in the PR description's `## Unapplied review findings` section (the agent owns this when calling `ce-commit-push-pr`). If the user later chooses the no-PR `ce-commit` path, file a tracker ticket per finding (via `references/tracker-defer.md`) with enough background to action it standalone. When no tracker sink is reachable, state the accepted findings and their review-run context in the final summary and say plainly that they are recorded nowhere else — the user has acknowledged the risk, and an honest report beats a committed file nobody reads.
-   - `Stop — do not ship` — abort the shipping workflow. The user will handle findings manually before re-invoking.
-
-   Skip this gate entirely when the review reported `Actionable findings: none.` (and followup applied everything mechanical), or when dedicated review was skipped (mechanical diff or `ce-code-review` unavailable). Do not proceed past this gate on an `Accept and proceed` decision (including the autonomous auto-accept above) until the agent has recorded which durable sink held the residuals — the PR's `## Unapplied review findings` section, a tracker ticket, or an explicit statement in the run report when neither was reachable.
+   Skip the gate when there are no justified remaining concerns or dedicated review was skipped. A reported count alone does not decide whether to stop.
 
 5. **Final Validation**
    - All tasks marked completed
@@ -71,14 +61,10 @@ This file contains the shipping workflow (Phase 3-4). It is loaded when all Phas
    - If any `Deferred to Implementation` questions were noted, confirm they were resolved during execution
 
 6. **Prepare Operational Validation Plan** (REQUIRED)
-   - Add a `## Post-Deploy Monitoring & Validation` section to the PR description for every change.
-   - Include concrete:
-     - Log queries/search terms
-     - Metrics or dashboards to watch
-     - Expected healthy signals
-     - Failure signals and rollback/mitigation trigger
-     - Validation window and owner
-   - If there is truly no production/runtime impact, still include the section with: `No additional operational monitoring required` and a one-line reason.
+
+   The PR description's `## Post-Deploy Monitoring & Validation` section must let a maintainer distinguish the intended behavior change from a regression. Base its log queries, metrics, expected signals, failure/mitigation triggers, validation window, and owner on the available project evidence. State material unknowns rather than inventing operational facts. A rollback trigger needs evidence of unintended harm; a change in behavior the task explicitly requires is not that evidence.
+
+   If there is no production/runtime impact, use `No additional operational monitoring required` with a one-line reason. Prepare this material for the shipping handoff; do not turn it into extra advice in a local-completion reply when shipping is outside the requested work.
 
 ## Phase 4: Ship It
 
@@ -130,7 +116,7 @@ Before creating PR, verify:
 - [ ] Validation/evidence context passed to `ce-commit-push-pr` when the change has observable behavior
 - [ ] Commit messages follow conventional format
 - [ ] PR description includes Post-Deploy Monitoring & Validation section (or explicit no-impact rationale)
-- [ ] Simplify: `ce-simplify-code` when the diff has >=30 substantive changed code lines (or skipped with reason)
+- [ ] Simplify: `ce-simplify-code` under the threshold selected in Phase 3 (or skipped with reason)
 - [ ] Code review completion gate: completed receipt (`status: complete` + `artifact_path`/`run_id` or markdown Actionable/Coverage/Verdict) **or** exact phrase (`Code review: skipped (mechanical diff)` / `Code review: skipped (ce-code-review unavailable)` / `Code review: harness-native fallback`); residuals handled via the Residual Work Gate
 - [ ] Ship-handoff gate passed before `ce-commit-push-pr` / `ce-commit` (completed receipt or exact phrase in shipping context)
 - [ ] PR description includes summary, testing notes, and evidence when captured

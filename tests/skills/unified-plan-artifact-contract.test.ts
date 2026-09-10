@@ -726,26 +726,27 @@ describe("session-settled decision contract", () => {
 
   test("ce-work envelope reports settled conflicts; shipping tail treats invalidation as a blocker", () => {
     expect(ceWorkReturn).toContain("`settled_decision_conflicts`")
-    expect(ceWorkShipping).toContain("never auto-accepted as a residual")
+    expect(ceWorkShipping).toContain("do not accept it as a leftover risk")
   })
 
-  test("ce-code-review routes settlement conflicts advisory+human, never demotes defects, and keeps stamps report-only in 5c", () => {
+  test("ce-code-review discards settled preferences, retains defects, and protects decisions during apply", () => {
     const stage5 = sliceSection(
       codeReviewFinish,
       "### Stage 5: Merge findings",
       "### Stage 5b",
     )
-    expect(stage5).toContain("stamp `settled_conflict`")
-    expect(stage5).toContain("route it advisory/human")
+    expect(stage5).toContain("Discard findings that merely prefer an alternative")
+    expect(stage5).toContain("including candidates already stamped `settled_conflict`")
     // Negative boundary: defects inside a settled approach are not demoted.
-    expect(stage5).toContain("Do not demote a real defect")
+    expect(stage5).toContain("Keep evidence of a real defect")
+    expect(stage5).toContain("with normal severity")
     const stage5c = sliceSection(
       codeReviewFinish,
       "### Stage 5c: Act on findings",
       "### Stage 6",
     )
-    expect(stage5c).toContain("`settled_conflict`-stamped")
-    expect(stage5c).toContain("stay report-only")
+    expect(stage5c).toContain("Local apply does not authorize reversing a settled decision")
+    expect(stage5c).toContain("return the consequential choice to the user")
   })
 
   test("PR description Step C carries the session-settled provenance element", () => {

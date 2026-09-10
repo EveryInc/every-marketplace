@@ -19,9 +19,9 @@ Deliver a supported position in the form the intended consumer can use. Lead wit
 
 When contributing to an ongoing workflow, return the result and leave continuation to its owner. Do not add follow-up or panel offers to that return. An explicit oracle or named-peer request still runs the panel, including when it comes from a calling workflow.
 
-Resolve the question from the request and context, and investigate discoverable facts before asking. Ask only when missing information materially changes the judgment and cannot be resolved from evidence. If interaction is unavailable, return the missing framing or evidence and why it blocks the judgment rather than waiting or choosing the caller's requirements.
+## Identify the question and return the result
 
-When a question is necessary, use the host's question capability already in the current tool list; never call a user-facing question tool to discover whether it exists. If no tool is available, ask in chat only when a person is participating. Do not turn framing into an interview.
+Identify the question from the request and conversation, then look up facts you can verify. Do not interview the user to work out what to assess. If missing information would change the recommendation and you cannot find it, return **Blocked — missing context**. Explain what is missing, why it matters, and what would resolve it. The calling agent decides whether to ask for clarification or take another action. This applies whether the user invokes `ce-pov` directly or another agent calls it; no separate non-interactive mode is needed.
 
 ## Artifact Root
 

@@ -414,8 +414,9 @@ describe("ce-code-review contract", () => {
     expect(template).toMatch(/lint.ignore|lint disable|eslint-disable/i)
     expect(template).toMatch(/suppress unless the suppression itself violates/i)
 
-    // Advisory routing rule preserved
-    expect(template).toMatch(/Advisory observations.*route to advisory/i)
+    // Live review leaked rejected concerns through advisory output; all buckets need admission.
+    expect(template).toMatch(/Advisory observations need a demonstrated benefit/i)
+    expect(template).toMatch(/same admission rule.*residual_risks.*testing_gaps/i)
 
     // Personas never produce anchors 0 or 25 (suppress silently)
     expect(template).toMatch(/personas never produce/i)
@@ -864,15 +865,14 @@ describe("ce-code-review contract", () => {
     expect(content).toMatch(/Suppressed candidates routed here remain absent from primary `findings`/)
     expect(content).toMatch(/discard all other `suppressed_findings`/)
 
-    // Settlement reconciliation owns suppressed preferences before the remainder is discarded.
+    // Settled preferences cannot bypass admission through the helper rerun.
     expect(stage5).toMatch(/Settled decisions[\s\S]*surviving `findings` and `suppressed_findings`/)
-    expect(stage5).toMatch(/include it in the synthetic rerun[\s\S]*helper preserves it in the primary report/)
+    expect(stage5).toMatch(/Discard findings that merely prefer an alternative/)
+    expect(stage5).toMatch(/Omit candidates discarded during settlement reconciliation/)
     expect(stage5.indexOf("**Settled decisions.**")).toBeLessThan(
       stage5.indexOf("**Soft-bucket demotion before validation.**"),
     )
-    expect(stage5).toMatch(
-      /Soft-bucket demotion[\s\S]*Keep every `settled_conflict`-stamped finding primary/,
-    )
+    expect(stage5).not.toMatch(/Keep every `settled_conflict`-stamped finding primary/)
   })
 
   test("personas use anchored rubric language and no float references remain", async () => {
@@ -1041,7 +1041,7 @@ describe("ce-code-review contract", () => {
     // cold-caller fallback only (it must not start a second review in the ce-work Tier 2 path).
     expect(followup).toMatch(/consume the completed review/i)
     expect(followup).toMatch(/invoke[^\n]*review[^\n]*cold caller/i)
-    expect(followup).toMatch(/does not investigate findings/i)
+    expect(followup).toContain("The calling agent decides which findings are valid and which fixes it has permission to apply")
     expect(followup).toMatch(/Group by `file`/i)
     expect(followup).toMatch(/batch/i)
     expect(followup).toContain("mode:agent")
@@ -1064,23 +1064,11 @@ describe("ce-code-review contract", () => {
         /no-sink/,
       )
 
-      // Gate step is explicitly labeled and required after Tier 2.
       expect(workflow).toContain("**Residual Work Gate**")
-      expect(workflow).toMatch(/do not proceed to Final Validation/i)
-
-      // Three forward options + one abort; labels are self-contained.
-      expect(workflow).toContain("Apply/fix now")
-      expect(workflow).toContain("File tickets via project tracker")
-      expect(workflow).toContain("Accept and proceed")
-      expect(workflow).toContain("Stop — do not ship")
-
-      // Accept-and-proceed path threads findings into the PR description under the
-      // heading ce-resolve-pr-feedback ticks; see the cross-skill heading test below.
+      expect(workflow).toContain("Close rejected claims; they are not unfinished work")
+      expect(workflow).toContain("Autonomous runs return the blocker")
+      expect(workflow).toContain("Remaining concerns that do not prevent completion do not need a menu asking what to do next")
       expect(workflow).toContain("## Unapplied review findings")
-      expect(workflow).toContain("If the user later chooses the no-PR `ce-commit` path")
-      // With no PR and no reachable tracker there is no durable sink, so the run says so
-      // outright. The committed record file that used to fill this slot was removed: it
-      // fired once in the repo's history, wrongly, and outlived the ticket it duplicated.
       expect(workflow).toContain("recorded nowhere else")
       expect(workflow).not.toContain("residual-review-findings")
     }

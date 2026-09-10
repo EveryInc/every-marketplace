@@ -6,6 +6,10 @@
 
 The plan is a decision artifact: authoritative for scope, decisions, units, and tests. `ce-work` figures out the actual implementation itself. This is the HOW phase that `ce-plan` deliberately does not pre-write.
 
+After code review, the host resolves verified fixes within the requested work and checks the result. The handoff reports changes, verification, and worthwhile unresolved work. Reasons for rejecting review suggestions stay with the review evidence; they do not become a new list of concerns for the user.
+
+Project simplification thresholds override the default. Deployment guidance belongs in the shipping handoff and must distinguish expected behavior changes from regressions.
+
 It is the fourth step in the compound-engineering ideation chain:
 
 ```text
@@ -90,7 +94,7 @@ Asking an agent "implement this plan" goes wrong in predictable ways:
 - An idempotency check before each task: if verification is already satisfied, skip it
 - Scope-appropriate implementation (native inline/subagents by default, or a sanctioned cross-model route) and scheduling (serial or bounded independent waves)
 - Test discovery and evidence selection before behavior changes, plus integration coverage before any task is marked done
-- Portable self-sizing code review with a residual-work gate: apply, file, accept, or stop, but never silently ship
+- Portable self-sizing code review: resolve justified fixes within scope, stop for blockers requiring evidence or a user decision, and record other worthwhile concerns
 - Every PR carries an operational validation plan: what to monitor, what triggers rollback
 
 ---
@@ -115,7 +119,7 @@ When the plan defines U-IDs, they propagate as task prefixes, into commit messag
 
 A task is not done when the code compiles. Before changing behavior, `ce-work` discovers the existing test files and chooses the right proof: use an existing failing test, update or strengthen the existing test that owns the contract, add a focused failing test, capture characterization coverage, or record a deliberate exception with replacement verification. Before marking a feature-bearing task complete, it checks that test scenarios cover the categories that apply (happy path, edges, error paths, integration) and traces two levels out for callbacks, middleware, and observers.
 
-Standalone shipping is not done until a `ce-code-review` receipt exists or the shipping summary carries an exact skip phrase (`Code review: skipped (mechanical diff)` or `Code review: skipped (ce-code-review unavailable)`). Mechanical means formatting, dep bumps, lint-only, or generated artifacts only. Review is read-only; `ce-work` applies eligible fixes afterward, then sends any actionable remainder through a four-option residual gate (apply / file tickets / accept with durable sink / stop). "Accept" requires a real durable record. Return-to-caller mode leaves review to the caller.
+Before shipping on its own, `ce-work` must have a completed `ce-code-review` result or report exactly why it skipped review: `Code review: skipped (mechanical diff)` or `Code review: skipped (ce-code-review unavailable)`. Mechanical changes are formatting, dependency updates, lint fixes, or generated files only. Review does not edit files. `ce-work` checks the findings, chooses technical fixes from project evidence, and applies justified fixes within scope. It stops when essential evidence, a user decision, or permission is needed to complete the requested work. Other remaining concerns are recorded without asking what to do next. When `ce-work` is returning work to another agent, that agent owns the review.
 
 Every PR description includes a `Post-Deploy Monitoring & Validation` section. If there is truly no production impact, the section still exists with that as the recorded decision.
 
@@ -306,7 +310,7 @@ No. They isolate concurrent Git state and contain accidental mutation, but the e
 Resuming after context compaction, picking up someone else's branch, or returning to a partly-shipped plan are all common. Idempotency keeps `ce-work` from silently reimplementing what is already there.
 
 **What's the Residual Work Gate?**
-When `ce-code-review` surfaces actionable findings the follow-up pass did not resolve, `ce-work` will not silently ship them. It asks: apply now / file tickets / accept (with durable sink) / stop. "Accept" requires a real durable record.
+After review, `ce-work` drops incorrect or low-value suggestions and applies justified fixes within the approved scope. It stops shipping when an unresolved problem prevents the requested result and cannot be fixed with the evidence and permission available. Other worthwhile concerns are recorded in the authorized PR or issue tracker, or returned in the report if neither is available. It calls `ce-pov` only when an important, specific choice needs a separate assessment that reading the code cannot settle.
 
 **Does `ce-work` support non-software plans?**
 For a plan marked `execution: knowledge-work` (produced by `ce-plan`'s approach-altitude flow), yes. The carve-out reads the sources, synthesizes, and produces the deliverable, skipping the commit/test/PR lifecycle. Other non-software work without that marker still ends at `ce-plan`, and a human executes it.

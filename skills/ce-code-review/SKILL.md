@@ -6,6 +6,9 @@ argument-hint: "[mode:agent] [apply:local] [blank to review current branch, or p
 
 # Code Review
 
+Help the caller deliver a correct change within the agreed scope. Find defects and improvements whose consequences justify action; judge the code against its intended behavior and project requirements, not a preferred rewrite. Serious defects remain important even when the diff is small. An adequate change needs no findings.
+
+**Done when:** required review and validation are complete, retained findings are supported by the source, and the caller has a clear result with any remaining coverage limits. Apply only when the invocation authorizes it, under the rules below.
 
 ## Artifact Root
 
@@ -40,4 +43,4 @@ Follow these steps in order; the references supply the detail but never change t
 
 ## Task Visibility
 
-For the multi-agent path, once the review scope is resolved, use the platform's task-tracking capability when available to show a short user-facing view derived from the execution spine. Track review outcomes, not individual personas, setup mechanics, or tool calls; add conditional work only when its gate fires, and update the view at meaningful transitions. If no task-tracking capability is available, continue with the normal progress and final report without simulating a task list in chat.
+Use the platform's task-tracking capability after resolving scope, as described in `references/scope.md`.

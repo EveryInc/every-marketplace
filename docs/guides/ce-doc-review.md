@@ -1,8 +1,8 @@
 # `ce-doc-review`
 
-> Review a requirements or plan document with parallel persona agents, apply mechanical fixes, and route the rest.
+> Review a requirements or plan document with parallel persona agents, correct proven errors, and return worthwhile unresolved issues.
 
-`ce-doc-review` is the findings skill for documents. Point it at a requirements-only unified plan, an implementation-ready plan, or a legacy requirements/plan doc. It picks reviewer personas from what the doc contains, dispatches them in parallel, applies only full-confidence mechanical fixes in the document's native format, then routes everything else to you.
+`ce-doc-review` finds problems in requirements and plans. It chooses reviewers based on the document, runs them in parallel, and checks their findings. By default it corrects proven errors that prevent a concrete decision already in the document from being carried out. That includes necessary technical corrections, even when they change the wording or meaning. Explicit read-only restrictions take precedence, and broader changes still need edit authority. It then decides which remaining issues need your attention.
 
 It is the sibling of `/ce-code-review` for the docs side, and it is not a verdict. Use `/ce-pov` when you want a holistic take (strengths, risks, bottom line) instead of an issue list. Use `/ce-code-review` for findings on a diff, and `/ce-debug` when something is actually broken.
 
@@ -16,12 +16,16 @@ If the repo declares [Compound Packs](./packs.md) in its `packs` config, reviewe
 
 | Question | Answer |
 |----------|--------|
-| What does it do? | Selects reviewer personas from the doc, dispatches them in parallel, applies mechanical fixes, and routes remaining findings |
+| What does it do? | Selects reviewers for the document, checks their findings, applies authorized corrections, and returns worthwhile unresolved items |
 | When to use it | After a requirements-only plan lands, after `ce-plan` writes or enriches a plan, or any time you want structured findings on a planning doc |
-| What it produces | An updated markdown or HTML doc with mechanical fixes applied in its native format, plus structured handling of proposed fixes and decisions |
+| What it produces | An updated markdown or HTML document, plus proposed fixes still needing approval and choices only the user can settle |
 | Modes | Interactive (direct invoke, or a caller's follow-up option). Non-interactive (default when `ce-plan` chains it) |
 
 ---
+
+The agent uses your plan and project context to choose technical fixes, even when more than one approach would work. It applies corrections covered by your existing edit permission and shows the remaining proposed changes together for approval. It asks you to make a separate decision only when a fix depends on a choice you haven't made or information it cannot find.
+
+When only another AI model found a worthwhile problem, the review can have a local reviewer independently check the relevant document and source before applying an otherwise authorized fix. The reviewer sees the relevant source and agreed goal, without the first model’s claims, proposed fixes, or leading questions. Without independent support, the proposed fix still needs your approval.
 
 ## Example invocations
 
@@ -29,7 +33,7 @@ A path, no path, or non-interactive. Markdown and HTML plans use the same review
 
 ```text
 # Review a specific requirements or plan document. Interactive by default:
-# mechanical fixes land, then you route the rest.
+# necessary corrections land; worthwhile unresolved items remain.
 /ce-doc-review docs/plans/notification-mute.md
 
 # Same, on an implementation-ready plan
@@ -38,7 +42,7 @@ A path, no path, or non-interactive. Markdown and HTML plans use the same review
 # No path: asks which doc, or finds the most recent file in the project's plans directory
 /ce-doc-review
 
-# Non-interactive: requires a path. Applies mechanical fixes, returns the rest as structured text
+# Non-interactive: requires a path. Applies authorized corrections and returns structured results
 /ce-doc-review mode:non-interactive docs/plans/notification-mute.md
 
 # Deprecated alias for the same non-interactive contract
@@ -67,7 +71,7 @@ Document review is harder than code review in specific ways:
 - Two personas on every review: coherence and feasibility
 - Conditional personas selected from doc content: product-lens, design-lens, security-lens, scope-guardian, adversarial
 - Parallel persona dispatch with bounded concurrency
-- Synthesis that promotes on cross-persona agreement, resolves contradictions, and routes on confidence and fix class together. Only a mechanical correction at full confidence applies unattended. Everything else that touches meaning goes into one batched confirmation. Only a real fork becomes a question
+- Reviewers and the lead agent check whether each concern is worth acting on, including FYIs and remaining questions. A requirement does not need repeating in every unit to count as covered. The lead agent checks what would go wrong with the plan as written and whether the proposed correction actually resolves it. A reviewer’s preferred alternative does not itself create a decision for you. Reviewer agreement can strengthen evidence but does not make a nit important. Proven corrections required by an existing decision apply automatically, subject to reviewer support and any edit restrictions. Changes outside existing edit authority need approval, and choices reserved for the user are asked separately
 - A decision primer that suppresses findings you rejected in earlier rounds and verifies the ones you applied
 - Four options for the remaining decisions: per-finding walk-through, auto-resolve with best judgment, append to Open Questions, report-only
 
@@ -95,10 +99,10 @@ The skill classifies the doc once, from readiness metadata, content-shape signal
 
 ### Three surfaces, not a flat list
 
-After personas return, synthesis validates, drops unanchored findings, deduplicates, promotes on agreement, and routes:
+After the reviewers finish, the lead agent checks which findings matter, combines duplicates, and presents the results in three groups:
 
-- **Applied** (reported): only `safe_auto` at confidence 100. Mechanical corrections with one right answer
-- **Proposed fixes** (grouped confirmation): everything with a concrete fix that touches meaning, plus obligations the document already entailed. One question over the batch, shown in full first
+- **Applied** (reported): proven corrections required by concrete existing decisions, plus verified corrections covered by explicit edit authority
+- **Proposed fixes** (grouped confirmation): worthwhile corrections outside existing authority or still lacking sufficient confidence or independent support. One question over the batch, shown in full first
 - **Decisions**: genuine forks. The question is which remedy, never whether to proceed with something already settled
 - **FYI**: observational items. No question
 
@@ -115,7 +119,7 @@ Without the evidence snippet, suppression falls back to title-only and either re
 
 ### Four-option interaction
 
-After mechanical fixes land and the grouped confirmation is answered, one routing question covers the whole remaining set:
+After applying authorized corrections and getting approval for any remaining proposed changes, the skill handles the remaining decisions as you requested. If you have not chosen how to handle them, it asks once:
 
 | Option | Effect |
 |--------|--------|
@@ -133,9 +137,11 @@ Each per-finding step prints a terminal block and duplicates What's wrong / Prop
 | Mode | When | Behavior |
 |------|------|----------|
 | **Interactive** | Direct invoke, brainstorm's "Pressure-test the requirements", or `ce-plan`'s "Decide on the review's open items" | Grouped confirmation, routing question, walk-through, bulk-preview confirmations |
-| **Non-interactive** | `mode:non-interactive` (deprecated alias `mode:headless`). Default when `ce-plan` chains the review | Applies full-confidence mechanical corrections silently. Returns everything else as structured text. No prompts |
+| **Non-interactive** | `mode:non-interactive` (deprecated alias `mode:headless`). Default when `ce-plan` chains the review | Applies full-confidence corrections required by existing decisions, within the review’s edit boundaries. Returns worthwhile unresolved items as structured text. No prompts |
 
 Non-interactive requires a path. Without one it errors rather than guessing.
+
+You can return to existing findings without running another review when the document, scope, and relevant source files are unchanged. The agent needs the full earlier review and its evidence, not just a summary. It starts a fresh review if those inputs changed significantly or the evidence is incomplete. Once finished, it returns the result without asking what to do next. This works both when you invoke the skill directly and when another skill calls it.
 
 ### Coverage, settled decisions, and the rendering floor
 
@@ -147,7 +153,7 @@ Findings lead with a recommendation and a one-sentence consequence that names no
 
 ### Cross-model judgment pass
 
-When the **conditional judgment trio** (adversarial, product-lens, security-lens) activates, those lenses also run through one different model provider than the host, in a separate read-only process. Agreement between a peer return and its in-process twin is the strongest promotion signal in synthesis. Coherence, scope-guardian, and feasibility stay single-model so the pass does not spawn a peer on every review.
+When adversarial, product, or security review is needed, another model also reviews those concerns in a separate read-only process. Agreement can raise confidence by one level only if the reviewers are confirmed to be independent and their combined evidence meets that level's requirements. Agreement does not make a finding important or give permission to edit. Coherence, scope, and feasibility reviews use one model.
 
 A single **whole-document sweep** has one different-provider peer review the entire document as a general reviewer, folding in as `whole-doc-<provider>`. On unified plans the focused trio peers are sliced to match their in-process twins. The sweep reads the whole document.
 
@@ -165,9 +171,9 @@ The pass embeds the document into the peer prompt and sends it to an external pr
 
 The skill reads the doc, classifies it as a plan from content-shape signals (U-IDs, plan section structure), and analyzes content for conditional personas. The plan touches a UI surface (mute toggle copy) but no high-stakes domains and proposes no new abstractions. It activates coherence (always-on), feasibility (always-on, plan-shape techniques), and design-lens (UI surface). Adversarial, scope-guardian, security-lens, and product-lens skip.
 
-Three reviewers return 9 raw findings. Synthesis merges them into 6: 2 mechanical fixes (typo, broken cross-reference), 3 proposed fixes (wording on a durability tradeoff, a missing edge case in test scenarios for U2, a design-lens flag on the toggle copy), 1 FYI.
+Two reviewers flag a broken cross-reference, a CSV test method that contradicts the required quoting behavior, and several requests to repeat instructions already present elsewhere. The lead drops the repetition requests and verifies both actual defects.
 
-The 2 mechanical fixes apply directly. Non-interactive mode returns the rest as structured text. A single summary line surfaces above the post-generation menu: `Doc review applied 2 fixes. 3 proposed fixes and 1 FYI remain; no decisions requiring judgment.` The user can pick `Start /ce-work` and go, or `Decide on the review's open items` to walk the three proposed fixes interactively.
+The cross-reference and CSV verification corrections implement decisions the document already made, so they apply without asking the user to reconfirm those decisions. Non-interactive mode reports: `Doc review applied 2 fixes. No unresolved review items.` A new choice about retention or a change to the agreed output format would remain the user's decision.
 
 ---
 
@@ -194,7 +200,7 @@ Skip `ce-doc-review` when:
 `ce-doc-review` is invoked from the skills that write planning docs:
 
 - **`/ce-brainstorm` post-doc menu** offers **Pressure-test the requirements** for markdown or HTML unified plans. It runs interactively with full premise scrutiny and is hidden when a prototype offer is on the same menu
-- **`/ce-plan` after the plan is written** runs `mode:non-interactive` by default on markdown and HTML plans. Mechanical fixes apply silently in the native format. Remaining findings surface as a one-line summary above the post-generation menu, where **Decide on the review's open items** opts into the interactive walkthrough
+- **`/ce-plan` after the plan is written** runs `mode:non-interactive` by default on markdown and HTML plans. While writing or revising a draft, the planner authorizes corrections to its implementation and verification sections under the established Product Contract. The review applies eligible corrections and preserves product choices and scope. Remaining findings surface as a one-line summary above the post-generation menu, where **Decide on the review's open items** opts into the interactive walkthrough
 - In non-interactive mode, callers receive structured findings and route the user-decision options themselves
 
 ---

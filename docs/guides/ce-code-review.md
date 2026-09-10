@@ -12,6 +12,8 @@ It is not a verdict on a document (`ce-pov`), not findings on a planning doc (`c
 
 `ce-work` invokes it as the portable review path before shipping. `ce-optimize` and `ce-debug` also call it on the diffs they produce. You can invoke it directly any time.
 
+The agent leading the review checks each finding against the code. It keeps findings that identify a real problem or make maintenance easier enough to justify the change. Agreement between reviewers does not make a minor issue important. Rejected suggestions do not reappear as risks or requests for more tests. Advisory observations need a demonstrated benefit too; uncertainty by itself does not justify passing a concern to the user.
+
 Collected review agents and validators are released before the next batch or handoff when the harness provides caller-owned cleanup. When it does not, the review reports retained-capacity limitations without claiming that completion freed a slot.
 
 ---
@@ -164,9 +166,9 @@ When the diff has an associated plan (`docs/plans/*.md` or `.html`), the skill d
 
 Pipeline artifacts under `plans/`, `solutions/`, and legacy `brainstorms/` are protected. Findings to delete or gitignore them are discarded.
 
-When a discovered plan carries `session-settled:` decisions, a finding that merely prefers a different approach is routed report-only with a `settled_conflict` stamp. A real defect inside a settled approach keeps its full severity. Reviewers stay blind to the annotations. The orchestrator triages after the fact.
+When a discovered plan carries `session-settled:` decisions, a finding that merely prefers a different approach is discarded. A real defect inside a settled approach keeps its full severity. Applying its fix still requires authority to change that decision when the fix cannot preserve it. Reviewers stay blind to the annotations. The orchestrator triages after the fact.
 
-Callers such as `/ce-work` read the Actionable Findings summary (or the JSON `actionable_findings` field) and own residual handling: apply now, file tickets, accept with a durable sink, or stop. This skill does not run that gate.
+Callers such as `/ce-work` read the Actionable Findings summary (or the JSON `actionable_findings` field) and own follow-up. They resolve justified fixes within scope, stop when completing the requested work requires missing evidence, authority, or a user decision, and record other worthwhile concerns. This skill does not run that gate.
 
 ---
 

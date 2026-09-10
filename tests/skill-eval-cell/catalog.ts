@@ -14,6 +14,7 @@
  *   extraction probe for that skill.
  */
 import { WORKTREE_REF } from "./extract"
+import { CALIBRATION_SCENARIOS } from "./calibration-scenarios"
 
 export const PRE_SWEEP_REF = "309611f6b5198528c1c98f83fb6b3c90637e523c"
 export const ISSUE_1482_BASE_REF = "66ccf579f8c1ef2ccfc642c317ba53151eeb1ebb"
@@ -137,6 +138,8 @@ export const WAVE1 = [
 ] as const
 
 export const SCENARIOS: Scenario[] = [
+  ...CALIBRATION_SCENARIOS,
+
   ...[
     {
       id: "sustain-process-session",
@@ -215,6 +218,22 @@ Report NEXT: handoff if babysit should be invoked, NEXT: continue if the active 
     pre_contract: "Never add a fact, number, name, quote, or citation the source did not supply, and never drop a claim.",
     task: "Use the ce-noslop skill to edit facts.md for a repo document. Return the full result text in chat between the markers RESULT-START and RESULT-END, then the one-line summary. Do not write files.",
     grade: { workspace_read: ["facts.md"], must_include: ["92", "14", "45", "12", "3.8", "4 milliseconds"], result_must_not_include: ["it is important to note", "boasting"], actions: "none" },
+  },
+  {
+    id: "ce-doc-review/approval-versus-judgment-summary",
+    skill: "ce-doc-review", cohort: "untouched", key_behavior: "judgment", read_only: true, post_only: true,
+    why: "A determined fix may still require approval. The summary must distinguish that permission from a choice requiring user judgment.",
+    pre_contract: "Report completed changes separately from grouped proposals and decisions. A selected fix does not establish permission to apply it.",
+    task: "Use ce-doc-review at the presentation checkpoint. Read references/rendering-floor.md and references/review-output-template.md. Return only a user-facing summary of these already-verified results, not a full table or a new review. One broken guide link was fixed and verified. Two plan corrections have selected fixes: update the obsolete setup command and add the missing dependency so the guide can copy the completed asset. Both corrections await one grouped approval; neither has been applied. No question requiring user judgment remains. Do not ask for approval in this test, dispatch, inspect a project, or edit anything.",
+    grade: { must_include: ["approval"], actions: "none" },
+  },
+  {
+    id: "ce-noslop/workflow-jargon-keeps-technical-detail",
+    skill: "ce-noslop", cohort: "untouched", key_behavior: "judgment", read_only: true, post_only: true,
+    why: "Internal workflow labels should become understandable actions without changing technical facts or implying that approval was granted.",
+    pre_contract: "Prose must be understandable on the first read while preserving facts, qualifiers, exact identifiers, and caller-required tokens.",
+    task: "Use ce-noslop to edit this agent update for a teammate who did not follow the work. Return the result between RESULT-START and RESULT-END and one summary line. Do not write files. Source: The agent adjudicated the claim set, meaning it checked each reported problem against the code. Two fixes await grouped confirmation, meaning neither will be applied until you approve them together. The nonblocking residual is a possible retry delay that does not prevent this release; its cause remains unverified. Retry-After is an HTTP header that specifies when to retry. Keep max_retries=3 and the 250 ms delay unchanged. The caller requires the exact status token status: pending_approval.",
+    grade: { must_include: ["Retry-After", "max_retries=3", "250 ms", "status: pending_approval"], result_must_not_include: ["adjudicated", "claim set", "nonblocking residual"], actions: "none" },
   },
   {
     id: "ce-noslop/dense-paragraph-keeps-every-claim",

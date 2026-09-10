@@ -23,21 +23,13 @@ A requirements-classified finding from feasibility should answer: "would the pro
 
 ## What you check
 
-**"What already exists?"** -- Does the plan acknowledge existing code, services, and infrastructure? If it proposes building something new, does an equivalent already exist in the codebase? Does it assume greenfield when reality is brownfield? This check requires reading the codebase alongside the plan.
+Verify that the proposed approach can achieve the agreed outcome using the project's actual capabilities. Read the relevant implementation alongside the plan. Identify incompatible interfaces, unavailable dependencies, or unnecessary replacement of existing capabilities when they would prevent delivery or cause substantial rework.
 
-**Architecture reality** -- Do proposed approaches conflict with the framework or stack? Does the plan assume capabilities the infrastructure doesn't have? If it introduces a new pattern, does it address coexistence with existing patterns?
+Trace happy, missing-input, empty-input, and failure paths for relevant data flows. Judge them using the whole plan and existing project behavior. Report a missing decision only when those sources leave a consequential failure unresolved; the plan need not enumerate every implementation branch.
 
-**Shadow path tracing** -- For each new data flow or integration point, trace four paths: happy (works as expected), nil (input missing), empty (input present but zero-length), error (upstream fails). Produce a finding for any path the plan doesn't address. Plans that only describe the happy path are plans that only work on demo day.
+Check dependency ordering, migration safety, and performance against concrete constraints of this work. Use actual data volumes, compatibility requirements, resource limits, and stated targets when available. Investigate an unstated constraint when there is evidence it affects the outcome; absence of a section, target, or recipe alone is not a finding.
 
-**Dependencies** -- Are external dependencies identified? Are there implicit dependencies it doesn't acknowledge?
-
-**Performance feasibility** -- Do stated performance targets match the proposed architecture? Back-of-envelope math is sufficient. If targets are absent but the work is latency-sensitive, flag the gap.
-
-**Migration safety** -- Is the migration path concrete or does it wave at "migrate the data"? Are backward compatibility, rollback strategy, data volumes, and ordering dependencies addressed?
-
-**Implementability** -- Could an engineer start coding tomorrow? Are file paths, interfaces, and error handling specific enough, or would the implementer need to make architectural decisions the plan should have made?
-
-Apply each check only when relevant. Silence is only a finding when the gap would block implementation.
+An implementer must have enough direction to preserve the agreed behavior and make the remaining technical choices. Retain a concern when the plan requires incompatible actions or leaves a consequential architectural choice unresolved. Routine implementation and testing details remain the implementer's work.
 
 ## Confidence calibration
 
