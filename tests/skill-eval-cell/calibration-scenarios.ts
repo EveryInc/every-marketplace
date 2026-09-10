@@ -7,6 +7,28 @@ const base = { cohort: "resized", key_behavior: "judgment", read_only: true, fix
 export const CALIBRATION_SCENARIOS: Scenario[] = [
   {
     ...base,
+    id: "ce-doc-review/rejected-evidence-freshness",
+    skill: "ce-doc-review",
+    baseline_ref: "153e605e1622154a0d7da095fceed13edcb68bf7",
+    why: "An unchanged document quote must not keep a prior rejection binding after material source changes.",
+    pre_contract: "R29 suppression matches section, title and evidence overlap; its changed-context exception describes document edits.",
+    task: `Use ce-doc-review for R29 reconciliation only. Read references/document-intake.md and references/synthesis-and-presentation.md. A fresh review has completed. For each candidate, return RECONCILIATION: A=<suppress|reassess>, B=<suppress|reassess>, and explain whether reassessment grants permission to reverse an existing user decision. Do not dispatch or edit.
+
+Both findings match a prior skipped finding's normalized title and section, and repeat its document quote verbatim. A concerned duplicate billing under retries. It was previously rejected because the source never retried. The unchanged plan still says "Send the charge request." Source code has now changed to retry charge requests after timeout, and the reviewer demonstrated two charges when the first request succeeded before timing out. B suggests renaming a clearly defined term for consistency. It was rejected as a preference. Its document, source, requirements, and evidence are unchanged.`,
+    grade: { must_include_field: "RECONCILIATION", must_include: ["A=reassess", "B=suppress"], actions: "none", delegates: "none" },
+  },
+  {
+    ...base,
+    id: "ce-doc-review/retained-output-counts",
+    skill: "ce-doc-review",
+    baseline_ref: "153e605e1622154a0d7da095fceed13edcb68bf7",
+    why: "Interactive output must not count rejected raw residuals or invent deferred questions from template examples.",
+    pre_contract: "The template calls counts post-synthesis but explicitly derives Residual from raw persona output and illustrates an unsupported deferred API question.",
+    task: `Use ce-doc-review to render only Deferred Questions and Coverage from a completed synthesis result. Read references/review-output-template.md. There is one completed feasibility reviewer, zero findings, no fixes, no FYIs, and no reviewer failure. Its raw return contained two residual risks about hypothetical scale and a suggestion to version API endpoints, all rejected by synthesis as unsupported. The retained review has zero residual concerns and one deferred question: the support team must choose whether customers are promised 7 or 30 days of export recovery; neither commitment is settled and research cannot choose for the team. Render the retained sections. Do not dispatch, edit, or ask the question now.`,
+    grade: { must_include: ["7", "30", "Coverage"], actions: "none", delegates: "none" },
+  },
+  {
+    ...base,
     id: "ce-doc-review/fyi-template-admission",
     skill: "ce-doc-review",
     baseline_ref: "153e605e1622154a0d7da095fceed13edcb68bf7",

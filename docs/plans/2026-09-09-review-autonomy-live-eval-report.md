@@ -1,5 +1,13 @@
 # Review autonomy: live behavioral evaluation
 
+## Review-state and output consistency
+
+Rejection reuse now depends on whether the evidence supporting that rejection remains current, including relevant source changes. The template has one shared rule for rendering retained items and counts; it no longer counts rejected raw residuals or illustrates an unsupported deferred question. The planner keeps its existing decision-menu predicate and delegates resume behavior to document review.
+
+Bounded fresh-session checks used pre-change `6cf05fc0c78cfad9e97f8832a3d5d597788df22e` and the edited working tree. Pre-change Fable low counted two rejected residuals; post-change Fable low and Astra low both counted zero and rendered only the retained support commitment question. In the evidence-freshness check, pre-change Fable already reassessed a demonstrated duplicate-billing defect after source changes and suppressed an unchanged naming preference, despite noting the conflicting literal rule. Both post hosts preserved those outcomes and denied that reassessment grants permission to reverse a user commitment. This establishes a rendering correction and reconciliation non-regression, not full-workflow coverage. Fable still narrates omitted items; no further tuning was attempted.
+
+Explicit wrappers requested `claude-fable-5-1` low and `gpt-6-astra` low. Artifacts: `/var/folders/yr/rc1_m71d72zcl3zxwsdd75400000gn/T/ce-review-state-SbAlQ9`. The catalog's two new scenarios use durable pre-change ref `153e605e1622154a0d7da095fceed13edcb68bf7`, which was not the measured pre arm. An independent reader found no lost authority or presentation contract. Validation: 4,022 tests passed in 74.23 seconds; release and strict plugin validation passed.
+
 ## FYI template and caller-guide consistency
 
 The interactive document-review template still illustrated a filename preference and unsupported monitoring thresholds as FYIs. Its FYI block now inherits synthesis admission and illustrates verified practical benefits. The two caller-guide descriptions that still promised an apply/file/accept/stop menu now describe the existing outcome-based gate: resolve justified work, stop for essential evidence or a user-only choice, and record other worthwhile concerns. No runtime synthesis or caller gate changed.

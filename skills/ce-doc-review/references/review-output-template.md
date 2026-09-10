@@ -1,6 +1,6 @@
 # Document Review Output Template
 
-Use this **exact format** when presenting synthesized review findings in Interactive mode. Findings are grouped by severity, not by reviewer.
+Use this **exact format** when presenting synthesized review findings in Interactive mode. Findings are grouped by severity, not by reviewer. Render only the items and counts retained by synthesis, including FYIs, residual concerns, and deferred questions. Examples illustrate presentation; they do not admit a concern or create a user decision.
 
 **IMPORTANT:** Use pipe-delimited markdown tables (`| col | col |`). Do NOT use ASCII box-drawing characters.
 
@@ -75,16 +75,12 @@ Two fixes, both bringing a unit in line with a convention the plan already appli
 
 ### FYI Observations
 
-Only render advisory observations retained by synthesis after its admission check. State the verified practical benefit; confidence 50 alone does not make a concern worth surfacing.
-
 | # | Section | Observation | Reviewer | Confidence |
 |---|---------|-------------|----------|------------|
 | 1 | Verification | Recorded manual fixture setup takes 15 minutes per run; the existing seed script produces the same fixture in 2 minutes | feasibility | 50 |
 | 2 | Operations | Support records show repeated searches for the same deployment logs; linking the existing log view from the runbook would shorten incident triage | feasibility | 50 |
 
 ### Residual Concerns
-
-Residual concerns are distinct, unresolved risks that passed the same admission check as findings. Omit rejected claims and preferences; this section is not a record of everything reviewers noticed.
 
 | # | Concern | Source |
 |---|---------|--------|
@@ -94,7 +90,7 @@ Residual concerns are distinct, unresolved risks that passed the same admission 
 
 | # | Question | Source |
 |---|---------|--------|
-| 1 | Should the API use versioned endpoints from launch? | feasibility, security-lens |
+| 1 | Which export-recovery retention period can support commit to for customers: 7 or 30 days? | feasibility, security-lens |
 
 ### Coverage
 
@@ -120,8 +116,8 @@ Restated: 2 (residual/deferred items suppressed as duplicates of actionable find
 - **Proposed fixes**: The grouped confirmation, minus the obligations rendered above it — the two sections together are the batch, and nothing else is. Shape it per the floor's "Presenting a batch" rule (`references/rendering-floor.md`): lead with what the batch does as a whole, head each group with what its members share, and keep every member visible. Severity orders findings *within* a group; it never files them into the P-level sections below. **Nothing from the decision surface appears here.** The apply-all confirmation covers exactly this section plus the obligations, so a `manual` finding rendered into it becomes a genuine fork swept into a batch answer — the failure the split exists to prevent. Omit section if none.
 - **P0-P3 sections**: The decision surface only — findings synthesis step 3.7 routed to a decision, which the reader answers one at a time or routes in bulk. Grouped-confirmation members are rendered above and never repeated here. Omit empty severity levels. Within each severity, separate into **Errors** and **Omissions** sub-headers. Omit a sub-header if that severity has none of that type. The `Tier` column surfaces the finding's internal class — `manual` here, since a decision is what these sections carry; `gated_auto` or `safe_auto` appear in Proposed fixes above. A `gated_auto` row in a P-level table means routing went wrong; re-run 3.7 for that finding rather than rendering it here.
 - **FYI Observations**: Findings at confidence anchor `50` regardless of `autofix_class`. Surface here for transparency; these are not actionable and do not enter the walk-through. Omit section if none.
-- **Residual Concerns**: Distinct uncertainties retained by synthesis because evidence shows a material consequence. Rejected findings do not belong here. Omit section if none.
+- **Residual Concerns**: Distinct uncertainties retained by synthesis because evidence shows a material consequence. Omit section if none.
 - **Deferred Questions**: Questions for later workflow stages. Omit if none.
 - **Compact rendering for FYI / Residual / Deferred (high-count mode)**: When the combined count across these three sections is **5 or more**, collapse each section to a one-line summary followed by the items as a tight bullet list (no table, no per-item `Why` elaboration). Rationale: these sections are observational, not decision-forcing — when they are lengthy, they bury the actionable tiers above them. A P0/P1/P2 actionable finding stays fully rendered regardless of how many FYI/Residual/Deferred items exist. When the combined count is 4 or fewer, render each section as today.
-- **Coverage**: Always include. All counts are **post-synthesis**. **Findings** must equal Auto + Proposed + Decisions + FYI exactly — if deduplication merged a finding across personas, attribute it to the persona with the highest confidence anchor and reduce the other persona's count. **Residual** = count of `residual_risks` from this persona's raw output (not the promoted subset in the Residual Concerns section). The columns follow the routes synthesis step 3.7 assigned: `Auto` counts the findings it routed to Apply, `Proposed` counts the grouped confirmation — **including obligations**, since grouping is a presentation choice and not a separate class, so the Findings-equals-sum invariant is unaffected — `Decisions` counts the decision surface, and `FYI` counts findings at anchor `50` regardless of `autofix_class`. Findings at anchors `0` or `25` were dropped by synthesis and do not appear in any column. Do NOT invent additional columns (e.g., `Dropped`, `Surviving`). The column schema above is the canonical set.
+- **Coverage**: Always include. All counts are **post-synthesis**. **Findings** must equal Auto + Proposed + Decisions + FYI exactly — if deduplication merged a finding across personas, attribute it to the persona with the highest confidence anchor and reduce the other persona's count. **Residual** = count of retained residual concerns attributed to this persona after synthesis admission and deduplication. The columns follow the routes synthesis step 3.7 assigned: `Auto` counts the findings it routed to Apply, `Proposed` counts the grouped confirmation — **including obligations**, since grouping is a presentation choice and not a separate class, so the Findings-equals-sum invariant is unaffected — `Decisions` counts the decision surface, and `FYI` counts findings at anchor `50` regardless of `autofix_class`. Findings at anchors `0` or `25` were dropped by synthesis and do not appear in any column. Do NOT invent additional columns (e.g., `Dropped`, `Surviving`). The column schema above is the canonical set.
 - **Coverage footnote lines** (optional, appear below the table when non-zero): `Dropped: N (anchors 0/25 suppressed)` when synthesis 3.2 dropped any findings. `Restated: N (residual/deferred items suppressed as duplicates of actionable findings)` when synthesis 3.9 suppressed any restatements. These footnotes — not the summary line, not per-persona columns — are the canonical location for cross-cutting counts that don't fit the per-persona shape. Order: `Dropped:`, then `Restated:`, each on its own line. Omit any footnote whose count is zero.
